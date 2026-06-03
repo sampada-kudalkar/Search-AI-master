@@ -1,0 +1,232 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Icon } from '../Icon/Icon'
+import { Column, DataTableProps, SortDir } from './DataTable.types'
+
+const DEFAULT_WIDTH = 160
+const DEFAULT_MIN_WIDTH = 80
+
+export function DataTable<T extends Record<string, unknown>>({
+  columns,
+  data,
+  loading = false,
+  onRowClick,
+  rowAction,
+  rowMenuItems,
+}: DataTableProps<T>) {
+  const [widths, setWidths] = useState<Record<string, number>>(() => {
+    const init: Record<string, number> = {}
+    columns.forEach((c) => (init[String(c.key)] = c.width ?? DEFAULT_WIDTH))
+    return init
+  })
+  const [sort, setSort] = useState<{ key: string | null; dir: SortDir }>({ key: null, dir: 'asc' })
+  const [resizingKey, setResizingKey] = useState<string | null>(null)
+  const [menu, setMenu] = useState<{ rowIndex: number; top: number; left: number } | null>(null)
+
+  useEffect(() => {
+    setWidths((prev) => {
+      const next: Record<string, number> = {}
+      columns.forEach((c) => (next[String(c.key)] = prev[String(c.key)] ?? c.width ?? DEFAULT_WIDTH))
+      return next
+    })
+  }, [columns])
+
+  const sortedData = useMemo(() => {
+    if (!sort.key) return data
+    const key = sort.key
+    return [...data].sort((a, b) => {
+      const cmp = String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { numeric: true })
+      return sort.dir === 'asc' ? cmp : -cmp
+    })
+  }, [data, sort])
+
+  function toggleSort(col: Column<T>) {
+    if (!col.sortable) return
+    const key = String(col.key)
+    setSort((prev) =>
+      prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' },
+    )
+  }
+
+  function startResize(col: Column<T>, e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const key = String(col.key)
+    const min = col.minWidth ?? DEFAULT_MIN_WIDTH
+    const startX = e.clientX
+    const startW = widths[key] ?? DEFAULT_WIDTH
+    setResizingKey(key)
+    document.body.style.userSelect = 'none'
+    document.body.style.cursor = 'col-resize'
+    const onMove = (ev: MouseEvent) =>
+      setWidths((w) => ({ ...w, [key]: Math.max(min, startW + ev.clientX - startX) }))
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
+      setResizingKey(null)
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }
+
+  if (loading) {
+    return <div className="flex h-48 items-center justify-center text-body text-text-secondary">Loading…</div>
+  }
+  if (data.length === 0) {
+    return <div className="flex h-48 items-center justify-center text-body text-text-secondary">No records found.</div>
+  }
+
+  const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
+  const hasRowCtas = !!rowAction || !!(rowMenuItems && rowMenuItems.length)
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
+        <colgroup>
+          {columns.map((col) => (
+            <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
+          ))}
+        </colgroup>
+        <thead>
+          <tr>
+            {columns.map((col, i) => {
+              const key = String(col.key)
+              const sorted = sort.key === key
+              const resizable = col.resizable !== false
+              const showDivider = i < columns.length - 1
+              return (
+                <th key={key} className="relative h-12 border-b border-border px-[10px] align-middle font-normal">
+                  <button
+                    type="button"
+                    onClick={() => toggleSort(col)}
+                    className={`flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
+                  >
+                    <span className={`truncate text-body ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
+                      {col.label}
+                    </span>
+                    {col.sortable && (
+                      <Icon
+                        name={sorted && sort.dir === 'asc' ? 'expand_less' : 'expand_more'}
+                        size={16}
+                        className={`shrink-0 ${sorted ? 'text-text-primary' : 'text-text-icon'}`}
+                      />
+                    )}
+                  </button>
+                  {showDivider && (
+                    <span
+                      onMouseDown={resizable ? (e) => startResize(col, e) : undefined}
+                      className={`group/rz absolute right-0 top-0 z-10 flex h-full w-[11px] translate-x-1/2 items-center justify-center ${
+                        resizable ? 'cursor-col-resize' : ''
+                      }`}
+                    >
+                      <span
+                        className={`w-px transition-all ${
+                          resizingKey === key
+                            ? 'h-full w-[2px] bg-primary'
+                            : 'h-5 bg-border-selected group-hover/rz:h-full group-hover/rz:w-[2px] group-hover/rz:bg-primary'
+                        }`}
+                      />
+                    </span>
+                  )}
+                </th>
+              )
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {sortedData.map((row, i) => (
+            <tr
+              key={i}
+              onClick={() => onRowClick?.(row)}
+              className={`group/row border-b border-border last:border-b-0 transition-colors hover:bg-surface-hover ${
+                onRowClick ? 'cursor-pointer' : ''
+              }`}
+            >
+              {columns.map((col, ci) => {
+                const isLast = ci === columns.length - 1
+                const content = col.render ? col.render(row[col.key], row) : String(row[col.key] ?? '')
+                return (
+                  <td
+                    key={String(col.key)}
+                    className={`h-12 px-[10px] align-middle text-body text-text-primary ${
+                      isLast ? 'relative' : 'truncate'
+                    }`}
+                  >
+                    {isLast ? <span className="block truncate">{content}</span> : content}
+
+                    {/* Row hover CTAs anchored to the right edge */}
+                    {isLast && hasRowCtas && (
+                      <div className="absolute right-sm top-1/2 z-20 hidden -translate-y-1/2 items-center rounded-md border border-border bg-surface shadow-card group-hover/row:flex">
+                        {rowAction && (
+                          <button
+                            type="button"
+                            title={rowAction.label}
+                            aria-label={rowAction.label}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              rowAction.onClick(row)
+                            }}
+                            className="flex size-8 items-center justify-center rounded-l-md text-text-icon hover:bg-surface-hover"
+                          >
+                            <Icon name={rowAction.icon} size={20} />
+                          </button>
+                        )}
+                        {rowAction && rowMenuItems && rowMenuItems.length > 0 && (
+                          <span className="h-5 w-px bg-border" />
+                        )}
+                        {rowMenuItems && rowMenuItems.length > 0 && (
+                          <button
+                            type="button"
+                            aria-label="More actions"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const r = e.currentTarget.getBoundingClientRect()
+                              setMenu(
+                                menu?.rowIndex === i
+                                  ? null
+                                  : { rowIndex: i, top: r.bottom + 4, left: r.right - 168 },
+                              )
+                            }}
+                            className="flex size-8 items-center justify-center rounded-r-md text-text-icon hover:bg-surface-hover"
+                          >
+                            <Icon name="more_vert" size={20} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Three-dots menu */}
+      {menu && rowMenuItems && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => setMenu(null)} />
+          <div
+            className="fixed z-[110] min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+            style={{ top: menu.top, left: menu.left }}
+          >
+            {rowMenuItems.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  item.onClick(sortedData[menu.rowIndex])
+                  setMenu(null)
+                }}
+                className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
