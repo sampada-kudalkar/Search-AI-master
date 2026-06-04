@@ -131,7 +131,7 @@ export function AppointmentOverviewScreen() {
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex flex-1 flex-col overflow-auto bg-surface-l2">
+      <div className="flex flex-1 flex-col overflow-auto bg-surface">
         {/* Page header */}
         <div className="flex items-start justify-between bg-surface px-2xl py-xl">
           <div className="flex flex-col gap-xs">

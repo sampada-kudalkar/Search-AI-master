@@ -53,7 +53,7 @@ export function StackedBarChart({ data, series, xKey, height = 300 }: StackedBar
             stackId="a"
             fill={s.color}
             radius={i === series.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
-            maxBarSize={48}
+            maxBarSize={32}
             isAnimationActive={false}
           />
         ))}
