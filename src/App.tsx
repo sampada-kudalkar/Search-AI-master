@@ -4,6 +4,7 @@ import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
 import { ConversationsScreen } from './screens/ConversationsScreen'
+import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -106,6 +107,12 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ]
 
+const AGENT_NAMES: Record<string, string> = {
+  'dealership-agent': 'Dealership agent',
+  'bdc-agent': 'BDC agent',
+  'journey-agent': 'Journey agent',
+}
+
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
@@ -132,6 +139,8 @@ export function App() {
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
           <ConversationsScreen />
+        ) : AGENT_NAMES[navActive] ? (
+          <AgentDetailScreen key={navActive} agentName={AGENT_NAMES[navActive]} />
         ) : (
           <ManageAppointmentsScreen />
         )}

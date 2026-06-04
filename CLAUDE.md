@@ -155,6 +155,7 @@ If a component exists here, import it — do not recreate it.
 | SankeyChart | components/charts/SankeyChart.tsx | nodes[], links[] ({source,target,value}), height? — Recharts Sankey flow |
 | Heatmap | components/charts/Heatmap.tsx | rowLabels[], colLabels[], values[][] — CSS-grid intensity heatmap |
 | chartColors | components/charts/chartColors.ts | shared on-brand chart palette (import as `chartColors`) |
+| InfoCard | components/InfoCard/InfoCard.tsx | title, description, actionLabel?, onAction? — bordered card for capability/library grids |
 
 ### How to add a component to this registry
 
