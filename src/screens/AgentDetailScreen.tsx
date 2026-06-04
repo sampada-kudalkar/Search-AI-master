@@ -20,6 +20,7 @@ import { AgentInstanceScreen } from './AgentInstanceScreen'
 
 interface AgentDetailScreenProps {
   agentName: string
+  onEditAgent?: (agentName: string) => void
 }
 
 interface AgentInstance {
@@ -54,7 +55,8 @@ const REGIONS = [
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
-export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
+
+export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -135,7 +137,7 @@ export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
   ]
 
   if (selectedInstance) {
-    return <AgentInstanceScreen instanceName={selectedInstance} onBack={() => setSelectedInstance(null)} />
+    return <AgentInstanceScreen instanceName={selectedInstance} onBack={() => setSelectedInstance(null)} onEditAgent={onEditAgent} />
   }
 
   return (
@@ -178,7 +180,22 @@ export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
                 <MetricTiles metrics={metrics} />
               </div>
               <div className="px-lg py-lg">
-                <DataTable columns={columns} data={data} onRowClick={(row) => setSelectedInstance(row.name)} />
+                <DataTable
+                  columns={columns}
+                  data={data}
+                  onRowClick={(row) => setSelectedInstance(row.name)}
+                  rowAction={{
+                    icon: 'edit',
+                    label: 'Edit agent',
+                    onClick: (row) => onEditAgent?.(row.name),
+                  }}
+                  rowMenuItems={[
+                    { label: 'Duplicate agent', onClick: () => {} },
+                    { label: 'View activity', onClick: () => {} },
+                    { label: 'View details', onClick: (row) => setSelectedInstance(row.name) },
+                    { label: 'Pause agent', onClick: () => {} },
+                  ]}
+                />
               </div>
             </>
           ) : (
@@ -207,6 +224,7 @@ export function AgentDetailScreen({ agentName }: AgentDetailScreenProps) {
           setVisible(DEFAULT_ORDER)
         }}
       />
+
     </div>
   )
 }

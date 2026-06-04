@@ -10,11 +10,13 @@ import {
   type Metric,
   type Tab,
 } from '../components'
+import { WorkflowViewerTab } from './WorkflowViewerTab'
 
 interface AgentInstanceScreenProps {
   instanceName: string
   status?: string
   onBack: () => void
+  onEditAgent?: (agentName: string) => void
 }
 
 interface LocationRow {
@@ -69,57 +71,67 @@ const COLUMNS: Column<LocationRow>[] = [
   },
 ]
 
-export function AgentInstanceScreen({ instanceName, status = 'Running', onBack }: AgentInstanceScreenProps) {
+export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, onEditAgent }: AgentInstanceScreenProps) {
   const [activeTab, setActiveTab] = useState('outcomes')
+
+  const isWorkflowTab = activeTab === 'workflow'
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex-1 overflow-auto">
-        {/* Header */}
-        <div className="flex h-16 items-center justify-between bg-surface px-2xl">
-          <div className="flex items-center gap-sm">
-            <button
-              type="button"
-              aria-label="Back"
-              onClick={onBack}
-              className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-            >
-              <Icon name="chevron_left" size={20} />
-            </button>
-            <h1 className="text-h3 text-text-primary">{instanceName}</h1>
-            <Chip label={status} variant="success" />
-          </div>
+      {/* Header */}
+      <div className="flex h-16 shrink-0 items-center justify-between bg-surface px-2xl">
+        <div className="flex items-center gap-sm">
           <button
             type="button"
-            className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
+            aria-label="Back"
+            onClick={onBack}
+            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
           >
-            Actions
-            <Icon name="expand_more" size={20} className="text-text-icon" />
+            <Icon name="chevron_left" size={20} />
           </button>
+          <h1 className="text-h3 text-text-primary">{instanceName}</h1>
+          <Chip label={status} variant="success" />
         </div>
-
-        {/* Tabs */}
-        <div className="px-2xl">
-          <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
-        </div>
-
-        {activeTab === 'outcomes' ? (
-          <>
-            <div className="px-2xl pt-lg">
-              <MetricTiles metrics={METRICS} />
-            </div>
-            <div className="px-lg py-lg">
-              <DataTable columns={COLUMNS} data={LOCATIONS} />
-            </div>
-          </>
-        ) : (
-          <div className="flex h-64 items-center justify-center text-body text-text-secondary">
-            No {TABS.find((t) => t.id === activeTab)?.label.toLowerCase()} data yet.
-          </div>
-        )}
+        <button
+          type="button"
+          className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
+        >
+          Actions
+          <Icon name="expand_more" size={20} className="text-text-icon" />
+        </button>
       </div>
+
+      {/* Tabs */}
+      <div className="shrink-0 px-2xl">
+        <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
+      </div>
+
+      {/* Tab content — workflow tab fills remaining height, others scroll */}
+      {isWorkflowTab ? (
+        <WorkflowViewerTab
+          instanceName={instanceName}
+          onEdit={() => onEditAgent?.(instanceName)}
+        />
+      ) : (
+        <div className="flex-1 overflow-auto">
+          {activeTab === 'outcomes' ? (
+            <>
+              <div className="px-2xl pt-lg">
+                <MetricTiles metrics={METRICS} />
+              </div>
+              <div className="px-lg py-lg">
+                <DataTable columns={COLUMNS} data={LOCATIONS} />
+              </div>
+            </>
+          ) : (
+            <div className="flex h-64 items-center justify-center text-body text-text-secondary">
+              No {TABS.find((t) => t.id === activeTab)?.label.toLowerCase()} data yet.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

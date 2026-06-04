@@ -12,3 +12,4 @@ vite.config.d.ts
 # Editor / OS / local tooling
 .DS_Store
 .claude
+vite.config.js.timestamp-*.mjs

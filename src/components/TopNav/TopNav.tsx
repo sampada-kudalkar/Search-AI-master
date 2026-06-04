@@ -22,9 +22,13 @@ function IconButton({
   )
 }
 
-export function TopNav({ avatarUrl, initials = 'S', onAdd, onHelp, onMenu }: TopNavProps) {
+export function TopNav({ title, avatarUrl, initials = 'S', onAdd, onHelp, onMenu }: TopNavProps) {
   return (
-    <header className="flex h-14 items-center justify-end gap-xs border-b border-border bg-surface px-2xl">
+    <header className="flex h-14 items-center gap-xs border-b border-border bg-surface px-2xl">
+      {title && (
+        <span className="flex-1 font-normal text-text-primary" style={{ fontSize: 18, fontFamily: 'Roboto, sans-serif' }}>{title}</span>
+      )}
+      {!title && <span className="flex-1" />}
       <IconButton label="Create new" onClick={onAdd}>
         <Icon name="add_circle" size={20} fill className="text-text-action" />
       </IconButton>

@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { IconRail, SideNav, type NavSection, type RailGroup } from './components'
+import { IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
 import { ConversationsScreen } from './screens/ConversationsScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
+import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -116,6 +117,10 @@ const AGENT_NAMES: Record<string, string> = {
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
+  // Lifted up so SideNav can be hidden while workflow editor is open
+  const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+
+  const isEditingWorkflow = editingAgentName !== null
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
@@ -126,21 +131,38 @@ export function App() {
         activeId={railActive}
         onSelect={setRailActive}
       />
-      <SideNav
-        title="Frontdesk"
-        sections={NAV_SECTIONS}
-        activeId={navActive}
-        onSelect={setNavActive}
-      />
-      <main className="flex-1 overflow-hidden">
-        {navActive === 'sales-pipeline' ? (
+      {/* Hide L2 SideNav while workflow editor is open */}
+      {!isEditingWorkflow && (
+        <SideNav
+          title="Frontdesk"
+          sections={NAV_SECTIONS}
+          activeId={navActive}
+          onSelect={setNavActive}
+        />
+      )}
+      <main className="flex-1 overflow-hidden flex flex-col">
+        {isEditingWorkflow ? (
+          <>
+            <TopNav title="Front desk" initials="S" />
+            <div className="flex-1 overflow-hidden">
+              <WorkflowEditorScreen
+                agentName={editingAgentName}
+                onClose={() => setEditingAgentName(null)}
+              />
+            </div>
+          </>
+        ) : navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
           <ConversationsScreen />
         ) : AGENT_NAMES[navActive] ? (
-          <AgentDetailScreen key={navActive} agentName={AGENT_NAMES[navActive]} />
+          <AgentDetailScreen
+            key={navActive}
+            agentName={AGENT_NAMES[navActive]}
+            onEditAgent={setEditingAgentName}
+          />
         ) : (
           <ManageAppointmentsScreen />
         )}
