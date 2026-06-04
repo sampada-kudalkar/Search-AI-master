@@ -14,10 +14,10 @@ const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Las
 
 // ── Summary KPIs ─────────────────────────────────────────────────────────────
 const SUMMARY_STATS = [
-  { id: 'leads',      value: '1,347',  label: 'Leads handled by Myna',  delta: '18% vs last period', trend: 'up' as const },
-  { id: 'appt-rate',  value: '28.4%',  label: 'Appointments set rate',   delta: 'Target: 25%',        trend: 'up' as const },
-  { id: 'speed',      value: '3m 48s', label: 'Avg speed-to-lead',       delta: 'Target: <5 min',     trend: 'up' as const },
-  { id: 'completion', value: '73.1%',  label: 'Journey completion rate', delta: 'Target: 70%',        trend: 'up' as const },
+  { id: 'leads',      value: '1,347',  label: 'Leads handled by Myna',  delta: '18%',   trend: 'up' as const },
+  { id: 'appt-rate',  value: '28.4%',  label: 'Appointments set rate',   delta: '3.4%',  trend: 'up' as const },
+  { id: 'speed',      value: '3m 48s', label: 'Avg speed-to-lead',       delta: '24%',   trend: 'up' as const },
+  { id: 'completion', value: '73.1%',  label: 'Journey completion rate', delta: '3.1%',  trend: 'up' as const },
 ]
 
 // ── Lead pipeline stages ─────────────────────────────────────────────────────

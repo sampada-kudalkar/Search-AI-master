@@ -1,10 +1,8 @@
-import { Icon } from '../Icon/Icon'
-
 export interface SummaryStat {
   id: string
   value: string
   label: string
-  /** e.g. "8.4%" — sign/arrow comes from `trend`. */
+  /** e.g. "8.4%" — sign comes from `trend`. */
   delta?: string
   trend?: 'up' | 'down'
 }
@@ -25,12 +23,11 @@ export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
               <span className="text-[24px] leading-8 text-text-primary">{s.value}</span>
               {s.delta && (
                 <span
-                  className={`inline-flex items-center text-small font-medium ${
+                  className={`text-small font-medium ${
                     s.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'
                   }`}
                 >
-                  <Icon name={s.trend === 'down' ? 'arrow_downward' : 'arrow_upward'} size={14} />
-                  {s.delta}
+                  {s.trend === 'down' ? '-' : '+'}{s.delta}
                 </span>
               )}
             </div>
