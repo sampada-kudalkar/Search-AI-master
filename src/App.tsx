@@ -75,9 +75,9 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Agent',
     defaultExpanded: false,
     items: [
-      { id: 'dealership-agent', label: 'Dealership agent' },
-      { id: 'bdc-agent', label: 'BDC agent' },
-      { id: 'journey-agent', label: 'Journey agent' },
+      { id: 'frontdesk-agent', label: 'Frontdesk agent' },
+      { id: 'reminder-agent', label: 'Reminder agent' },
+      { id: 'outreach-agent', label: 'Outreach agent' },
     ],
   },
   {
@@ -108,9 +108,9 @@ const NAV_SECTIONS: NavSection[] = [
 ]
 
 const AGENT_NAMES: Record<string, string> = {
-  'dealership-agent': 'Dealership agent',
-  'bdc-agent': 'BDC agent',
-  'journey-agent': 'Journey agent',
+  'frontdesk-agent': 'Frontdesk agent',
+  'reminder-agent': 'Reminder agent',
+  'outreach-agent': 'Outreach agent',
 }
 
 export function App() {
