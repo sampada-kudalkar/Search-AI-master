@@ -13,6 +13,21 @@ export { MetricTiles } from './MetricTiles/MetricTiles'
 export { Tabs } from './Tabs/Tabs'
 export { DataTable } from './DataTable/DataTable'
 
+// Charts (Recharts-based + CSS heatmap) — reusable across report pages
+export { ChartCard } from './charts/ChartCard'
+export { SummaryStats } from './charts/SummaryStats'
+export { StackedBarChart } from './charts/StackedBarChart'
+export { DonutChart } from './charts/DonutChart'
+export { SankeyChart } from './charts/SankeyChart'
+export { Heatmap } from './charts/Heatmap'
+export { chartColors } from './charts/chartColors'
+export type { ChartCardProps } from './charts/ChartCard'
+export type { SummaryStat, SummaryStatsProps } from './charts/SummaryStats'
+export type { BarSeries, StackedBarChartProps } from './charts/StackedBarChart'
+export type { DonutDatum, DonutChartProps } from './charts/DonutChart'
+export type { SankeyNode, SankeyLink, SankeyChartProps } from './charts/SankeyChart'
+export type { HeatmapProps } from './charts/Heatmap'
+
 export type { ChipProps, ChipVariant } from './Chip/Chip.types'
 export type {
   CustomizeColumnsDrawerProps,

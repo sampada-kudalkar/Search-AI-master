@@ -148,6 +148,13 @@ If a component exists here, import it — do not recreate it.
 | CustomizeColumnsDrawer | components/CustomizeColumnsDrawer/CustomizeColumnsDrawer.tsx | open, options[] (key,label,locked?), visibleKeys[], onClose, onSave, onRestoreDefault |
 | FilterPanel | components/FilterPanel/FilterPanel.tsx | open, fields[] (id,label,options?,multi?), onClose?, onSaveView?, onAdvancedFilters? — 280px right push-panel; opens SelectMenu per field |
 | SelectMenu | components/SelectMenu/SelectMenu.tsx | title, options[] (value,label), value[], multi?, searchable?, onChange, onApply? — single/multi-select dropdown menu |
+| ChartCard | components/charts/ChartCard.tsx | title, toolbar?, showActions?, children — titled card shell for charts |
+| SummaryStats | components/charts/SummaryStats.tsx | title?, stats[] ({id,value,label,delta?,trend?}) — KPI row with up/down deltas |
+| StackedBarChart | components/charts/StackedBarChart.tsx | data, series[] ({key,label,color}), xKey, height? — Recharts stacked bars |
+| DonutChart | components/charts/DonutChart.tsx | data[] ({name,value,color}), centerValue?, centerLabel?, height? — Recharts donut |
+| SankeyChart | components/charts/SankeyChart.tsx | nodes[], links[] ({source,target,value}), height? — Recharts Sankey flow |
+| Heatmap | components/charts/Heatmap.tsx | rowLabels[], colLabels[], values[][] — CSS-grid intensity heatmap |
+| chartColors | components/charts/chartColors.ts | shared on-brand chart palette (import as `chartColors`) |
 
 ### How to add a component to this registry
 

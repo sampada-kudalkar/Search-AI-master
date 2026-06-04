@@ -3,6 +3,7 @@ import { IconRail, SideNav, type NavSection, type RailGroup } from './components
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
+import { ConversationsScreen } from './screens/ConversationsScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -129,6 +130,8 @@ export function App() {
           <SalesPipelineScreen />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
+        ) : navActive === 'conversations' ? (
+          <ConversationsScreen />
         ) : (
           <ManageAppointmentsScreen />
         )}
