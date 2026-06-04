@@ -37,9 +37,7 @@ jobs:
           clean: false
       - run: npm ci
       - name: Build Akhil-branch
-        run: npm run build
-        env:
-          VITE_BASE_PATH: /MYNA-Automotive/akhil-branch/
+        run: npx vite build --base /MYNA-Automotive/akhil-branch/
 
       # ── Combine: main at root, Akhil at /akhil-branch ────────────────────
       - name: Combine builds
