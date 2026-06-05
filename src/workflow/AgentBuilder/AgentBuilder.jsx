@@ -818,10 +818,12 @@ export default function AgentBuilder({
     });
   }, []);
 
-  const handleDropNode = useCallback(({ type, label, description, afterNodeId, branchPathId, position }) => {
+  const handleDropNode = useCallback(({ type, label, description, afterNodeId, branchPathId, position, insertAtBeginning }) => {
     const id = nextId();
     const newNode = makeNodeConfig(id, type, label, description);
-    const details = makeNodeDetails(type, label);
+    // For procedures, `description` is the procedure name from the sub-item dropdown
+    // while `label` is the category name — use the procedure name as the seed ID
+    const details = makeNodeDetails(type, type === 'procedures' ? description : label);
 
     if (branchPathId) {
       setNodeDetails((prev) => {
@@ -875,7 +877,10 @@ export default function AgentBuilder({
 
     setNodeList((prev) => {
       let updated;
-      if (afterNodeId) {
+      if (insertAtBeginning) {
+        // Dropped above the first node — insert at position 0
+        updated = [newNode, ...prev];
+      } else if (afterNodeId) {
         const idx = prev.findIndex((n) => n.id === afterNodeId);
         updated = idx !== -1
           ? [...prev.slice(0, idx + 1), newNode, ...prev.slice(idx + 1)]
@@ -1312,9 +1317,6 @@ export default function AgentBuilder({
               tasksOpen={false}
               controlsOpen={false}
               viewOnly={viewOnly}
-              usedProcedureIds={
-                Object.values(nodeDetails).flatMap((d) => d?.procedureIds || [])
-              }
             />
           </div>
 

@@ -156,6 +156,7 @@ If a component exists here, import it — do not recreate it.
 | Heatmap | components/charts/Heatmap.tsx | rowLabels[], colLabels[], values[][] — CSS-grid intensity heatmap |
 | chartColors | components/charts/chartColors.ts | shared on-brand chart palette (import as `chartColors`) |
 | InfoCard | components/InfoCard/InfoCard.tsx | title, description, actionLabel?, onAction? — bordered card for capability/library grids |
+| RefChip | components/RefChip/RefChip.tsx | kind ('tool'\|'context'\|'subagent'\|'procedure'\|'file'\|'link'), label, onRemove?, className? — reference chip that **reuses the workflow editor's `VariableChip.module.css`** (left colored swatch + divider, white body, per-type border) so procedure Tools/Context chips match the workflow variable fields. Maps kind→workflow chip type: context→variable (blue brackets), tool→Tool, file→Attachment, link→Link, subagent→Address, procedure→Product. Used inline in the Steps editor and in the Tools/Context side panels |
 
 ### How to add a component to this registry
 
@@ -242,6 +243,21 @@ import { DataTable, Tabs, PageLayout } from '../components'
 // ✅ Correct
 <div className="text-primary p-md">
 ```
+
+### 6.6 Typography — REGULAR WEIGHT ONLY (hard rule)
+**Never use `font-medium`, `font-semibold`, or `font-bold` anywhere.** The only weight is Roboto Regular (`font-normal`, the default — so just omit the weight class). Build visual hierarchy with **color and size tokens**, not weight: e.g. title = `text-text-primary`, supporting copy = `text-text-secondary`/`text-text-tertiary`; bump size with `text-h3`/`text-body`/`text-small`. (Some older components still contain `font-medium` — do not copy that; leave them unless asked, but never add new ones.)
+
+### 6.7 Reuse the shared chrome — don't invent new header/button/switcher variants
+Before styling any header, button, switcher, menu, or input, copy the **exact classes** already used by the Human-actions pages. Do not create a parallel look. Canonical patterns:
+- **Page header bar:** `flex items-center justify-between bg-surface px-2xl py-xl` (see `PageHeader`, `SalesPipelineScreen`, `ServiceRequestsScreen`).
+- **Icon button (search / customize / filter):** `flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2`, `Icon` size 20.
+- **View switcher:** outer `flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm`; each button `flex size-6 items-center justify-center rounded-sm`, active `bg-surface-selected text-text-primary`, inactive `text-text-icon`, `Icon` size 18 (see `PageHeader` ViewToggle).
+- **Primary CTA:** `flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover`.
+- **Secondary / "Actions" button:** `flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2`.
+- **Disabled primary:** `cursor-not-allowed bg-surface-selected text-text-tertiary`.
+- **Text button (Cancel):** `rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover`.
+- **Dropdown menu:** `min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown`; items `block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover` (danger item → `text-chip-danger-text`). Matches `DataTable`'s row menu.
+- Use **`rounded-sm`** for chrome (buttons/inputs/menus) and spacing **tokens** (`gap-sm`, `px-2xl`, `py-xl`, `px-md`) — never raw `rounded-md`/`gap-1.5`/`px-4`.
 
 ---
 
@@ -566,6 +582,8 @@ Before calling any screen done, verify:
 | Export a component from its own file only | Also add it to `src/components/index.ts` |
 | Forget to update the Component Registry | Update Section 5 every time a component is created |
 | Use `any` in TypeScript | Define a proper interface in `.types.ts` |
+| Use `font-medium`/`font-semibold`/`font-bold` | Regular weight only — build hierarchy with color/size tokens (§6.6) |
+| Invent a new header / button / switcher / menu look | Copy the exact shared-chrome classes (§6.7) from the Human-actions pages |
 | Build the full screen at once without checking components | Audit registry → build missing components → compose screen |
 
 ---
@@ -585,6 +603,7 @@ This project is built one task per conversation. **Start a fresh chat (or `/clea
 
 - **App:** automotive dealership prototype ("MYNA Automotive"). Shell = `IconRail` (L1, hover-expand) + `SideNav` (L2 "Frontdesk") + screen. Routing is **state-based in `src/App.tsx`** via `navActive` (no react-router); agent items drill into `AgentDetailScreen` → row click → `AgentInstanceScreen`.
 - **Icons:** Material Symbols (Outlined) via the `Icon` component — NOT Lucide. A few brand glyphs are SVGs in `src/assets/`.
-- **Screens:** `ManageAppointmentsScreen`, `SalesPipelineScreen`, `ServiceRequestsScreen` (list pages — no tabs, push `FilterPanel`, `CustomizeColumnsDrawer`, row-hover CTA + `FormDrawer`); `ConversationsScreen` (Outcomes dashboard, `src/components/charts/*` + Recharts); `AgentDetailScreen` (Agents/Library tabs); `AgentInstanceScreen` (Outcomes + per-location table).
+- **Screens:** `ManageAppointmentsScreen`, `SalesPipelineScreen`, `ServiceRequestsScreen` (list pages — no tabs, push `FilterPanel`, `CustomizeColumnsDrawer`, row-hover CTA + `FormDrawer`); `ConversationsScreen` (Outcomes dashboard, `src/components/charts/*` + Recharts); `AgentDetailScreen` (Agents/Library tabs); `AgentInstanceScreen` (Outcomes + per-location table); `ProceduresScreen` (Resources → Procedures) + `ProcedureDetailScreen`.
+- **Procedure library (`ProceduresScreen` / `ProcedureDetailScreen`):** matches Figma `37-42809`. List = grid/list toggle of cards (book icon, title, description, 3-dot Edit/Duplicate/Delete menu, clock+date footer), search-icon toggle, "Create new". Editor (`ProcedureDetailScreen`, `procedure: Procedure | null` where null=new) = back+title header with Cancel/Save (new) or Actions/Save (existing, Save disabled until dirty); two columns: left = title input + when-to-use textarea + Steps editor box (rich `StepsView` for existing, placeholder textarea + slash hint for new, bottom `{x}`/wrench/link toolbar); right = Tools & Context cards with `RefChip`s + Add. Data model in `src/data/procedureData.ts`: `Procedure` now has `description`, `lastEdited`, structured `steps` (`ProcedureStep` = title + `Bullet[]` of inline `Token`s where a token is a string or a `Ref` chip), `tools: string[]`, `context: ContextItem[]`. Raw automotive entries are `transform()`-ed; `p-005` "Handle emergency or urgent concern" is the fully-authored featured example with inline chips. **No category tabs/chips anymore** (old design dropped).
 - **Table convention:** column order is **name → Status (2nd) → Vehicle/subject (3rd) → rest**; tables support resize + sort + customize-columns. Drawers use the generic `FormDrawer`. Charts use `chartColors` + `ChartCard`.
 - **Repo / deploy:** pushed to `github.com/hareshrajamannar-creator/MYNA-Automotive`; pushing to `main` auto-deploys to GitHub Pages (`.github/workflows/deploy.yml`). Vite `base` is `/MYNA-Automotive/` for production builds. Live: https://hareshrajamannar-creator.github.io/MYNA-Automotive/

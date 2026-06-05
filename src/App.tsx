@@ -8,6 +8,7 @@ import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
+import { ProceduresScreen } from './screens/ProceduresScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -94,7 +95,10 @@ const NAV_SECTIONS: NavSection[] = [
     id: 'resources',
     label: 'Resources',
     defaultExpanded: false,
-    items: [{ id: 'knowledge-base', label: 'Knowledge base' }],
+    items: [
+      { id: 'knowledge-base', label: 'Knowledge base' },
+      { id: 'procedure-library', label: 'Procedure library' },
+    ],
   },
   {
     id: 'settings',
@@ -159,6 +163,8 @@ export function App() {
           <SalesScreen />
         ) : navActive === 'service' ? (
           <ServiceScreen />
+        ) : navActive === 'procedure-library' ? (
+          <ProceduresScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

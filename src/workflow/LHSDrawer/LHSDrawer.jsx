@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { FormInput } from '../elemental-stubs';
-import { PROCEDURES } from '../services/procedureService';
 import NodeType from '../Organisms/Accordion/NodeType/NodeType';
 import AIChatBubble from '../Molecules/AIChatBubble/AIChatBubble';
 import AIPromptBox from '../Molecules/AIPromptBox/AIPromptBox';
@@ -173,14 +172,82 @@ export const TASK_CARDS = [
   { label: 'External apps', icon: 'grid_view', action: 'chevron', subKey: 'External apps-task' },
 ];
 
-/* ─── Procedures data — sourced from business-level settings ─── */
-function getProcedureCards(usedIds = []) {
-  const base = [{ label: 'Custom', icon: 'article', action: 'drag' }];
-  const named = PROCEDURES
-    .filter((p) => !usedIds.includes(p.id))
-    .map((p) => ({ label: p.name, icon: 'article', action: 'drag', procedureId: p.id }));
-  return [...base, ...named];
-}
+/* ─── Procedures — categorised with hover dropdowns (same pattern as Tasks) ─── */
+const PROCEDURE_SUB_ITEMS = {
+  'Inbound General': {
+    title: 'Inbound General',
+    items: [
+      'Greeting & Intent Detection',
+      'Department Transfer',
+      'General Inquiry',
+      'Handle Unclear Message',
+      'Emergency / Urgent Handling',
+      'Talk to Human',
+      'Spanish Language Handling',
+    ],
+  },
+  Service: {
+    title: 'Service',
+    items: [
+      'Schedule Service Appointment',
+      'Repair / Diagnostic Triage',
+      'Recall Inquiry',
+      'Service Status Check',
+      'Reschedule / Cancel Appointment',
+      'Warranty Inquiry',
+    ],
+  },
+  Sales: {
+    title: 'Sales',
+    items: [
+      'New Vehicle Inquiry',
+      'Used / CPO Vehicle Inquiry',
+      'Trade-In Valuation',
+      'Finance Pre-Qualification',
+      'Test Drive Scheduling',
+      'Internet Lead Qualification',
+    ],
+  },
+  Parts: {
+    title: 'Parts',
+    items: [
+      'Parts Availability & Pricing',
+    ],
+  },
+  'After-Hours': {
+    title: 'After-Hours',
+    items: [
+      'After-Hours Lead Capture',
+      'After-Hours Service Request',
+    ],
+  },
+  Outbound: {
+    title: 'Outbound',
+    items: [
+      'Lead Follow-Up Call',
+      'Missed Call Callback',
+      'Appointment Confirmation',
+      'No-Show Re-Engagement',
+      'Lease Maturity Outreach',
+      'Equity Mining Outreach',
+      'Service Lapse Re-Engagement',
+      'CSI Follow-Up',
+      'NHTSA Recall Notification',
+      'Orphan Customer Introduction',
+      'Welcome / Onboarding',
+      'Unsold Showroom Follow-Up',
+    ],
+  },
+};
+
+export const PROCEDURE_CARDS = [
+  { label: 'Inbound General', icon: 'article', action: 'chevron', subKey: 'Inbound General' },
+  { label: 'Service',         icon: 'article', action: 'chevron', subKey: 'Service' },
+  { label: 'Sales',           icon: 'article', action: 'chevron', subKey: 'Sales' },
+  { label: 'Parts',           icon: 'article', action: 'chevron', subKey: 'Parts' },
+  { label: 'After-Hours',     icon: 'article', action: 'chevron', subKey: 'After-Hours' },
+  { label: 'Outbound',        icon: 'article', action: 'chevron', subKey: 'Outbound' },
+];
 
 /* ─── Controls data ─── */
 export const CONTROL_CARDS = [
@@ -191,7 +258,7 @@ export const CONTROL_CARDS = [
 ];
 
 /* ─── All sub-items merged (initial state) ─── */
-const INITIAL_SUB_ITEMS = { ...TRIGGER_SUB_ITEMS, ...TASK_SUB_ITEMS };
+const INITIAL_SUB_ITEMS = { ...TRIGGER_SUB_ITEMS, ...TASK_SUB_ITEMS, ...PROCEDURE_SUB_ITEMS };
 
 /* ─── Card Row ─── */
 export function CardRow({ label, icon, action, isActive, onClick, onHover, cardRef, nodeType, viewOnly, procedureId }) {
@@ -245,7 +312,6 @@ export default function LHSDrawer({
   defaultTab = 'Create manually',
   defaultOpenSection = 'Trigger',
   viewOnly = false,
-  usedProcedureIds = [],
 }) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [openSection, setOpenSection] = useState(defaultOpenSection);
@@ -315,8 +381,7 @@ export default function LHSDrawer({
 
   const triggerContent = renderCards(TRIGGER_CARDS, 'trigger', 'trigger');
   const tasksContent = renderCards(TASK_CARDS, 'task', 'task');
-  const procedureCards = getProcedureCards(usedProcedureIds);
-  const proceduresContent = renderCards(procedureCards, 'procedures', 'procedures');
+  const proceduresContent = renderCards(PROCEDURE_CARDS, 'procedures', 'procedures');
   const controlsContent = renderCards(CONTROL_CARDS, 'control', 'branch');
 
   const activeSubItems = expandedCard ? subItems[expandedCard] : null;
@@ -387,7 +452,7 @@ export default function LHSDrawer({
           <LHSEntityGroup
             title={activeSubItems.title}
             items={activeSubItems.items}
-            nodeType={expandedSection === 'trigger' ? 'trigger' : 'task'}
+            nodeType={expandedSection === 'trigger' ? 'trigger' : expandedSection === 'procedures' ? 'procedures' : 'task'}
             parentLabel={expandedCard}
             onItemsChange={(newItems) => handleSubItemsChange(expandedCard, newItems)}
             viewOnly={viewOnly}

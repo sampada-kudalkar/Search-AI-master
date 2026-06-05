@@ -40,9 +40,13 @@ export default function ProceduresNode({
     e.stopPropagation();
     setIsDragOver(false);
     const nodeType = e.dataTransfer.getData('application/reactflow-type');
+    // description = procedure name (from LHSEntityGroup sub-item)
+    // label = category name (parentLabel) — use description for the chip
+    const description = e.dataTransfer.getData('application/reactflow-description');
     const label = e.dataTransfer.getData('application/reactflow-label');
-    if (nodeType === 'procedures' && label && onDropProcedure) {
-      onDropProcedure(label);
+    const procedureName = description || label;
+    if (nodeType === 'procedures' && procedureName && onDropProcedure) {
+      onDropProcedure(procedureName);
     }
   };
 
