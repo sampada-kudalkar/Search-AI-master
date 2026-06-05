@@ -55,13 +55,33 @@
 
 .headerTitle {
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 400;
   color: #212121;
   line-height: 24px;
   letter-spacing: -0.36px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'Roboto', sans-serif;
+}
+
+.saveBtn {
+  height: 36px;
+  padding: 0 20px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: 'Roboto', sans-serif;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.saveBtn:hover {
+  background: #1565c0;
 }
 
 .headerRight {

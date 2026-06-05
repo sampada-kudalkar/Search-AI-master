@@ -25,7 +25,21 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
 
   const [title, setTitle] = useState(procedure?.name ?? '')
   const [whenToUse, setWhenToUse] = useState(procedure?.whenToUse ?? '')
-  const [newSteps, setNewSteps] = useState('')
+  // Convert structured ProcedureStep[] → plain numbered text for UserPromptInput
+  const stepsToText = (s: ProcedureStep[]): string =>
+    s.map((step, i) => {
+      const bullets = step.bullets
+        .map((b) =>
+          b.tokens.map((t) => (typeof t === 'string' ? t : t.label)).join('')
+        )
+        .filter(Boolean)
+        .join('\n')
+      return bullets ? `${i + 1}. ${step.title}\n${bullets}` : `${i + 1}. ${step.title}`
+    }).join('\n')
+
+  const [stepsText, setStepsText] = useState(() =>
+    procedure?.steps?.length ? stepsToText(procedure.steps) : ''
+  )
   const [tools, setTools] = useState<string[]>(procedure?.tools ?? [])
   const [context, setContext] = useState<ContextItem[]>(procedure?.context ?? [])
   const [actionsOpen, setActionsOpen] = useState(false)
@@ -37,8 +51,6 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
     whenToUse !== procedure.whenToUse ||
     tools.length !== procedure.tools.length ||
     context.length !== procedure.context.length
-
-  const steps: ProcedureStep[] = procedure?.steps ?? []
 
   return (
     <div className="flex h-full flex-col">
@@ -135,19 +147,13 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
               />
             </Field>
 
-            {/* Steps — same UserPromptInput as system/user prompt fields */}
+            {/* Steps — always uses UserPromptInput (same as system/user prompt) */}
             <Field label="Steps" info>
-              {steps.length > 0 ? (
-                <div className="rounded-sm border border-border-selected bg-surface p-md">
-                  <StepsView steps={steps} />
-                </div>
-              ) : (
-                <UserPromptInput
-                  hideLabel
-                  value={newSteps}
-                  onChange={(val: string) => setNewSteps(val)}
-                />
-              )}
+              <UserPromptInput
+                hideLabel
+                value={stepsText}
+                onChange={(val: string) => setStepsText(val)}
+              />
             </Field>
           </div>
 
@@ -246,35 +252,3 @@ function SidebarCard({
 }
 
 // ── Steps rich view ─────────────────────────────────────────────
-function StepsView({ steps }: { steps: ProcedureStep[] }) {
-  return (
-    <ol className="space-y-lg">
-      {steps.map((step, i) => (
-        <li key={i}>
-          <div className="flex gap-xs text-body text-text-primary">
-            <span className="text-text-secondary">{i + 1}.</span>
-            <span>{step.title}</span>
-          </div>
-          {step.bullets.length > 0 && (
-            <ul className="mt-sm space-y-sm pl-lg">
-              {step.bullets.map((bullet, bi) => (
-                <li key={bi} className="flex gap-xs text-body leading-relaxed text-text-secondary">
-                  <span className="select-none pt-px text-text-tertiary">•</span>
-                  <span className="min-w-0">
-                    {bullet.tokens.map((tok, ti) =>
-                      typeof tok === 'string' ? (
-                        <span key={ti}>{tok}</span>
-                      ) : (
-                        <RefChip key={ti} kind={tok.kind} label={tok.label} onRemove={() => {}} className="mx-0.5" />
-                      ),
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </li>
-      ))}
-    </ol>
-  )
-}

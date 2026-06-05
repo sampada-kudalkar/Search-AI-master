@@ -1223,60 +1223,21 @@ export default function AgentBuilder({
     </div>
   ) : (
     <div className="ab-header-actions">
+      {/* Cloud save icon — matches Figma 41-43635 */}
+      <button
+        type="button"
+        className="ab-header-cloud-btn"
+        onClick={handleShare}
+        title="Save to cloud"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#555', padding: 4, borderRadius: 4 }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 20, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20" }}>cloud_upload</span>
+      </button>
       <Button
         theme="primary"
         label={isTemplateMode ? 'Save template' : 'Publish'}
         onClick={isTemplateMode ? handleSaveTemplate : handlePublish}
       />
-      <div className="ab-header-more" ref={headerMenuRef}>
-        <button
-          className="ab-header-more-btn"
-          type="button"
-          onClick={() => setHeaderMenuOpen((m) => !m)}
-          title="More options"
-        >
-          <span className="material-symbols-outlined">more_vert</span>
-        </button>
-        {headerMenuOpen && (
-          <div className="ab-header-menu">
-            {isTemplateMode && (
-              <button
-                className="ab-header-menu-item"
-                type="button"
-                onClick={() => { setHeaderMenuOpen(false); handleSaveAndPublish(); }}
-              >
-                <span className="material-symbols-outlined">rocket_launch</span>
-                Save and publish
-              </button>
-            )}
-            <button
-              className="ab-header-menu-item"
-              type="button"
-              onClick={handleShare}
-            >
-              <span className="material-symbols-outlined">share</span>
-              Share
-            </button>
-            <button
-              className="ab-header-menu-item"
-              type="button"
-              onClick={() => { setHeaderMenuOpen(false); handleExport(); }}
-            >
-              <span className="material-symbols-outlined">download</span>
-              Download
-            </button>
-            <div className="ab-header-menu-divider" />
-            <button
-              className="ab-header-menu-item"
-              type="button"
-              onClick={() => { setHeaderMenuOpen(false); importInputRef.current?.click(); }}
-            >
-              <span className="material-symbols-outlined">upload_file</span>
-              Import from JSON
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   );
 
@@ -1315,11 +1276,12 @@ export default function AgentBuilder({
   }
 
   return (
-    <div className="faq-ab-embedded" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#fff' }}>
+    <div className="faq-ab-embedded" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: 'transparent' }}>
       {/* ─── Embedded builder header ─── */}
       <div className="faq-ab-header" style={{
         height: 52,
         borderBottom: '1px solid #e9e9eb',
+        background: '#fff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -1348,7 +1310,7 @@ export default function AgentBuilder({
       </div>
 
       {/* ─── Builder body ─── */}
-      <div className="agent-builder-wrapper" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
+      <div className="agent-builder-wrapper" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', backgroundColor: '#f8f9fb', backgroundImage: 'radial-gradient(circle, #c8cdd8 1px, transparent 1px)', backgroundSize: '28px 28px', overflow: 'hidden' }}>
         {viewOnly && (
           <div className="ab-view-banner">
             <span className="material-symbols-outlined">visibility</span>

@@ -22,10 +22,7 @@ export default function RHSPanelHeader({
       padding: '0 15px',
       height: 60,
       background: '#ffffff',
-      borderTop: '1px solid #e5e9f0',
-      borderLeft: '1px solid #e5e9f0',
-      borderRight: '1px solid #e5e9f0',
-      borderRadius: '8px 8px 0 0',
+      borderBottom: '1px solid #f0f0f0',
       boxSizing: 'border-box',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flex: 1 }}>

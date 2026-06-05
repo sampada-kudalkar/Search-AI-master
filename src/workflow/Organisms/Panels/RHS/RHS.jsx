@@ -109,9 +109,9 @@ export default function RHS({ variant = 'agentDetails', title, bodyProps, onClos
         width: 390,
         height: '100%',
         background: '#ffffff',
-        borderRadius: 8,
-        boxShadow: '0 2px 12px rgba(33, 33, 33, 0.12)',
-        border: '1px solid #e5e9f0',
+        borderRadius: 10,
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.10)',
+        border: 'none',
         overflow: 'hidden',
         fontFamily: '"Roboto", arial, sans-serif',
       }}>

@@ -6,7 +6,7 @@
 }
 
 .agent-builder__lhs {
-  padding: 8px;
+  padding: 10px;
   flex-shrink: 0;
   overflow: visible;
   z-index: 5;
@@ -25,7 +25,7 @@
 
 .agent-builder__rhs {
   flex-shrink: 0;
-  padding: 8px;
+  padding: 10px;
   overflow: hidden;
   z-index: 5;
   height: 100%;

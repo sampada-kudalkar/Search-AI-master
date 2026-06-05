@@ -35,17 +35,10 @@ export function WorkflowViewerTab({ instanceName, onEdit }: WorkflowViewerTabPro
         .wf-viewer .faq-ab-header         { display: none !important; }
         .wf-viewer .ab-view-banner        { display: none !important; }
         .wf-viewer .faq-ab-embedded       { height: 100% !important; }
-        .wf-viewer .agent-builder-wrapper { background: transparent !important; padding: 0 16px 16px !important; }
-        /* Unified rounded card — canvas + RHS together inside one border */
-        .wf-viewer .agent-builder         {
-          border-radius: 12px !important;
-          overflow: hidden !important;
-          border: 1px solid #e5e9f0 !important;
-          background: #fff !important;
-        }
-        .wf-viewer .flow-canvas           { border-radius: 0 !important; border: none !important; }
-        /* RHS panel inherits the container background, no extra border */
-        .wf-viewer .agent-builder__rhs    { border-left: 1px solid #e5e9f0 !important; background: #fff !important; }
+        .wf-viewer .agent-builder-wrapper { background-color: #f8f9fb !important; background-image: radial-gradient(circle, #c8cdd8 1px, transparent 1px) !important; background-size: 28px 28px !important; margin: 0 20px 20px !important; border-radius: 12px !important; overflow: hidden !important; }
+        /* Viewer: canvas rounded, no extra containers */
+        .wf-viewer .agent-builder         { border-radius: 12px !important; overflow: hidden !important; }
+        .wf-viewer .flow-canvas           { border-radius: 12px !important; }
         /* Hide orientation toggle (↓ →) in view-only mode only */
         .wf-viewer .graph-controls__toggle { display: none !important; }
       `}</style>

@@ -97,7 +97,7 @@ const NAV_SECTIONS: NavSection[] = [
     defaultExpanded: false,
     items: [
       { id: 'knowledge-base', label: 'Knowledge base' },
-      { id: 'procedure-library', label: 'Procedure library' },
+      { id: 'procedure-library', label: 'Procedures' },
       { id: 'widgets', label: 'Widgets' },
       { id: 'phone-number', label: 'Phone number' },
       { id: 'voices', label: 'Voices' },

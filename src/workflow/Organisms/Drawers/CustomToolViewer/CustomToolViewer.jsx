@@ -302,24 +302,14 @@ export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) 
             </button>
             <span className={styles.headerTitle}>{tool.name}</span>
           </div>
-          <div className={styles.headerRight} ref={menuRef}>
-            <button
-              className={styles.moreBtn}
-              type="button"
-              onClick={() => setMenuOpen((m) => !m)}
-              title="More options"
-            >
-              <span className="material-symbols-outlined">more_vert</span>
-            </button>
-            {menuOpen && (
-              <div className={styles.moreMenu}>
-                <button className={styles.moreMenuItem} type="button" onClick={handleEdit}>
-                  <span className="material-symbols-outlined">edit</span>
-                  Edit tool
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Save CTA — replaces three-dots menu */}
+          <button
+            type="button"
+            onClick={onClose}
+            className={styles.saveBtn}
+          >
+            Save
+          </button>
         </div>
 
         {/* ─── Interactive fields ─── */}

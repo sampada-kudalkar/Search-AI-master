@@ -98,13 +98,13 @@ const REMINDER_NODE_DETAILS: Record<string, any> = {
   'rem-2': {
     taskName: 'Send Appointment Confirmation',
     description: 'Send immediate SMS confirmation with appointment details, date, time, and service advisor name.',
-    selectedTools: ['dms-integration', 'send-confirmation'],
+    selectedTools: ['send-confirmation'],
   },
   'rem-3': { name: 'Wait until T-24h', duration: '24', unit: 'hours' },
   'rem-4': {
     taskName: 'T-24h SMS Reminder',
     description: 'Send SMS reminder with confirm/reschedule quick-reply options 24 hours before the appointment.',
-    selectedTools: ['send-confirmation', 'schedule-appointment'],
+    selectedTools: ['schedule-appointment'],
   },
   'rem-5': {
     basedOn: 'conditions',
@@ -149,14 +149,14 @@ const REMINDER_NODE_DETAILS: Record<string, any> = {
   'rem-6': {
     taskName: 'Mark Confirmed & Close Journey',
     description: 'Mark appointment as confirmed in DMS and end the reminder journey.',
-    selectedTools: ['dms-integration', 'crm-update'],
+    selectedTools: ['crm-update'],
   },
   'rem-7': { procedureIds: ['Reschedule / Cancel Appointment'] },
   'rem-8': { name: 'Wait until T-2h', duration: '22', unit: 'hours' },
   'rem-9': {
     taskName: 'T-2h Voice Confirmation Call',
     description: 'Place outbound voice call for final confirmation 2 hours before the appointment.',
-    selectedTools: ['voice-call', 'dms-integration', 'send-confirmation'],
+    selectedTools: ['voice-call'],
   },
 }
 
@@ -240,12 +240,12 @@ const OUTREACH_NODE_DETAILS: Record<string, any> = {
   'out-5': {
     taskName: 'Voicemail + Follow-Up SMS',
     description: 'Leave professional voicemail referencing the inquiry, then send follow-up SMS with callback link and top inventory match.',
-    selectedTools: ['voice-call', 'send-confirmation', 'crm-update'],
+    selectedTools: ['voice-call'],
   },
   'out-6': {
     taskName: 'Transfer to Sales Manager',
     description: 'Immediately transfer to available sales manager. Log objection or manager request in CRM with full conversation context.',
-    selectedTools: ['trigger-escalation', 'crm-update', 'lead-routing'],
+    selectedTools: ['trigger-escalation'],
   },
 }
 

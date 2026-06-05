@@ -28,6 +28,10 @@ export default function GraphControls({
 
   return (
     <div className="graph-controls">
+      {/* Config / tune icon — matches Figma 41-43901 */}
+      <button className="graph-controls__run" title="Settings" style={{ borderRight: '1px solid #e5e9f0' }}>
+        <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>tune</span>
+      </button>
       <div className="graph-controls__toggle">
         <button
           className={`graph-controls__toggle-btn${orientation === 'vertical' ? ' graph-controls__toggle-btn--active' : ''}`}

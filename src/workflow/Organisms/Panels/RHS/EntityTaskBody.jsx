@@ -85,23 +85,14 @@ export default function EntityTaskBody({ initialValues = {}, onFieldChange, onOp
                 </div>
                 <span className={styles.toolName}>{tool.name}</span>
               </div>
-              <div className={styles.toolActions}>
-                {onOpenTool && (
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 14, color: '#9e9e9e', marginRight: 4 }}
-                  >
-                    chevron_right
-                  </span>
-                )}
-                <button
-                  className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                  onClick={(e) => { e.stopPropagation(); handleRemoveTool(tool.id); }}
-                  title="Remove tool"
+              {onOpenTool && (
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 16, color: '#9e9e9e' }}
                 >
-                  <span className={`material-symbols-outlined ${styles.iconBtnIcon}`}>close</span>
-                </button>
-              </div>
+                  chevron_right
+                </span>
+              )}
             </div>
           ))}
         </div>
