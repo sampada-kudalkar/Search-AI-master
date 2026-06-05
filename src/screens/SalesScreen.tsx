@@ -4,6 +4,7 @@ import {
   ChartStatRow,
   DateRangeSelector,
   DonutChart,
+  HBarList,
   Icon,
   ReportHeader,
   StackedBarChart,
@@ -98,27 +99,14 @@ export function SalesScreen() {
           <div className="grid grid-cols-2 gap-lg">
 
             <ChartCard title="Lead pipeline — inbound to appointment" showActions={false}>
-              <div className="flex flex-col gap-sm">
-                {PIPELINE.map((stage) => (
-                  <div key={stage.label}>
-                    <p className="mb-xs text-small text-text-primary">{stage.label}</p>
-                    <div className="flex items-center gap-md">
-                      <div
-                        className="relative h-6 flex-1 overflow-hidden rounded-sm bg-surface-selected"
-                        title={stage.count.toLocaleString()}
-                      >
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-sm bg-primary"
-                          style={{ width: `${stage.pct}%` }}
-                        />
-                      </div>
-                      <span className="w-[48px] shrink-0 text-right text-small text-text-primary">
-                        {stage.pct}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <HBarList
+                items={PIPELINE.map(s => ({
+                  label:   s.label,
+                  pct:     s.pct,
+                  color:   '#1976d2',
+                  tooltip: s.count.toLocaleString(),
+                }))}
+              />
             </ChartCard>
 
             <ChartCard
@@ -133,24 +121,14 @@ export function SalesScreen() {
                 </div>
               }
             >
-              <div className="flex max-h-[360px] flex-col gap-sm overflow-y-auto">
-                {SLA_DATA.map((row) => (
-                  <div key={row.source}>
-                    <p className="mb-xs text-small text-text-primary">{row.source}</p>
-                    <div className="flex items-center gap-md">
-                      <div className="relative h-6 flex-1 overflow-hidden rounded-sm bg-surface-selected">
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-sm"
-                          style={{ width: `${row.pct}%`, backgroundColor: SLA_BAR_COLOR[row.status] }}
-                        />
-                      </div>
-                      <span className="w-[36px] shrink-0 text-right text-small text-text-primary">
-                        {row.pct}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <HBarList
+                items={SLA_DATA.map(r => ({
+                  label: r.source,
+                  pct:   r.pct,
+                  color: SLA_BAR_COLOR[r.status],
+                }))}
+                className="flex flex-1 flex-col justify-between overflow-y-auto"
+              />
             </ChartCard>
 
           </div>

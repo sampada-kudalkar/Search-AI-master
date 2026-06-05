@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import { IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './components'
+import { IconRail, SideNav, type NavSection, type RailGroup } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
+// import { ConversationsScreen } from './screens/ConversationsScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
-import { AgentDetailScreen } from './screens/AgentDetailScreen'
-import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
 
+// L1 rail — exact groups, order, icons and dividers from Figma
+// (Material Symbols + brand SVGs). Sections are split by dividers; the
+// rail collapses to 56px and expands to show labels/headers on hover.
 const RAIL_GROUPS: RailGroup[] = [
   {
     id: 'main',
@@ -75,9 +77,9 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Agent',
     defaultExpanded: false,
     items: [
-      { id: 'frontdesk-agent', label: 'Frontdesk agent' },
-      { id: 'reminder-agent', label: 'Reminder agent' },
-      { id: 'outreach-agent', label: 'Outreach agent' },
+      { id: 'dealership-agent', label: 'Dealership agent' },
+      { id: 'bdc-agent', label: 'BDC agent' },
+      { id: 'journey-agent', label: 'Journey agent' },
     ],
   },
   {
@@ -86,8 +88,8 @@ const NAV_SECTIONS: NavSection[] = [
     defaultExpanded: false,
     items: [
       { id: 'conversations', label: 'Appointment overview' },
-      { id: 'sales',         label: 'Sales'                },
-      { id: 'service',       label: 'Service'              },
+      { id: 'sales', label: 'Sales' },
+      { id: 'service', label: 'Service' },
     ],
   },
   {
@@ -108,18 +110,9 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ]
 
-const AGENT_NAMES: Record<string, string> = {
-  'frontdesk-agent': 'Frontdesk agent',
-  'reminder-agent':  'Reminder agent',
-  'outreach-agent':  'Outreach agent',
-}
-
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
-  const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
-
-  const isEditingWorkflow = editingAgentName !== null
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
@@ -130,26 +123,14 @@ export function App() {
         activeId={railActive}
         onSelect={setRailActive}
       />
-      {!isEditingWorkflow && (
-        <SideNav
-          title="Frontdesk"
-          sections={NAV_SECTIONS}
-          activeId={navActive}
-          onSelect={setNavActive}
-        />
-      )}
-      <main className="flex flex-1 flex-col overflow-hidden">
-        {isEditingWorkflow ? (
-          <>
-            <TopNav title="Front desk" initials="S" />
-            <div className="flex-1 overflow-hidden">
-              <WorkflowEditorScreen
-                agentName={editingAgentName}
-                onClose={() => setEditingAgentName(null)}
-              />
-            </div>
-          </>
-        ) : navActive === 'sales-pipeline' ? (
+      <SideNav
+        title="Frontdesk"
+        sections={NAV_SECTIONS}
+        activeId={navActive}
+        onSelect={setNavActive}
+      />
+      <main className="flex-1 overflow-hidden">
+        {navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
@@ -159,12 +140,6 @@ export function App() {
           <SalesScreen />
         ) : navActive === 'service' ? (
           <ServiceScreen />
-        ) : AGENT_NAMES[navActive] ? (
-          <AgentDetailScreen
-            key={navActive}
-            agentName={AGENT_NAMES[navActive]}
-            onEditAgent={setEditingAgentName}
-          />
         ) : (
           <ManageAppointmentsScreen />
         )}
