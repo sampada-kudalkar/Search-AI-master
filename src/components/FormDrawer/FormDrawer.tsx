@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '../Icon/Icon'
+import { BackArrowIcon } from '../../assets/BackArrowIcon'
 import { SelectMenu } from '../SelectMenu/SelectMenu'
 import { FormDrawerProps } from './FormDrawer.types'
 
@@ -60,7 +61,7 @@ export function FormDrawer({
               onClick={onClose}
               className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
             >
-              <Icon name="arrow_left_alt" size={20} />
+              <BackArrowIcon />
             </button>
             <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h2>
           </div>

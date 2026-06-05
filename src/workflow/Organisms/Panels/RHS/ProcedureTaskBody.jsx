@@ -34,20 +34,22 @@ export default function ProcedureTaskBody({ initialValues = {}, onFieldChange, o
 
   return (
     <div className={styles.body}>
+      {/* ─── Procedure list ─── */}
       <div className={styles.list}>
-        {procedures.map((p) => (
+        {procedures.map((p, idx) => (
           <div
             key={p.id}
-            className={styles.row}
+            className={`${styles.row}${idx === 0 ? ` ${styles.rowFirst}` : ''}`}
             onClick={() => onSelectProcedure?.(p.id)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => e.key === 'Enter' && onSelectProcedure?.(p.id)}
           >
-            <span className={`material-symbols-outlined ${styles.rowIcon}`}>article</span>
             <div className={styles.rowText}>
               <span className={styles.rowName}>{p.name}</span>
-              <span className={styles.rowDesc}>{(initialValues.procedureOverrides?.[p.id]?.whenToUse) || p.description}</span>
+              <span className={styles.rowDesc}>
+                {(initialValues.procedureOverrides?.[p.id]?.whenToUse) || p.whenToUse || p.description || ''}
+              </span>
             </div>
             {!viewOnly && (
               <button
@@ -56,13 +58,14 @@ export default function ProcedureTaskBody({ initialValues = {}, onFieldChange, o
                 onClick={(e) => { e.stopPropagation(); handleRemove(p.id); }}
                 title="Remove"
               >
-                <span className="material-symbols-outlined">delete</span>
+                <span className={`material-symbols-outlined ${styles.removeBtnIcon}`}>delete</span>
               </button>
             )}
           </div>
         ))}
       </div>
 
+      {/* ─── Add button ─── */}
       {!viewOnly && (
         <div className={styles.addWrapper} ref={addMenuRef}>
           <button
@@ -83,8 +86,13 @@ export default function ProcedureTaskBody({ initialValues = {}, onFieldChange, o
                   className={styles.addMenuItem}
                   onClick={() => handleAdd(p.id)}
                 >
-                  <span className={`material-symbols-outlined ${styles.addMenuIcon}`}>article</span>
-                  <span>{p.name}</span>
+                  <span className={`material-symbols-outlined ${styles.addMenuIcon}`}>menu_book</span>
+                  <div className={styles.addMenuText}>
+                    <span className={styles.addMenuName}>{p.name}</span>
+                    {p.whenToUse && (
+                      <span className={styles.addMenuDesc}>{p.whenToUse}</span>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>

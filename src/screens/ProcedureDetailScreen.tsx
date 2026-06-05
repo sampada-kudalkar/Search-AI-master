@@ -1,5 +1,10 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { TopNav, Icon, RefChip } from '../components'
+import { BackArrowIcon } from '../assets/BackArrowIcon'
+// @ts-ignore
+import UserPromptInputRaw from '../workflow/Molecules/Inputs/UserPromptInput/UserPromptInput'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const UserPromptInput = UserPromptInputRaw as React.ComponentType<any>
 import { type Procedure, type ProcedureStep, type ContextItem } from '../data/procedureData'
 
 interface ProcedureDetailScreenProps {
@@ -7,13 +12,6 @@ interface ProcedureDetailScreenProps {
   procedure: Procedure | null
   onBack: () => void
 }
-
-const STEPS_PLACEHOLDER = `Start writing instructions…
-
-Type "/" to insert:
-🔧  Tool
-📋  Context
-🤖  Sub-agent`
 
 const WHEN_PLACEHOLDER = `Describe the customer situation or trigger that should activate this procedure.
 
@@ -56,7 +54,7 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
               onClick={onBack}
               className="flex size-8 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-hover"
             >
-              <Icon name="chevron_left" size={24} />
+              <BackArrowIcon color="#555" />
             </button>
             <h1 className="truncate text-h3 text-text-primary">
               {isNew ? 'New procedure' : procedure.name}
@@ -137,28 +135,19 @@ export function ProcedureDetailScreen({ procedure, onBack }: ProcedureDetailScre
               />
             </Field>
 
-            {/* Steps */}
+            {/* Steps — same UserPromptInput as system/user prompt fields */}
             <Field label="Steps" info>
-              <div className="flex min-h-[360px] flex-col rounded-sm border border-border-selected bg-surface">
-                <div className="flex-1 p-md">
-                  {steps.length > 0 ? (
-                    <StepsView steps={steps} />
-                  ) : (
-                    <textarea
-                      value={newSteps}
-                      onChange={(e) => setNewSteps(e.target.value)}
-                      placeholder={STEPS_PLACEHOLDER}
-                      className="h-[300px] w-full resize-none border-0 bg-transparent text-body leading-relaxed text-text-primary placeholder:text-text-tertiary focus:outline-none"
-                    />
-                  )}
+              {steps.length > 0 ? (
+                <div className="rounded-sm border border-border-selected bg-surface p-md">
+                  <StepsView steps={steps} />
                 </div>
-                {/* Editor toolbar */}
-                <div className="flex items-center gap-md border-t border-border px-md py-sm text-text-tertiary">
-                  <button type="button" aria-label="Insert variable" className="font-mono text-small hover:text-text-primary">{'{x}'}</button>
-                  <button type="button" aria-label="Insert tool" className="hover:text-text-primary"><Icon name="build" size={16} /></button>
-                  <button type="button" aria-label="Insert link" className="hover:text-text-primary"><Icon name="link" size={16} /></button>
-                </div>
-              </div>
+              ) : (
+                <UserPromptInput
+                  hideLabel
+                  value={newSteps}
+                  onChange={(val: string) => setNewSteps(val)}
+                />
+              )}
             </Field>
           </div>
 

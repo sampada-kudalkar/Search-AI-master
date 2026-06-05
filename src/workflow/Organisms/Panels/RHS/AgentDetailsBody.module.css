@@ -39,6 +39,23 @@
   cursor: pointer;
 }
 
+/* ─── Pencil edit button beside label ─── */
+.locationsEditBtn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8f8f8f;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.locationsEditBtn:hover {
+  color: #424242;
+}
+
 /* ─── Chip row ─── */
 .chipsRow {
   display: flex;
@@ -47,12 +64,45 @@
   align-items: center;
 }
 
-.chipCloseIcon {
-  font-size: 14px !important;
-  width: 14px;
-  height: 14px;
+/* ─── Individual location chip — grey pill matching Figma 72-29617 ─── */
+.locationChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 6px 0 10px;
+  background: #f4f6f7;
+  border: 1px solid #e0e4e8;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #424242;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.locationChipName {
+  color: #424242;
+  font-size: 12px;
+  font-family: 'Roboto', sans-serif;
   line-height: 1;
-  overflow: hidden;
+}
+
+.locationChipClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #757575;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.locationChipClose:hover {
+  color: #212121;
 }
 
 /* ─── "+ N more" expand link ─── */

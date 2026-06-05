@@ -6,32 +6,15 @@
  * - Canvas has left/right padding and rounded corners
  */
 import React, { Suspense } from 'react'
+import { AGENT_WORKFLOWS } from '../data/agentWorkflows'
 
 // @ts-ignore
 import AgentBuilderRaw from '../workflow/AgentBuilder/AgentBuilder'
 const AgentBuilder = AgentBuilderRaw as unknown as React.ComponentType<any>
 
-const FAQ_NODES = [
-  { id: 'n1', flowType: 'trigger', data: { title: '', subtype: 'Schedule-based', headerLabel: 'Schedule-based trigger', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter trigger name', descriptionPlaceholder: 'Enter description', hasAiIcon: false } },
-  { id: 'n2', flowType: 'task', data: { title: 'Collect web pages content for analysis',   subtype: 'Custom', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description', hasAiIcon: false } },
-  { id: 'n3', flowType: 'task', data: { title: 'Determine core search queries',             subtype: 'Custom', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description', hasAiIcon: true  } },
-  { id: 'n4', flowType: 'task', data: { title: 'Perplexity site search',                    subtype: 'Custom', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description', hasAiIcon: true  } },
-  { id: 'n5', flowType: 'task', data: { title: 'Extract PAA (People Also Ask) Questions',  subtype: 'Custom', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description', hasAiIcon: true  } },
-  { id: 'n6', flowType: 'task', data: { title: 'Analyze query fanouts',                     subtype: 'Custom', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description', hasAiIcon: true  } },
-  { id: 'n7', flowType: 'task', data: { title: 'Select FAQs from question pool',            subtype: 'Custom', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description', hasAiIcon: true  } },
-  { id: 'n8', flowType: 'task', data: { title: 'Generate AEO optimised FAQs',               subtype: 'Custom', hasToggle: true, toggleEnabled: true, titlePlaceholder: 'Enter task name', descriptionPlaceholder: 'Enter description', hasAiIcon: true  } },
-]
-
-const FAQ_NODE_DETAILS: Record<string, unknown> = {
-  '__start__': { agentName: '', goals: 'Handles customer conversations using your configured skills, procedures, and tools.', outcomes: 'Executes rule-based logic to route through qualifying templates and publish them automatically.', locations: ['1001 - Mountain View, CA', '1002 - Seattle, WA', '1004 - Chicago, IL', '1006 - Las Vegas, NV'] },
-  n1: { triggerName: 'Check for Search AI score', description: 'Runs automatically to generate FAQ recommendations whenever Search AI recommendations are generated.', frequency: 'Daily', day: '7 days', time: '9:00 AM', conditions: [] },
-  n2: { taskName: 'Collect web pages content for analysis',   description: 'Scrape selected business webpages to extract content and context.' },
-  n3: { taskName: 'Determine core search queries',            description: 'Analyse scraped content to determine 3-5 primary search queries.' },
-  n4: { taskName: 'Perplexity site search',                   description: 'Query Perplexity using the core search queries to retrieve AI-generated answers.' },
-  n5: { taskName: 'Extract PAA (People Also Ask) Questions',  description: 'Extract People Also Ask questions from Google for each core search query.' },
-  n6: { taskName: 'Analyze query fanouts',                    description: 'Expand core queries into long-tail and voice search variations.' },
-  n7: { taskName: 'Select FAQs from question pool',           description: 'Cluster and score questions from all sources to pick the strongest 8–15.' },
-  n8: { taskName: 'Generate AEO optimised FAQs',              description: 'Write final FAQ answers grounded in page facts and brand kit.' },
+const EMPTY_WORKFLOW = {
+  nodes: [],
+  nodeDetails: { '__start__': { agentName: '', goals: '', outcomes: '', locations: [] } },
 }
 
 interface WorkflowViewerTabProps {
@@ -40,6 +23,10 @@ interface WorkflowViewerTabProps {
 }
 
 export function WorkflowViewerTab({ instanceName, onEdit }: WorkflowViewerTabProps) {
+  // instanceName is e.g. "Frontdesk agent - North region"; extract the agent name prefix
+  const agentName = instanceName.replace(/ - .+$/, '')
+  const workflow = AGENT_WORKFLOWS[agentName] ?? EMPTY_WORKFLOW
+
   return (
     <div className="relative flex-1 overflow-hidden" style={{ height: '100%' }}>
       {/* Scoped CSS overrides */}
@@ -49,8 +36,18 @@ export function WorkflowViewerTab({ instanceName, onEdit }: WorkflowViewerTabPro
         .wf-viewer .ab-view-banner        { display: none !important; }
         .wf-viewer .faq-ab-embedded       { height: 100% !important; }
         .wf-viewer .agent-builder-wrapper { background: transparent !important; padding: 0 16px 16px !important; }
-        .wf-viewer .agent-builder         { border-radius: 12px !important; overflow: hidden !important; }
-        .wf-viewer .flow-canvas           { border-radius: 12px !important; }
+        /* Unified rounded card — canvas + RHS together inside one border */
+        .wf-viewer .agent-builder         {
+          border-radius: 12px !important;
+          overflow: hidden !important;
+          border: 1px solid #e5e9f0 !important;
+          background: #fff !important;
+        }
+        .wf-viewer .flow-canvas           { border-radius: 0 !important; border: none !important; }
+        /* RHS panel inherits the container background, no extra border */
+        .wf-viewer .agent-builder__rhs    { border-left: 1px solid #e5e9f0 !important; background: #fff !important; }
+        /* Hide orientation toggle (↓ →) in view-only mode only */
+        .wf-viewer .graph-controls__toggle { display: none !important; }
       `}</style>
 
       <div className="wf-viewer" style={{ height: '100%' }}>
@@ -68,8 +65,8 @@ export function WorkflowViewerTab({ instanceName, onEdit }: WorkflowViewerTabPro
             moduleContext="myna"
             sectionContext="workflow"
             navItems={[]}
-            initialNodes={FAQ_NODES}
-            initialNodeDetails={FAQ_NODE_DETAILS}
+            initialNodes={workflow.nodes}
+            initialNodeDetails={workflow.nodeDetails}
           />
         </Suspense>
       </div>

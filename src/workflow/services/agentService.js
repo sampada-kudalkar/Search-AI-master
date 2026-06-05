@@ -8,35 +8,114 @@
 const _agents = new Map();
 
 const _SEED_TOOLS = [
+  // ── Automotive dealership tools ─────────────────────────────────────────
   {
-    id: '39hbiez',
-    name: 'Webpage scraper',
-    description: 'Scrapes selected business webpages to extract content and context for analysis.',
-    category: 'Data collection',
+    id: 'dms-integration',
+    name: 'DMS Integration',
+    icon: 'storage',
+    description: 'Reads and writes appointment records, repair orders, vehicle data, and customer history in the Dealer Management System.',
+    category: 'Dealership Systems',
+    inputs: [{ name: 'query', type: 'string', description: 'DMS query or record ID' }],
+    outputs: [{ name: 'result', type: 'object', description: 'DMS record data' }],
   },
   {
-    id: 's69wacq',
-    name: "Google's PAA questions",
-    description: "Retrieves Google's People Also Ask questions for a given set of search queries.",
-    category: 'Research',
+    id: 'send-confirmation',
+    name: 'Send Confirmation',
+    icon: 'send',
+    description: 'Sends appointment confirmations, reminders, and follow-up messages via SMS and email to the customer.',
+    category: 'Communication',
+    inputs: [{ name: 'channel', type: 'string', description: 'sms | email | both' }, { name: 'message', type: 'string', description: 'Message body' }],
+    outputs: [{ name: 'status', type: 'string', description: 'sent | failed' }],
   },
   {
-    id: '538goya',
-    name: 'Select FAQs from question pool',
-    description: 'Clusters similar questions, classifies intent, and picks the strongest 8–15 to form the final FAQ set.',
-    category: 'Content selection',
+    id: 'schedule-appointment',
+    name: 'Schedule Appointment',
+    icon: 'calendar_today',
+    description: 'Checks availability and books, reschedules, or cancels service and sales appointments in the DMS.',
+    category: 'Dealership Systems',
+    inputs: [{ name: 'date', type: 'string' }, { name: 'time', type: 'string' }, { name: 'type', type: 'string' }],
+    outputs: [{ name: 'appointmentId', type: 'string' }, { name: 'confirmed', type: 'boolean' }],
   },
   {
-    id: 'qgmncsh',
-    name: 'Send FAQs to Content Hub',
-    description: 'Formats the final FAQ set and pushes it into the Content Hub editor.',
-    category: 'Output',
+    id: 'voice-call',
+    name: 'Voice Call',
+    icon: 'call',
+    description: 'Places or receives voice calls via ElevenLabs voice AI. Handles call routing, voicemail detection, and call logging.',
+    category: 'Communication',
+    inputs: [{ name: 'phoneNumber', type: 'string' }, { name: 'script', type: 'string' }],
+    outputs: [{ name: 'outcome', type: 'string', description: 'answered | voicemail | no-answer' }],
   },
   {
-    id: 'sr1m5sk',
-    name: 'Send to Search AI',
-    description: 'Formats the final FAQ set and sends it to Search AI recommendations.',
-    category: 'Output',
+    id: 'crm-update',
+    name: 'CRM Update',
+    icon: 'sync_alt',
+    description: 'Creates and updates lead records, contact notes, tags, and journey status in the CRM system.',
+    category: 'Dealership Systems',
+    inputs: [{ name: 'recordId', type: 'string' }, { name: 'fields', type: 'object' }],
+    outputs: [{ name: 'success', type: 'boolean' }],
+  },
+  {
+    id: 'inventory-search',
+    name: 'Inventory Search',
+    icon: 'inventory_2',
+    description: 'Searches real-time vehicle inventory for new, used, and CPO vehicles matching customer preferences.',
+    category: 'Dealership Systems',
+    inputs: [{ name: 'filters', type: 'object', description: 'make, model, year, price, mileage' }],
+    outputs: [{ name: 'vehicles', type: 'array', description: 'Matching inventory items' }],
+  },
+  {
+    id: 'lead-routing',
+    name: 'Lead Routing',
+    icon: 'route',
+    description: 'Assigns and routes leads to the appropriate sales consultant based on availability, specialty, and round-robin rules.',
+    category: 'Sales',
+    inputs: [{ name: 'leadId', type: 'string' }, { name: 'department', type: 'string' }],
+    outputs: [{ name: 'assignedTo', type: 'string' }],
+  },
+  {
+    id: 'trigger-escalation',
+    name: 'Trigger Escalation',
+    icon: 'priority_high',
+    description: 'Immediately transfers the conversation to a live human agent with full context and priority queue placement.',
+    category: 'Escalation',
+    inputs: [{ name: 'reason', type: 'string' }, { name: 'priority', type: 'string', description: 'normal | high | urgent' }],
+    outputs: [{ name: 'transferredTo', type: 'string' }],
+  },
+  {
+    id: 'intent-classifier',
+    name: 'Intent Classifier',
+    icon: 'psychology',
+    description: 'Detects the caller\'s department intent and purpose using NLP — routes to service, sales, parts, or general.',
+    category: 'AI',
+    inputs: [{ name: 'transcript', type: 'string' }],
+    outputs: [{ name: 'intent', type: 'string' }, { name: 'confidence', type: 'number' }],
+  },
+  {
+    id: 'vin-decode',
+    name: 'VIN Decode',
+    icon: 'qr_code',
+    description: 'Decodes a VIN to retrieve year, make, model, trim, and service history for the vehicle.',
+    category: 'Dealership Systems',
+    inputs: [{ name: 'vin', type: 'string' }],
+    outputs: [{ name: 'vehicle', type: 'object' }],
+  },
+  {
+    id: 'check-business-hours',
+    name: 'Check Business Hours',
+    icon: 'schedule',
+    description: 'Looks up department-specific business hours to determine availability for transfers and scheduling.',
+    category: 'Operations',
+    inputs: [{ name: 'department', type: 'string' }],
+    outputs: [{ name: 'isOpen', type: 'boolean' }, { name: 'nextOpen', type: 'string' }],
+  },
+  {
+    id: 'nhtsa-recall-lookup',
+    name: 'NHTSA Recall Lookup',
+    icon: 'find_in_page',
+    description: 'Queries the NHTSA database for open recalls by VIN or year/make/model.',
+    category: 'Compliance',
+    inputs: [{ name: 'vin', type: 'string' }],
+    outputs: [{ name: 'recalls', type: 'array' }],
   },
 ];
 
@@ -109,6 +188,46 @@ export async function getCustomTools() {
   return Array.from(_customTools.values());
 }
 
+// Transform agentService tool → CustomToolViewer field format
+function _toolToViewerFields(tool) {
+  if (tool.fields) return tool; // already in viewer format
+  const fields = (tool.inputs || []).map((inp, i) => {
+    const label = inp.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const id = `${tool.id}-in-${i}`;
+
+    // Boolean → toggle
+    if (inp.type === 'boolean') {
+      return { id, label, type: 'toggle', required: false };
+    }
+
+    // Enum (pipe-separated options in description or options array) → select
+    const isEnum = (inp.description && inp.description.includes(' | ')) || Array.isArray(inp.options);
+    if (isEnum || inp.type === 'enum') {
+      const raw = Array.isArray(inp.options)
+        ? inp.options
+        : (inp.description || '').split(' | ').map((o) => o.trim()).filter(Boolean);
+      return {
+        id, label, type: 'select', required: false,
+        options: raw.map((o) => ({ label: o, value: o })),
+      };
+    }
+
+    // Object or array → variable chip (maps a workflow variable)
+    if (inp.type === 'object' || inp.type === 'array') {
+      return { id, label, type: 'variable', required: false, placeholder: inp.description || 'Map a workflow variable' };
+    }
+
+    // Number → number field
+    if (inp.type === 'number') {
+      return { id, label, type: 'number', required: false, placeholder: inp.description || '' };
+    }
+
+    // Default string → variable chip (most tool inputs map from workflow variables)
+    return { id, label, type: 'variable', required: false, placeholder: inp.description || 'Map a workflow variable' };
+  });
+  return { ...tool, fields };
+}
+
 export async function getCustomToolsByIds(ids) {
-  return (ids || []).map((id) => _customTools.get(id)).filter(Boolean);
+  return (ids || []).map((id) => _customTools.get(id)).filter(Boolean).map(_toolToViewerFields);
 }

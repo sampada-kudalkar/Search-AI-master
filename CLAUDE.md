@@ -607,3 +607,111 @@ This project is built one task per conversation. **Start a fresh chat (or `/clea
 - **Procedure library (`ProceduresScreen` / `ProcedureDetailScreen`):** matches Figma `37-42809`. List = grid/list toggle of cards (book icon, title, description, 3-dot Edit/Duplicate/Delete menu, clock+date footer), search-icon toggle, "Create new". Editor (`ProcedureDetailScreen`, `procedure: Procedure | null` where null=new) = back+title header with Cancel/Save (new) or Actions/Save (existing, Save disabled until dirty); two columns: left = title input + when-to-use textarea + Steps editor box (rich `StepsView` for existing, placeholder textarea + slash hint for new, bottom `{x}`/wrench/link toolbar); right = Tools & Context cards with `RefChip`s + Add. Data model in `src/data/procedureData.ts`: `Procedure` now has `description`, `lastEdited`, structured `steps` (`ProcedureStep` = title + `Bullet[]` of inline `Token`s where a token is a string or a `Ref` chip), `tools: string[]`, `context: ContextItem[]`. Raw automotive entries are `transform()`-ed; `p-005` "Handle emergency or urgent concern" is the fully-authored featured example with inline chips. **No category tabs/chips anymore** (old design dropped).
 - **Table convention:** column order is **name → Status (2nd) → Vehicle/subject (3rd) → rest**; tables support resize + sort + customize-columns. Drawers use the generic `FormDrawer`. Charts use `chartColors` + `ChartCard`.
 - **Repo / deploy:** pushed to `github.com/hareshrajamannar-creator/MYNA-Automotive`; pushing to `main` auto-deploys to GitHub Pages (`.github/workflows/deploy.yml`). Vite `base` is `/MYNA-Automotive/` for production builds. Live: https://hareshrajamannar-creator.github.io/MYNA-Automotive/
+
+---
+
+## 17. Building Agents from a PRD
+
+This section tells Claude (and teammates) exactly how to take a new PRD and wire it into the MYNA prototype as a working agent workflow.
+
+### Step 1 — Read the PRD sections you need
+
+From the PRD, extract for each agent:
+- **Trigger type** — inbound call/chat ("Conversation trigger") or scheduled/CRM event ("Schedule-based trigger" or "Entity trigger")
+- **Workflow steps** — ordered list of triggers, tasks, procedures, delays, branches
+- **Task details** — task name, description, tools required (maps to `agentService` tool IDs)
+- **Procedures** — names that map to entries in `src/workflow/services/procedureService.js`
+- **Metrics** — 4 KPIs shown on the agent overview and instance screens
+- **Goals / Outcomes** — 1-2 sentence summaries used in the Agent details RHS panel
+
+### Step 2 — Add or update `src/data/agentWorkflows.ts`
+
+One `AgentWorkflow` object per agent: `{ nodes, nodeDetails }`.
+
+**Node shape:**
+```typescript
+{ id: 'my-1', flowType: 'trigger' | 'task' | 'procedures' | 'delay' | 'branch', data: { title, subtype, hasToggle, toggleEnabled, hasAiIcon, headerLabel? } }
+```
+
+**Trigger subtypes and their RHS panels:**
+| `data.subtype` | RHS panel rendered |
+|---|---|
+| `'Conversation trigger'` | `ConversationTriggerBody` — voice + webchat conditions |
+| `'Schedule-based'` | `ScheduleBased` — frequency, day, time |
+| anything else | `EntityTriggerBody` — conditions list |
+
+**nodeDetails keys:**
+- `'__start__'` → `{ agentName, goals, outcomes, locations[] }`
+- trigger node → `{ triggerName, description, voiceConditions[], webchatConditions[] }` (or `{ frequency, day, time }` for schedule)
+- task node → `{ taskName, description, tools: string[] }` — tool IDs come from `agentService._SEED_TOOLS`
+- procedures node → `{ procedureIds: string[] }` — names must exactly match IDs in `procedureService.js`
+- delay node → `{ name, duration, unit }` — e.g. `{ name: 'Wait 24h', duration: '24', unit: 'hours' }`
+- branch node → `{ basedOn: 'conditions', branches: [{ id, name, isFallback? }] }` + one entry per branch path
+
+**Branch path entry:**
+```typescript
+'branch-node-id-path-1': {
+  branchName: 'Path label',
+  description: '...',
+  conditions: [],
+  parentId: 'branch-node-id',
+  isBranchPath: true,
+  nodes: [ ...sub-nodes same shape as top-level nodes... ],
+}
+```
+Also add nodeDetails entries for each sub-node ID.
+
+### Step 3 — Add tools to `src/workflow/services/agentService.js`
+
+Existing automotive tools (use these IDs directly):
+
+| Tool ID | Name | Icon |
+|---|---|---|
+| `dms-integration` | DMS Integration | `storage` |
+| `send-confirmation` | Send Confirmation | `send` |
+| `schedule-appointment` | Schedule Appointment | `calendar_today` |
+| `voice-call` | Voice Call | `call` |
+| `crm-update` | CRM Update | `sync_alt` |
+| `inventory-search` | Inventory Search | `inventory_2` |
+| `lead-routing` | Lead Routing | `route` |
+| `trigger-escalation` | Trigger Escalation | `priority_high` |
+| `intent-classifier` | Intent Classifier | `psychology` |
+| `vin-decode` | VIN Decode | `qr_code` |
+| `check-business-hours` | Check Business Hours | `schedule` |
+| `nhtsa-recall-lookup` | NHTSA Recall Lookup | `find_in_page` |
+
+To add a **new tool**, append to `_SEED_TOOLS` in `agentService.js`:
+```js
+{ id: 'my-tool-id', name: 'My Tool', icon: 'material_icon_name', description: '...', category: 'Category', inputs: [...], outputs: [...] }
+```
+
+### Step 4 — Add or update procedures in `src/workflow/services/procedureService.js`
+
+Each procedure needs `{ id, name, category, whenToUse, tools: string[], steps: string[], escalation }`. The `id` must exactly match the name string used in `procedureIds` arrays (they are the same).
+
+To add from a PRD, follow the format already established for the 34 existing automotive procedures.
+
+### Step 5 — Update metrics in `AgentDetailScreen.tsx` and `AgentInstanceScreen.tsx`
+
+Both files have a `METRICS_BY_AGENT` record. Add your agent's key and 4 metrics:
+```typescript
+'My new agent': [
+  { id: 'kpi1', value: '1,234', label: 'KPI label', delta: '2.1%', trend: 'up', info: true },
+  // ...
+]
+```
+
+### Step 6 — Wire the agent into the nav
+
+In `src/App.tsx`:
+1. Add `{ id: 'my-agent', label: 'My agent' }` to the `agent` section of `NAV_SECTIONS`
+2. Add `'my-agent': 'My agent'` to the `AGENT_NAMES` record
+
+### Step 7 — Build and verify
+
+```bash
+npm run build   # must say "✓ N modules transformed" with no TS errors
+npm run dev     # open localhost:5173, navigate to your new agent
+```
+
+Click a row → Workflow tab → verify nodes match the PRD. Click the edit pencil → verify the full workflow editor opens with all nodes and pre-populated tool chips.

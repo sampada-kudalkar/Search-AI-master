@@ -3,12 +3,10 @@
   display: none;
 }
 
-/* Outer: compensate for .side-drawer padding: 0 30px 70px */
 .outer {
   display: flex;
   flex-direction: column;
-  height: calc(100% + 70px);
-  margin: 0 -30px -70px;
+  height: 100%;
   overflow: hidden;
   font-family: 'Roboto', sans-serif;
 }

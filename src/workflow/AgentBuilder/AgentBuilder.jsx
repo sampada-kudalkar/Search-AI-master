@@ -6,7 +6,8 @@ import ScheduleBased from '../Molecules/RHS/Trigger/ScheduleBased/ScheduleBased'
 import ShareModal from '../Organisms/Modals/ShareModal/ShareModal';
 import EmptyStates from '../Patterns/EmptyStates/EmptyStates';
 import { Button } from '../elemental-stubs';
-import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools } from '../services/agentService';
+import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
+import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
 import { getProcedureById, PROCEDURES } from '../services/procedureService';
 import { getModuleNav } from '../Modules/moduleNavigation';
 import './AgentBuilder.css';
@@ -182,7 +183,15 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
                   return { id: pid, name: p ? p.name : pid };
                 }),
               }
-            : { ...item.data },
+            : {
+                ...item.data,
+                // Pull title and subtitle from saved nodeDetails so canvas nodes
+                // show real content instead of placeholder text
+                title: nodeDetails[nodeId]?.taskName
+                  ?? nodeDetails[nodeId]?.triggerName
+                  ?? item.data.title,
+                subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
+              },
     });
     edges.push({
       id: `e-${prevId}-${nodeId}`,
@@ -217,11 +226,30 @@ function buildFlow(nodeList, startData, nodeDetails = {}) {
 
         let previousId = branch.id;
         branchNodes.forEach((childNode, childIndex) => {
+          const childId = childNode.id;
+          const childDet = nodeDetails[childId] || {};
+          // Enrich child node data from nodeDetails — same logic as top-level nodes
+          let childData = { ...childNode.data, stepNumber: childNode.data?.stepNumber ?? null };
+          if (childNode.flowType === 'procedures') {
+            childData = {
+              ...childData,
+              procedureItems: (childDet.procedureIds || []).map((pid) => {
+                const p = getProcedureById(pid);
+                return { id: pid, name: p ? p.name : pid };
+              }),
+            };
+          } else if (childNode.flowType !== 'delay' && childNode.flowType !== 'branch') {
+            childData = {
+              ...childData,
+              title: childDet.taskName ?? childDet.triggerName ?? childData.title,
+              subtitle: childDet.description ?? childData.subtitle,
+            };
+          }
           nodes.push({
-            id: childNode.id,
+            id: childId,
             type: childNode.flowType,
             position: { x: branchX, y: branchNodeStartY + childIndex * 250 },
-            data: { ...childNode.data, stepNumber: childNode.data?.stepNumber ?? null },
+            data: childData,
           });
           edges.push({
             id: `e-${previousId}-${childNode.id}`,
@@ -331,6 +359,8 @@ export default function AgentBuilder({
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   // Tracks which procedure is open in the detail view (UI-only, not persisted)
   const [activeProcedureId, setActiveProcedureId] = useState(null);
+  // Tool viewer state
+  const [viewingTool, setViewingTool] = useState(null); // full tool object
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
@@ -1099,7 +1129,20 @@ export default function AgentBuilder({
       if (activeProcedureId) {
         const proc = getProcedureById(activeProcedureId);
         const overrides = currentDetails.procedureOverrides?.[activeProcedureId] || {};
-        const mergedProc = proc ? { ...proc, ...overrides } : { id: activeProcedureId, name: activeProcedureId, ...overrides };
+        // Transform procedureService shape → ProcedureDetailBody shape:
+        //   proc.tools (string[])  → toolChips ({ value, type:'tool' }[])
+        //   proc.steps (string[])  → stepsText (newline-joined string)
+        const procFormatted = proc ? {
+          ...proc,
+          toolChips: (proc.tools || []).map((t) => ({ value: t, type: 'tool' })),
+          contextChips: (proc.context || []).map((c) => ({ value: c, type: 'variable' })),
+          stepsText: Array.isArray(proc.steps)
+            ? proc.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')
+            : (proc.steps || ''),
+        } : null;
+        const mergedProc = procFormatted
+          ? { ...procFormatted, ...overrides }
+          : { id: activeProcedureId, name: activeProcedureId, ...overrides };
         return (
           <RHS
             key={`proc-detail-${activeProcedureId}`}
@@ -1157,7 +1200,15 @@ export default function AgentBuilder({
         variant="entityTask"
         title="Task"
         viewOnly={viewOnly}
-        bodyProps={{ initialValues: currentDetails, onFieldChange: activeFieldChange }}
+        bodyProps={{
+          initialValues: currentDetails,
+          onFieldChange: activeFieldChange,
+          onOpenTool: (toolId) => {
+            getCustomToolsByIds([toolId]).then((tools) => {
+              if (tools[0]) setViewingTool(tools[0]);
+            });
+          },
+        }}
         onClose={handleCloseDrawer}
         onSave={handleCloseDrawer}
       />
@@ -1283,7 +1334,9 @@ export default function AgentBuilder({
             style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, color: '#555' }}
             title="Back to agents"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, lineHeight: 1 }}>arrow_back</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M5.98854 10.6267L8.73215 13.3703C8.85608 13.4943 8.91724 13.6393 8.91565 13.8054C8.91403 13.9715 8.85287 14.1192 8.73215 14.2485C8.60288 14.3778 8.45438 14.4446 8.28665 14.4488C8.11892 14.4531 7.97042 14.3906 7.84115 14.2613L4.10877 10.529C3.95813 10.3783 3.88281 10.2026 3.88281 10.0017C3.88281 9.80088 3.95813 9.62514 4.10877 9.4745L7.84115 5.74212C7.96508 5.61819 8.11224 5.55703 8.28265 5.55862C8.45305 5.56024 8.60288 5.62567 8.73215 5.75494C8.85287 5.88421 8.91537 6.03058 8.91965 6.19404C8.92392 6.3575 8.86142 6.50386 8.73215 6.63312L5.98854 9.37675H15.7931C15.9704 9.37675 16.1189 9.43658 16.2386 9.55623C16.3582 9.67588 16.418 9.82438 16.418 10.0017C16.418 10.1791 16.3582 10.3276 16.2386 10.4472C16.1189 10.5669 15.9704 10.6267 15.7931 10.6267H5.98854Z" fill="currentColor"/>
+            </svg>
           </button>
         )}
         {/* Agent name */}
@@ -1351,6 +1404,15 @@ export default function AgentBuilder({
             ? `${window.location.origin}/view/${agentModuleSlug}/${agentSlug}`
             : `${window.location.origin}/view/${agentId}`}
           onClose={() => setShareModalOpen(false)}
+        />
+      )}
+
+      {/* ─── Tool detail viewer ─── */}
+      {viewingTool && (
+        <CustomToolViewer
+          isOpen={!!viewingTool}
+          tool={viewingTool}
+          onClose={() => setViewingTool(null)}
         />
       )}
 

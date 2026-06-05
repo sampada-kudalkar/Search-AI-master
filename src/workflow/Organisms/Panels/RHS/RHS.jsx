@@ -86,7 +86,7 @@ const VARIANTS = {
   },
 };
 
-export default function RHS({ variant = 'agentDetails', title, bodyProps, onClose, onSave, onPreview, onExpand, viewOnly = false }) {
+export default function RHS({ variant = 'agentDetails', title, bodyProps, onClose, onSave, onPreview, onExpand, onBack, viewOnly = false }) {
   const config = VARIANTS[variant];
   const Body = config.body;
   const [isExpanded, setIsExpanded] = useState(false);
@@ -120,6 +120,7 @@ export default function RHS({ variant = 'agentDetails', title, bodyProps, onClos
           onPreview={viewOnly ? undefined : onPreview}
           onExpand={handleExpand}
           onClose={onClose}
+          onBack={onBack}
           showActions={viewOnly ? false : config.showActions}
         />
 
@@ -137,21 +138,7 @@ export default function RHS({ variant = 'agentDetails', title, bodyProps, onClos
           </div>
         </div>
 
-        {viewOnly ? (
-          <div style={{
-            padding: '14px 16px',
-            borderTop: '1px solid #e5e9f0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: '#ffffff',
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#8f8f8f' }}>visibility</span>
-            <span style={{ fontSize: 12, color: '#8f8f8f', fontFamily: '"Roboto", arial, sans-serif', letterSpacing: '-0.24px' }}>
-              View only — editing is disabled
-            </span>
-          </div>
-        ) : (
+        {!viewOnly && (
           <RHSSidePanelFooter
             onSave={onSave}
             showPromptStrength={config.showPromptStrength}

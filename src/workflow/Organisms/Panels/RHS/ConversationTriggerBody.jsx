@@ -72,8 +72,8 @@ function ConditionDropdown({ value, options, onChange, placeholder, disabled }) 
   );
 }
 
-function makeRow() {
-  return { id: Date.now() + Math.random(), condition: '', time: '' };
+function makeRow(conditionValue = '', timeValue = '') {
+  return { id: Date.now() + Math.random(), condition: conditionValue, time: timeValue };
 }
 
 function ChannelSection({ icon, title, conditionOptions, rows, onRowChange, onAddRow, onRemoveRow, viewOnly }) {
@@ -148,10 +148,14 @@ export default function ConversationTriggerBody({ initialValues = {}, onFieldCha
   const [triggerName, setTriggerName] = useState(initialValues.triggerName ?? '');
   const [description, setDescription] = useState(initialValues.description ?? '');
   const [voiceRows, setVoiceRows] = useState(
-    initialValues.voiceRows?.length ? initialValues.voiceRows : [makeRow()]
+    initialValues.voiceRows?.length
+      ? initialValues.voiceRows
+      : [makeRow(VOICE_OPTIONS[0].value, TIME_OPTIONS[0].value)]
   );
   const [webChatRows, setWebChatRows] = useState(
-    initialValues.webChatRows?.length ? initialValues.webChatRows : [makeRow()]
+    initialValues.webChatRows?.length
+      ? initialValues.webChatRows
+      : [makeRow(WEBCHAT_OPTIONS[0].value, TIME_OPTIONS[0].value)]
   );
 
   const handleTriggerName = (e) => {
@@ -172,8 +176,8 @@ export default function ConversationTriggerBody({ initialValues = {}, onFieldCha
     onFieldChange?.(field, next);
   }
 
-  function addRow(setter, field, rows) {
-    const next = [...rows, makeRow()];
+  function addRow(setter, field, rows, conditionOptions) {
+    const next = [...rows, makeRow(conditionOptions[0]?.value || '', TIME_OPTIONS[0].value)];
     setter(next);
     onFieldChange?.(field, next);
   }
@@ -211,7 +215,7 @@ export default function ConversationTriggerBody({ initialValues = {}, onFieldCha
         conditionOptions={VOICE_OPTIONS}
         rows={voiceRows}
         onRowChange={(id, key, val) => updateRows(setVoiceRows, 'voiceRows', voiceRows, id, key, val)}
-        onAddRow={() => addRow(setVoiceRows, 'voiceRows', voiceRows)}
+        onAddRow={() => addRow(setVoiceRows, 'voiceRows', voiceRows, VOICE_OPTIONS)}
         onRemoveRow={(id) => removeRow(setVoiceRows, 'voiceRows', voiceRows, id)}
         viewOnly={viewOnly}
       />
@@ -222,7 +226,7 @@ export default function ConversationTriggerBody({ initialValues = {}, onFieldCha
         conditionOptions={WEBCHAT_OPTIONS}
         rows={webChatRows}
         onRowChange={(id, key, val) => updateRows(setWebChatRows, 'webChatRows', webChatRows, id, key, val)}
-        onAddRow={() => addRow(setWebChatRows, 'webChatRows', webChatRows)}
+        onAddRow={() => addRow(setWebChatRows, 'webChatRows', webChatRows, WEBCHAT_OPTIONS)}
         onRemoveRow={(id) => removeRow(setWebChatRows, 'webChatRows', webChatRows, id)}
         viewOnly={viewOnly}
       />

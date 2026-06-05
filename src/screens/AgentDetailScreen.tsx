@@ -62,12 +62,35 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
 
-  const metrics: Metric[] = [
+  const METRICS_BY_AGENT: Record<string, Metric[]> = {
+    'Frontdesk agent': [
+      { id: 'interactions', value: '18,420', label: 'Interactions handled' },
+      { id: 'fcr', value: '87%', label: 'First contact resolution' },
+      { id: 'aht', value: '1m 42s', label: 'Average handle time' },
+      { id: 'escalation', value: '8%', label: 'Escalation rate' },
+    ],
+    'Reminder agent': [
+      { id: 'confirmed', value: '3,847', label: 'Appointments confirmed' },
+      { id: 'reschedule', value: '12%', label: 'Reschedule rate' },
+      { id: 'noshow', value: '34%', label: 'No-show reduction' },
+      { id: 'messages', value: '11,541', label: 'Messages sent' },
+    ],
+    'Outreach agent': [
+      { id: 'leads', value: '2,103', label: 'Leads contacted' },
+      { id: 'response', value: '38%', label: 'Response rate' },
+      { id: 'appointments', value: '641', label: 'Appointments scheduled' },
+      { id: 'conversion', value: '11%', label: 'Conversion rate' },
+    ],
+  }
+
+  const DEFAULT_METRICS: Metric[] = [
     { id: 'interactions', value: '2,850', label: 'Interactions handled' },
     { id: 'fcr', value: '92%', label: 'First contact resolution rate' },
     { id: 'aht', value: '2m 34s', label: 'Average handle time' },
     { id: 'escalation', value: '11%', label: 'Escalation rate' },
   ]
+
+  const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
 
   const data: AgentInstance[] = REGIONS.map((r) => ({
     name: `${agentName} - ${r.region}`,

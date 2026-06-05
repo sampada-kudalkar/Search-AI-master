@@ -31,19 +31,21 @@ function LeafRow({
 function Section({
   section,
   activeId,
+  expanded,
+  onToggle,
   onSelect,
 }: {
   section: NavSection
   activeId: string
+  expanded: boolean
+  onToggle: () => void
   onSelect?: (id: string) => void
 }) {
-  const [expanded, setExpanded] = useState(section.defaultExpanded ?? true)
-
   return (
     <div className="flex flex-col gap-xs">
       <button
         type="button"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={onToggle}
         className="flex h-7 w-full items-center justify-between gap-sm rounded-sm px-sm py-[6px] hover:bg-surface-selected"
       >
         <span className="text-body text-text-primary">{section.label}</span>
@@ -64,6 +66,15 @@ function Section({
 }
 
 export function SideNav({ title, sections, activeId, onSelect }: SideNavProps) {
+  // Accordion: only one section open at a time.
+  // Initialise to the first section that has defaultExpanded: true, or the first section.
+  const defaultOpen = sections.find((s) => s.defaultExpanded)?.id ?? sections[0]?.id ?? null
+  const [expandedId, setExpandedId] = useState<string | null>(defaultOpen)
+
+  const toggle = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id))
+  }
+
   return (
     <aside className="flex h-full w-[222px] flex-col border-r border-border bg-surface-l2">
       <div className="flex h-[52px] shrink-0 flex-col justify-center px-lg">
@@ -75,6 +86,8 @@ export function SideNav({ title, sections, activeId, onSelect }: SideNavProps) {
             key={section.id}
             section={section}
             activeId={activeId}
+            expanded={expandedId === section.id}
+            onToggle={() => toggle(section.id)}
             onSelect={onSelect}
           />
         ))}

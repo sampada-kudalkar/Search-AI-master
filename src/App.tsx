@@ -98,13 +98,6 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'knowledge-base', label: 'Knowledge base' },
       { id: 'procedure-library', label: 'Procedure library' },
-    ],
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    defaultExpanded: false,
-    items: [
       { id: 'widgets', label: 'Widgets' },
       { id: 'phone-number', label: 'Phone number' },
       { id: 'voices', label: 'Voices' },

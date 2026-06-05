@@ -241,12 +241,12 @@ const PROCEDURE_SUB_ITEMS = {
 };
 
 export const PROCEDURE_CARDS = [
-  { label: 'Inbound General', icon: 'article', action: 'chevron', subKey: 'Inbound General' },
-  { label: 'Service',         icon: 'article', action: 'chevron', subKey: 'Service' },
-  { label: 'Sales',           icon: 'article', action: 'chevron', subKey: 'Sales' },
-  { label: 'Parts',           icon: 'article', action: 'chevron', subKey: 'Parts' },
-  { label: 'After-Hours',     icon: 'article', action: 'chevron', subKey: 'After-Hours' },
-  { label: 'Outbound',        icon: 'article', action: 'chevron', subKey: 'Outbound' },
+  { label: 'Inbound General', icon: 'menu_book', action: 'chevron', subKey: 'Inbound General' },
+  { label: 'Service',         icon: 'menu_book', action: 'chevron', subKey: 'Service' },
+  { label: 'Sales',           icon: 'menu_book', action: 'chevron', subKey: 'Sales' },
+  { label: 'Parts',           icon: 'menu_book', action: 'chevron', subKey: 'Parts' },
+  { label: 'After-Hours',     icon: 'menu_book', action: 'chevron', subKey: 'After-Hours' },
+  { label: 'Outbound',        icon: 'menu_book', action: 'chevron', subKey: 'Outbound' },
 ];
 
 /* ─── Controls data ─── */

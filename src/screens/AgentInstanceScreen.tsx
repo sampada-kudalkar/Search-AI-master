@@ -10,6 +10,7 @@ import {
   type Metric,
   type Tab,
 } from '../components'
+import { BackArrowIcon } from '../assets/BackArrowIcon'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
 
 interface AgentInstanceScreenProps {
@@ -37,7 +38,28 @@ const TABS: Tab[] = [
   { id: 'settings', label: 'Settings' },
 ]
 
-const METRICS: Metric[] = [
+const METRICS_BY_AGENT: Record<string, Metric[]> = {
+  'Frontdesk agent': [
+    { id: 'interactions', value: '18,420', label: 'Interactions handled', delta: '1.3%', trend: 'up', info: true },
+    { id: 'fcr', value: '87%', label: 'First contact resolution', delta: '2.1%', trend: 'up', info: true },
+    { id: 'aht', value: '1m 42s', label: 'Average handle time', delta: '0.8%', trend: 'down', info: true },
+    { id: 'escalation', value: '8%', label: 'Escalation rate', delta: '1.1%', trend: 'down', info: true },
+  ],
+  'Reminder agent': [
+    { id: 'confirmed', value: '3,847', label: 'Appointments confirmed', delta: '4.2%', trend: 'up', info: true },
+    { id: 'reschedule', value: '12%', label: 'Reschedule rate', delta: '0.5%', trend: 'down', info: true },
+    { id: 'noshow', value: '34%', label: 'No-show reduction', delta: '6.1%', trend: 'up', info: true },
+    { id: 'messages', value: '11,541', label: 'Messages sent', delta: '2.3%', trend: 'up', info: true },
+  ],
+  'Outreach agent': [
+    { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true },
+    { id: 'response', value: '38%', label: 'Response rate', delta: '1.9%', trend: 'up', info: true },
+    { id: 'appointments', value: '641', label: 'Appointments scheduled', delta: '5.4%', trend: 'up', info: true },
+    { id: 'conversion', value: '11%', label: 'Conversion rate', delta: '0.7%', trend: 'up', info: true },
+  ],
+}
+
+const DEFAULT_METRICS: Metric[] = [
   { id: 'interactions', value: '2,850', label: 'Interactions handled', delta: '1.3%', trend: 'up', info: true },
   { id: 'fcr', value: '92%', label: 'First contact resolution rate', delta: '1.3%', trend: 'up', info: true },
   { id: 'aht', value: '2m', label: 'Average handle time', delta: '1.3%', trend: 'up', info: true },
@@ -74,6 +96,10 @@ const COLUMNS: Column<LocationRow>[] = [
 export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, onEditAgent }: AgentInstanceScreenProps) {
   const [activeTab, setActiveTab] = useState('outcomes')
 
+  // Derive agent name from instance name (e.g. "Frontdesk agent - North region" → "Frontdesk agent")
+  const agentName = instanceName.replace(/ - .+$/, '')
+  const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
+
   const isWorkflowTab = activeTab === 'workflow'
 
   return (
@@ -89,7 +115,7 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
             onClick={onBack}
             className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
           >
-            <Icon name="chevron_left" size={20} />
+            <BackArrowIcon />
           </button>
           <h1 className="text-h3 text-text-primary">{instanceName}</h1>
           <Chip label={status} variant="success" />
@@ -119,7 +145,7 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
           {activeTab === 'outcomes' ? (
             <>
               <div className="px-2xl pt-lg">
-                <MetricTiles metrics={METRICS} />
+                <MetricTiles metrics={metrics} />
               </div>
               <div className="px-lg py-lg">
                 <DataTable columns={COLUMNS} data={LOCATIONS} />

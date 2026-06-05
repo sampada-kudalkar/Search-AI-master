@@ -3,7 +3,7 @@ import { FormInput, TextArea } from '../../../elemental-stubs';
 import { subscribeToCustomTools } from '../../../services/agentService';
 import styles from './EntityTaskBody.module.css';
 
-export default function EntityTaskBody({ initialValues = {}, onFieldChange }) {
+export default function EntityTaskBody({ initialValues = {}, onFieldChange, onOpenTool }) {
   const [taskName, setTaskName] = useState(initialValues.taskName ?? '');
   const [description, setDescription] = useState(initialValues.description ?? '');
   const [selectedTools, setSelectedTools] = useState(initialValues.selectedTools ?? []);
@@ -62,10 +62,22 @@ export default function EntityTaskBody({ initialValues = {}, onFieldChange }) {
 
         <div className={styles.addBox}>
           {displayedTools.map((tool) => (
-            <div key={tool.id} className={styles.toolRow}>
+            <div
+              key={tool.id}
+              className={styles.toolRow}
+              onClick={() => onOpenTool?.(tool.id)}
+              style={{ cursor: onOpenTool ? 'pointer' : 'default' }}
+            >
               <div className={styles.toolRowMain}>
                 <div className={styles.toolIconWrap}>
-                  {tool.iconDataUrl ? (
+                  {tool.icon ? (
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 16, color: '#555', fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}
+                    >
+                      {tool.icon}
+                    </span>
+                  ) : tool.iconDataUrl ? (
                     <img src={tool.iconDataUrl} alt={tool.name} className={styles.toolIconImg} />
                   ) : (
                     <span className={`material-symbols-outlined ${styles.toolIconFallback}`}>build</span>
@@ -74,9 +86,17 @@ export default function EntityTaskBody({ initialValues = {}, onFieldChange }) {
                 <span className={styles.toolName}>{tool.name}</span>
               </div>
               <div className={styles.toolActions}>
+                {onOpenTool && (
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 14, color: '#9e9e9e', marginRight: 4 }}
+                  >
+                    chevron_right
+                  </span>
+                )}
                 <button
                   className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                  onClick={() => handleRemoveTool(tool.id)}
+                  onClick={(e) => { e.stopPropagation(); handleRemoveTool(tool.id); }}
                   title="Remove tool"
                 >
                   <span className={`material-symbols-outlined ${styles.iconBtnIcon}`}>close</span>

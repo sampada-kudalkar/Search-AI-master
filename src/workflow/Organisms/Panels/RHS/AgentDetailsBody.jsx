@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Chip, FormInput, TextArea } from '../../../elemental-stubs';
+import { FormInput, TextArea } from '../../../elemental-stubs';
 import LocationsDrawer from '../../../RHSDrawer/LocationsDrawer.jsx';
 import styles from './AgentDetailsBody.module.css';
 
@@ -18,11 +18,6 @@ const DEFAULT_LOCATIONS = [
 
 const VISIBLE_COUNT = 4;
 
-/* rightIcon component consumed by Chip — must be a component, not JSX */
-const CloseIcon = () => (
-  <span className={`material-symbols-outlined ${styles.chipCloseIcon}`}>close</span>
-);
-
 export default function AgentDetailsBody({ values: externalValues, onChange }) {
   const [internalValues, setInternalValues] = useState({
     agentName: '',
@@ -35,11 +30,21 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
 
   const values = externalValues ?? internalValues;
 
-  /* Use DEFAULT_LOCATIONS when the saved list is empty (first open) */
-  const locations =
-    values.locations && values.locations.length > 0
-      ? values.locations
-      : DEFAULT_LOCATIONS;
+  /* Normalise locations — stored as strings OR as { id, name } objects */
+  const normaliseLocations = (raw) =>
+    (raw || []).map((l) =>
+      typeof l === 'string' ? { id: l, name: l } : l
+    );
+
+  const rawLocations = values.locations && values.locations.length > 0
+    ? values.locations
+    : DEFAULT_LOCATIONS;
+
+  const locations = normaliseLocations(rawLocations);
+
+  const handleRemoveChip = (id) => {
+    updateLocations(locations.filter((l) => l.id !== id));
+  };
 
   /* Generic text-field setter */
   const set = onChange
@@ -52,10 +57,6 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
     } else {
       setInternalValues((v) => ({ ...v, locations: updated }));
     }
-  };
-
-  const handleRemoveChip = (id) => {
-    updateLocations(locations.filter((l) => l.id !== id));
   };
 
   const handleLocationsSave = (selected) => {
@@ -96,6 +97,7 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
         onChange={set('goals')}
         required
         noFloatingLabel
+        rows={6}
       />
       <TextArea
         name="outcomes"
@@ -103,41 +105,53 @@ export default function AgentDetailsBody({ values: externalValues, onChange }) {
         value={values.outcomes}
         onChange={set('outcomes')}
         noFloatingLabel
+        rows={6}
       />
 
       {/* ─── Locations ─── */}
       <div className={styles.locationsField}>
+        {/* Header row: "Locations * ⓘ" + pencil icon (opens drawer) */}
         <div className={styles.locationsLabel}>
           <span className={styles.locationsLabelText}>Locations</span>
           <span className={styles.locationsRequired}>*</span>
-          <span className={`material-symbols-outlined ${styles.locationsInfoIcon}`}>
-            info
-          </span>
+          <span className={`material-symbols-outlined ${styles.locationsInfoIcon}`}>info</span>
+          <button
+            className={styles.locationsEditBtn}
+            type="button"
+            onClick={() => setShowLocations(true)}
+            title="Edit locations"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+              edit
+            </span>
+          </button>
         </div>
 
+        {/* Location chips — grey pill with name + × remove button */}
         <div className={styles.chipsRow}>
           {visibleLocations.map((loc) => (
-            <Chip
-              key={loc.id}
-              label={loc.name}
-              rightIcon={CloseIcon}
-              onIconClick={() => handleRemoveChip(loc.id)}
-              size="small"
-            />
+            <span key={loc.id} className={styles.locationChip}>
+              <span className={styles.locationChipName}>{loc.name}</span>
+              <button
+                type="button"
+                className={styles.locationChipClose}
+                onClick={() => handleRemoveChip(loc.id)}
+                title="Remove"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 12, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20" }}>
+                  close
+                </span>
+              </button>
+            </span>
           ))}
-          {!showAllChips && overflowCount > 0 && (
-            <button
-              className={styles.moreLink}
-              onClick={() => setShowAllChips(true)}
-            >
-              + {overflowCount} more
-            </button>
-          )}
         </div>
 
-        <button className={styles.addLink} onClick={() => setShowLocations(true)}>
-          + Add
-        </button>
+        {/* "+ N more" link */}
+        {!showAllChips && overflowCount > 0 && (
+          <button className={styles.moreLink} type="button" onClick={() => setShowAllChips(true)}>
+            + {overflowCount} more
+          </button>
+        )}
       </div>
     </div>
   );
