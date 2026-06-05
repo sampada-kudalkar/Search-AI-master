@@ -25,7 +25,7 @@ export function ChartStatRow({ stats }: ChartStatRowProps) {
         const { display, tooltip } = formatValue(s.value)
         return (
           <div key={s.label} title={tooltip}>
-            <div className="flex items-center gap-xs">
+            <div className="flex items-end gap-xs">
               <span className="text-h3 font-normal text-text-primary">{display}</span>
               {s.icon === 'star' && (
                 <span className="text-h3 leading-none" style={{ color: '#f59e0b' }}>★</span>
