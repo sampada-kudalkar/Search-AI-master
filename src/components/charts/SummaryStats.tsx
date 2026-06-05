@@ -1,10 +1,8 @@
-import { Icon } from '../Icon/Icon'
-
 export interface SummaryStat {
   id: string
   value: string
   label: string
-  /** e.g. "8.4%" — sign/arrow comes from `trend`. */
+  /** e.g. "8.4%" — sign comes from `trend`. */
   delta?: string
   trend?: 'up' | 'down'
 }
@@ -14,29 +12,40 @@ export interface SummaryStatsProps {
   stats: SummaryStat[]
 }
 
+function kFormat(raw: string): { display: string; tooltip?: string } {
+  const numeric = parseFloat(raw.replace(/,/g, ''))
+  if (!isNaN(numeric) && numeric >= 1000) {
+    const k = parseFloat((numeric / 1000).toFixed(1))
+    return { display: `${k}K`, tooltip: numeric.toLocaleString() }
+  }
+  return { display: raw }
+}
+
 export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
   return (
-    <section className="rounded-md border border-border bg-surface p-lg">
-      <h3 className="mb-md text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
+    <section className="rounded-md border border-border bg-surface p-2xl">
+      <h3 className="mb-lg text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h3>
       <div className="flex flex-wrap gap-x-[40px] gap-y-lg">
-        {stats.map((s) => (
-          <div key={s.id} className="min-w-[120px]">
-            <div className="flex items-center gap-sm">
-              <span className="text-[24px] leading-8 text-text-primary">{s.value}</span>
-              {s.delta && (
-                <span
-                  className={`inline-flex items-center text-small font-medium ${
-                    s.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'
-                  }`}
-                >
-                  <Icon name={s.trend === 'down' ? 'arrow_downward' : 'arrow_upward'} size={14} />
-                  {s.delta}
-                </span>
-              )}
+        {stats.map((s) => {
+          const { display, tooltip } = kFormat(s.value)
+          return (
+            <div key={s.id} className="min-w-[150px]" title={tooltip}>
+              <div className="flex items-end gap-sm">
+                <span className="text-[24px] leading-8 text-text-primary">{display}</span>
+                {s.delta && (
+                  <span
+                    className={`mb-[2px] text-small font-medium ${
+                      s.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'
+                    }`}
+                  >
+                    {s.trend === 'down' ? '-' : '+'}{s.delta}
+                  </span>
+                )}
+              </div>
+              <p className="text-body text-text-secondary">{s.label}</p>
             </div>
-            <p className="text-body text-text-secondary">{s.label}</p>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </section>
   )
