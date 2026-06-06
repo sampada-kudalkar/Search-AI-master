@@ -6,6 +6,7 @@ import {
   DataTable,
   DateRangeSelector,
   DonutChart,
+  HBarList,
   Icon,
   RatingBarChart,
   ReportHeader,
@@ -130,15 +131,6 @@ const TREND_DATA = [
   { label: 'Jun', value: 2104 },
 ]
 
-// ── Shared horizontal bar helper ──────────────────────────────────────────────
-function HBar({ pct, color }: { pct: number; color: string }) {
-  return (
-    <div className="relative h-6 flex-1 overflow-hidden rounded-sm bg-surface-selected">
-      <div className="absolute inset-y-0 left-0 rounded-sm" style={{ width: `${pct}%`, backgroundColor: color }} />
-    </div>
-  )
-}
-
 export function ServiceScreen() {
   const [dateRange, setDateRange] = useState('Last 30 days')
 
@@ -191,17 +183,7 @@ export function ServiceScreen() {
                 </div>
               }
             >
-              <div className="flex flex-1 flex-col justify-between">
-                {REMINDER_CHANNELS.map((row) => (
-                  <div key={row.label}>
-                    <p className="mb-xs text-small text-text-primary">{row.label}</p>
-                    <div className="flex items-center gap-md">
-                      <HBar pct={row.pct} color={row.color} />
-                      <span className="w-[36px] shrink-0 text-right text-small text-text-primary">{row.pct}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <HBarList items={REMINDER_CHANNELS.map(r => ({ label: r.label, pct: r.pct, color: r.color }))} />
             </ChartCard>
 
           </div>
@@ -221,17 +203,10 @@ export function ServiceScreen() {
                 </div>
               }
             >
-              <div className="flex flex-1 flex-col items-stretch justify-center gap-[80px]">
-                {COMM_MODES.map((row) => (
-                  <div key={row.label}>
-                    <p className="mb-xs text-small text-text-primary">{row.label}</p>
-                    <div className="flex items-center gap-md">
-                      <HBar pct={row.pct} color={row.color} />
-                      <span className="w-[36px] shrink-0 text-right text-small text-text-primary">{row.pct}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <HBarList
+                items={COMM_MODES.map(r => ({ label: r.label, pct: r.pct, color: r.color }))}
+                className="flex flex-1 flex-col items-stretch justify-center gap-[80px]"
+              />
             </ChartCard>
 
             <ChartCard title="CSI satisfaction breakdown">
