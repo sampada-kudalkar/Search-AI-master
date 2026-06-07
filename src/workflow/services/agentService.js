@@ -46,6 +46,23 @@ const _SEED_TOOLS = [
     outputs: [{ name: 'outcome', type: 'string', description: 'answered | voicemail | no-answer' }],
   },
   {
+    id: 'initiate-voice-call',
+    name: 'Initiate voice call',
+    icon: 'call',
+    description: 'Places an outbound voice call to the customer and routes the outcome to Call accepted, Call rejected, or Call missed.',
+    category: 'Communication',
+    fields: [
+      {
+        id: 'initiate-voice-call-phone',
+        label: 'Phone number',
+        type: 'variable',
+        defaultValue: 'Contact.PhoneNumber',
+      },
+    ],
+    inputs: [{ name: 'phoneNumber', type: 'string' }],
+    outputs: [{ name: 'outcome', type: 'string', description: 'accepted | rejected | missed' }],
+  },
+  {
     id: 'crm-update',
     name: 'CRM Update',
     icon: 'sync_alt',
@@ -188,11 +205,19 @@ export async function getCustomTools() {
   return Array.from(_customTools.values());
 }
 
+function _formatInputLabel(name, explicitLabel) {
+  if (explicitLabel) return explicitLabel;
+  const spaced = name
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+}
+
 // Transform agentService tool → CustomToolViewer field format
 function _toolToViewerFields(tool) {
   if (tool.fields) return tool; // already in viewer format
   const fields = (tool.inputs || []).map((inp, i) => {
-    const label = inp.name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const label = _formatInputLabel(inp.name, inp.label);
     const id = `${tool.id}-in-${i}`;
 
     // Boolean → toggle

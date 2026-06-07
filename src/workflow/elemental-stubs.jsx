@@ -24,6 +24,7 @@ export function FormInput({
   min,
   max,
   disabled,
+  readOnly,
   checked,
   labelInside,
   styleConfig,
@@ -87,6 +88,7 @@ export function FormInput({
         min={min}
         max={max}
         disabled={disabled}
+        readOnly={readOnly}
         style={{
           height: 36,
           padding: '0 12px',
@@ -95,13 +97,14 @@ export function FormInput({
           fontSize: 14,
           fontFamily: font,
           color: '#212121',
-          background: disabled ? '#f5f5f5' : '#fff',
+          background: readOnly ? '#FAFAFA' : disabled ? '#f5f5f5' : '#fff',
           outline: 'none',
           boxSizing: 'border-box',
           width: '100%',
+          cursor: readOnly ? 'default' : undefined,
         }}
-        onFocus={(e) => { if (!noBorder) e.target.style.borderColor = '#1976d2'; }}
-        onBlur={(e) => { if (!noBorder) e.target.style.borderColor = '#c5cad3'; }}
+        onFocus={(e) => { if (!noBorder && !readOnly) e.target.style.borderColor = '#1976d2'; }}
+        onBlur={(e) => { if (!noBorder && !readOnly) e.target.style.borderColor = '#c5cad3'; }}
       />
     </div>
   );
@@ -118,6 +121,7 @@ export function TextArea({
   noFloatingLabel,
   rows = 3,
   disabled,
+  readOnly,
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -161,6 +165,7 @@ export function TextArea({
         onChange={onChange}
         rows={rows}
         disabled={disabled}
+        readOnly={readOnly}
         style={{
           padding: '8px 12px',
           border: '1px solid #c5cad3',
@@ -168,15 +173,16 @@ export function TextArea({
           fontSize: 14,
           fontFamily: font,
           color: '#212121',
-          background: disabled ? '#f5f5f5' : '#fff',
+          background: readOnly ? '#FAFAFA' : disabled ? '#f5f5f5' : '#fff',
           outline: 'none',
-          resize: 'vertical',
+          resize: readOnly ? 'none' : 'vertical',
           boxSizing: 'border-box',
           width: '100%',
           lineHeight: '20px',
+          cursor: readOnly ? 'default' : undefined,
         }}
-        onFocus={(e) => { e.target.style.borderColor = '#1976d2'; }}
-        onBlur={(e) => { e.target.style.borderColor = '#c5cad3'; }}
+        onFocus={(e) => { if (!readOnly) e.target.style.borderColor = '#1976d2'; }}
+        onBlur={(e) => { if (!readOnly) e.target.style.borderColor = '#c5cad3'; }}
       />
     </div>
   );
@@ -323,9 +329,9 @@ export function Toggle({ name, checked, onChange, roundedToggle, disabled }) {
     onChange?.(e.target.checked, e);
   };
 
-  const width = 36;
-  const height = 20;
-  const knobSize = 14;
+  const width = 32;
+  const height = 16;
+  const knobSize = 12;
   const on = !!checked;
 
   return (
@@ -366,7 +372,7 @@ export function Toggle({ name, checked, onChange, roundedToggle, disabled }) {
         <span
           style={{
             position: 'absolute',
-            left: on ? width - knobSize - 3 : 3,
+            left: on ? width - knobSize - 2 : 2,
             width: knobSize,
             height: knobSize,
             borderRadius: '50%',

@@ -46,6 +46,7 @@ const ICON_CONFIG = {
   parallel:   { icon: 'splitscreen_add'  },
   loop:       { icon: 'repeat'           },
   delay:      { icon: 'hourglass_empty'  },
+  subagent:   { icon: 'smart_toy'        },
   procedures: { Component: ProcedureIcon },
 };
 
@@ -54,6 +55,8 @@ export default function CanvasNodeHeader({
   label,
   hasToggle = false,
   toggleEnabled = true,
+  toggleDisabled = false,
+  viewOnly = false,
   onToggleChange,
   hasAiIcon = false,
   hasAddButton = false,
@@ -109,27 +112,39 @@ export default function CanvasNodeHeader({
           </div>
         )}
         {hasToggle && (
-          <Toggle
-            name={`cnh-toggle-${nodeType}`}
-            checked={toggleEnabled}
-            onChange={(_, e) => onToggleChange?.(e.target.checked)}
-            roundedToggle
-          />
+          <div
+            className="cnh__toggle"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <Toggle
+              name={`cnh-toggle-${nodeType}`}
+              checked={toggleEnabled}
+              onChange={(checked, e) => {
+                e?.stopPropagation();
+                onToggleChange?.(checked);
+              }}
+              roundedToggle
+              disabled={toggleDisabled}
+            />
+          </div>
         )}
         {hasAddButton && (
           <Button type="link" customIcon={<AddIcon />} onClick={onAddClick} noHover aria-label="Add" />
         )}
-        <div className="cnh__more-wrapper" ref={menuRef}>
-          <Button type="link" customIcon={<MoreIcon />} onClick={handleMoreClick} noHover aria-label="More options" />
-          {menuOpen && (
-            <div className="cnh__context-menu">
-              <button className="cnh__context-menu-item cnh__context-menu-item--delete" onClick={handleDelete}>
-                <DeleteIcon />
-                <span>Delete</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {!viewOnly && (
+          <div className="cnh__more-wrapper" ref={menuRef}>
+            <Button type="link" customIcon={<MoreIcon />} onClick={handleMoreClick} noHover aria-label="More options" />
+            {menuOpen && (
+              <div className="cnh__context-menu">
+                <button className="cnh__context-menu-item cnh__context-menu-item--delete" onClick={handleDelete}>
+                  <DeleteIcon />
+                  <span>Delete</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

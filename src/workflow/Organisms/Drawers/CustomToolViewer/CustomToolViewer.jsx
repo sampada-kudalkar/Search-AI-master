@@ -29,13 +29,17 @@ import styles from './CustomToolViewer.module.css';
 // ─── Interactive field ────────────────────────────────────────────────────────
 
 function InteractiveField({ field }) {
-  const [textValue, setTextValue] = useState('');
+  const [textValue, setTextValue] = useState(field.defaultValue || '');
   const [radioValue, setRadioValue] = useState('');
   const [checkValues, setCheckValues] = useState([]);
   const [selectValue, setSelectValue] = useState(undefined);
   const [toggled, setToggled] = useState(false);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
+
+  useEffect(() => {
+    setTextValue(field.defaultValue || '');
+  }, [field.id, field.defaultValue]);
 
   const label = field.label || 'Untitled field';
   const required = field.required;
@@ -164,12 +168,20 @@ function InteractiveField({ field }) {
           <span className={styles.fieldLabel}>
             {label}{required && <span className={styles.required}> *</span>}
           </span>
-          <VariableChip
-            value={textValue || field.placeholder || 'variable_name'}
-            type="variable"
-            onChange={setTextValue}
-            onDelete={() => setTextValue('')}
-          />
+          <div className={styles.tagsInput}>
+            {textValue ? (
+              <VariableChip
+                value={textValue}
+                type="variable"
+                onChange={setTextValue}
+                onDelete={() => setTextValue('')}
+              />
+            ) : (
+              <span className={styles.variableEmptyHint}>
+                {field.placeholder || 'Map a workflow variable'}
+              </span>
+            )}
+          </div>
         </div>
       );
 
@@ -208,49 +220,6 @@ function InteractiveField({ field }) {
           </div>
         </div>
       );
-
-    case 'variable': {
-      // Variable chip input — shows {x} chips matching the reference screenshot
-      const defaultVars = field.defaultVars || [];
-      return (
-        <div className={styles.fieldWrap}>
-          <span className={styles.fieldLabel}>
-            {label}{required && <span className={styles.required}> *</span>}
-          </span>
-          <div className={styles.tagsInput}>
-            {defaultVars.map((v, i) => (
-              <VariableChip key={i} value={v} type="variable" />
-            ))}
-            {tags.map((tag, i) => (
-              <VariableChip
-                key={`tag-${i}`}
-                value={tag}
-                type="variable"
-                onDelete={() => setTags((prev) => prev.filter((_, idx) => idx !== i))}
-              />
-            ))}
-            <input
-              className={styles.tagInputInner}
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && tagInput.trim()) {
-                  e.preventDefault();
-                  setTags((prev) => [...prev, tagInput.trim()]);
-                  setTagInput('');
-                }
-              }}
-              placeholder={tags.length === 0 && defaultVars.length === 0 ? (field.placeholder || 'Map a variable...') : ''}
-            />
-            <span style={{ marginLeft: 'auto', flexShrink: 0, fontSize: 13, color: '#1976d2', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 2 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{'{'}</span>
-              <span style={{ fontWeight: 600 }}>x</span>
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{'}'}</span>
-            </span>
-          </div>
-        </div>
-      );
-    }
 
     default:
       return null;
