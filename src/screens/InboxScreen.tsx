@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Icon, TopNav, type NavSection } from '../components'
+import { ChartCard, DataTable, DonutChart, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
 
 interface Conversation {
   id: string
@@ -236,6 +236,144 @@ function InboxTabs({ tabSet, activeTab, onSelect }: { tabSet: TabSet; activeTab:
   )
 }
 
+// ─── Responses dashboard ──────────────────────────────────────────────────────
+
+const SUMMARY_STATS = [
+  { id: 'total',      value: '7.9K', label: 'Total Conversations', delta: '+36.6%', trend: 'up' as const },
+  { id: 'involve',    value: '39.2%', label: 'Involvement Rate',   delta: '-40%',   trend: 'down' as const },
+  { id: 'resolution', value: '61.2%', label: 'Resolution Rate',    delta: '+20%',   trend: 'up' as const },
+  { id: 'unresolved', value: '9.8%',  label: 'Unresolved',         delta: '-10%',   trend: 'down' as const },
+]
+
+const SANKEY_NODES = [
+  { name: 'Voice' }, { name: 'Text' }, { name: 'Chat' },
+  { name: 'Agent involved' }, { name: 'Human involved' },
+  { name: 'Resolved' }, { name: 'Routed' }, { name: 'Unresolved' },
+]
+const SANKEY_LINKS = [
+  { source: 0, target: 3, value: 300 }, { source: 0, target: 4, value: 100 },
+  { source: 1, target: 3, value: 200 }, { source: 1, target: 4, value: 150 },
+  { source: 2, target: 3, value: 250 }, { source: 2, target: 4, value: 200 },
+  { source: 3, target: 5, value: 400 }, { source: 3, target: 6, value: 200 }, { source: 3, target: 7, value: 150 },
+  { source: 4, target: 5, value: 200 }, { source: 4, target: 6, value: 100 }, { source: 4, target: 7, value: 150 },
+]
+
+const OVERTIME_DATA = [
+  { month: 'Dec\n2023', Resolved: 180, Routed: 120, Unresolved: 134 },
+  { month: 'Jan\n2024', Resolved: 100, Routed: 60,  Unresolved: 74  },
+  { month: 'Feb',       Resolved: 180, Routed: 120, Unresolved: 112 },
+  { month: 'Mar',       Resolved: 170, Routed: 130, Unresolved: 98  },
+  { month: 'Apr',       Resolved: 80,  Routed: 50,  Unresolved: 68  },
+  { month: 'May',       Resolved: 160, Routed: 100, Unresolved: 118 },
+]
+const OVERTIME_SERIES = [
+  { key: 'Resolved',   label: 'Resolved',   color: '#4cae3d' },
+  { key: 'Routed',     label: 'Routed',     color: '#f5a623' },
+  { key: 'Unresolved', label: 'Unresolved', color: '#de1b0c' },
+]
+
+const DONUT_DATA = [
+  { name: 'Voice', value: 43.2, color: '#1976d2' },
+  { name: 'Text',  value: 32.5, color: '#4cae3d' },
+  { name: 'Email', value: 24.3, color: '#f5a623' },
+]
+
+const CHANNEL_STATS = [
+  { id: 'total', value: '7.9k', label: 'Total conversations', delta: '+1.3%', trend: 'up' as const },
+  { id: 'voice', value: '5K',   label: 'Voice',               delta: '+1.3%', trend: 'up' as const },
+  { id: 'text',  value: '1.5k', label: 'Text',                delta: '+1.3%', trend: 'up' as const },
+  { id: 'email', value: '1.4k', label: 'Email' },
+]
+
+interface LocationRow {
+  location: string
+  totalConversation: string
+  resolved: string
+  routed: string
+  unresolved: string
+  [key: string]: string
+}
+
+const LOCATION_DATA: LocationRow[] = [
+  { location: 'Atlanta, GA',  totalConversation: '643', resolved: '15', routed: '12', unresolved: '2'  },
+  { location: 'Dallas, TX',   totalConversation: '324', resolved: '22', routed: '23', unresolved: '4'  },
+  { location: 'Chicago, IL',  totalConversation: '85',  resolved: '4',  routed: '18', unresolved: '22' },
+  { location: 'Miami, FL',    totalConversation: '523', resolved: '27', routed: '2',  unresolved: '4'  },
+  { location: 'Phoenix, AZ',  totalConversation: '323', resolved: '19', routed: '9',  unresolved: '10' },
+  { location: 'Austin, TX',   totalConversation: '143', resolved: '25', routed: '11', unresolved: '12' },
+  { location: 'Denver, CO',   totalConversation: '256', resolved: '30', routed: '13', unresolved: '14' },
+  { location: 'Seattle, WA',  totalConversation: '235', resolved: '21', routed: '15', unresolved: '16' },
+]
+
+const LOCATION_COLUMNS: Column<LocationRow>[] = [
+  { key: 'location',          label: 'Location',           sortable: true },
+  { key: 'totalConversation', label: 'Total conversation', sortable: true },
+  { key: 'resolved',          label: 'Resolved',           sortable: true },
+  { key: 'routed',            label: 'Routed',             sortable: true },
+  { key: 'unresolved',        label: 'Unresolved',         sortable: true },
+]
+
+function ResponsesPanel() {
+  return (
+    <div className="flex flex-1 flex-col overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between px-2xl py-xl">
+        <div>
+          <h1 className="text-h3 text-text-primary">Responses</h1>
+          <p className="mt-xs text-body text-text-secondary">Customer response handling and resolution outcomes across channels and locations</p>
+        </div>
+        <div className="flex items-center gap-sm">
+          <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2">
+            <Icon name="calendar_today" size={16} className="text-text-icon" />
+            Last 3 months
+          </button>
+          <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+            <Icon name="filter_list" size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-lg px-2xl pb-2xl">
+        {/* Summary */}
+        <SummaryStats title="Summary" stats={SUMMARY_STATS} />
+
+        {/* Performance funnel */}
+        <ChartCard title="Performance funnel">
+          <SankeyChart nodes={SANKEY_NODES} links={SANKEY_LINKS} height={300} />
+        </ChartCard>
+
+        {/* Conversations overtime */}
+        <ChartCard title="Conversations overtime">
+          <StackedBarChart data={OVERTIME_DATA} series={OVERTIME_SERIES} xKey="month" height={300} showBarLabels />
+        </ChartCard>
+
+        {/* Conversation by channel */}
+        <ChartCard title="Conversation by channel">
+          <div className="flex items-center gap-2xl px-lg pb-sm">
+            {CHANNEL_STATS.map((s) => (
+              <div key={s.id} className="flex flex-col">
+                <div className="flex items-center gap-xs">
+                  <span className="text-h3 text-text-primary">{s.value}</span>
+                  {s.delta && (
+                    <span className={`text-small ${s.trend === 'up' ? 'text-success' : 'text-chip-danger-text'}`}>{s.delta}</span>
+                  )}
+                </div>
+                <span className="text-small text-text-secondary">{s.label}</span>
+              </div>
+            ))}
+          </div>
+          <DonutChart data={DONUT_DATA} centerValue="7.9k" centerLabel="Total conversations" height={300} />
+        </ChartCard>
+
+        {/* Conversation across locations */}
+        <ChartCard title="Conversation across locations">
+          <DataTable columns={LOCATION_COLUMNS} data={LOCATION_DATA} />
+        </ChartCard>
+      </div>
+    </div>
+  )
+}
+
 function InboxSideNav({ activeId, onSelect }: { activeId: string; onSelect: (id: string) => void }) {
   const defaultOpen = INBOX_NAV_SECTIONS.find((s) => s.defaultExpanded)?.id ?? INBOX_NAV_SECTIONS[0]?.id ?? null
   const [expandedId, setExpandedId] = useState<string | null>(defaultOpen)
@@ -300,6 +438,8 @@ export function InboxScreen() {
   const [activeTab, setActiveTab] = useState('all')
   const [message, setMessage] = useState('')
 
+  const isInternalChat = activeNav === 'chat-internal-team'
+  const isOutcomesScreen = activeNav === 'responses' || activeNav === 'conversation-managed' || activeNav === 'all-reports'
   const currentTabSet = TABS_BY_NAV[activeNav] ?? DEFAULT_TAB_SET
 
   function handleNavSelect(id: string) {
@@ -317,32 +457,44 @@ export function InboxScreen() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopNav initials="S" />
 
+        {isOutcomesScreen ? (
+          <ResponsesPanel />
+        ) : (
         <div className="flex flex-1 overflow-hidden">
           {/* Middle panel — conversation list */}
           <div className="flex w-[370px] shrink-0 flex-col border-r border-border">
-            {/* List header */}
-            <div className="px-lg pt-lg">
-              <div className="flex items-start justify-between">
-                <div className="flex flex-col gap-xs">
-                  <div className="flex items-center gap-xs">
-                    <span className="text-body text-text-primary">OPEN</span>
-                    <Icon name="expand_more" size={16} className="text-text-icon" />
-                  </div>
-                  <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
-                </div>
-                <div className="flex items-center gap-md">
-                  <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="search" size={20} /></button>
-                  <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="filter_list" size={20} /></button>
-                  <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="swap_vert" size={20} /></button>
-                  <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="more_vert" size={20} /></button>
-                </div>
+            {isInternalChat ? (
+              <div className="flex items-center justify-end gap-sm px-lg pt-lg">
+                <button type="button" className="flex size-8 items-center justify-center text-text-icon hover:text-text-primary"><Icon name="search" size={20} /></button>
+                <button type="button" className="flex h-8 items-center rounded-sm bg-[#4CAE3D] px-lg text-body text-white hover:opacity-90">
+                  New
+                </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="px-lg pt-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-xs">
+                      <div className="flex items-center gap-xs">
+                        <span className="text-body text-text-primary">OPEN</span>
+                        <Icon name="expand_more" size={16} className="text-text-icon" />
+                      </div>
+                      <span className="text-small text-text-secondary">192 total messages • 2 unread</span>
+                    </div>
+                    <div className="flex items-center gap-md">
+                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="search" size={20} /></button>
+                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="filter_list" size={20} /></button>
+                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="swap_vert" size={20} /></button>
+                      <button type="button" className="text-text-icon hover:text-text-primary"><Icon name="more_vert" size={20} /></button>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Tabs + More */}
-            <div className="px-lg">
-              <InboxTabs tabSet={currentTabSet} activeTab={activeTab} onSelect={setActiveTab} />
-            </div>
+                <div className="px-lg">
+                  <InboxTabs tabSet={currentTabSet} activeTab={activeTab} onSelect={setActiveTab} />
+                </div>
+              </>
+            )}
 
             {/* Conversation list */}
             <div className="flex-1 overflow-y-auto px-sm py-sm">
@@ -475,19 +627,26 @@ export function InboxScreen() {
                       </svg>
                     </button>
                   </div>
-                  <div className="flex items-center">
-                    <button type="button" className="flex h-9 items-center rounded-l-sm bg-primary px-lg text-body text-white hover:bg-primary-hover">
+                  {isInternalChat ? (
+                    <button type="button" className="flex h-9 items-center rounded-sm bg-[#4CAE3D] px-lg text-body text-white hover:opacity-90">
                       Send
                     </button>
-                    <button type="button" className="flex h-9 items-center justify-center rounded-r-sm border-l border-white/30 bg-primary px-sm text-white hover:bg-primary-hover">
-                      <Icon name="expand_more" size={16} />
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <button type="button" className="flex h-9 items-center rounded-l-sm bg-primary px-lg text-body text-white hover:bg-primary-hover">
+                        Send
+                      </button>
+                      <button type="button" className="flex h-9 items-center justify-center rounded-r-sm border-l border-white/30 bg-primary px-sm text-white hover:bg-primary-hover">
+                        <Icon name="expand_more" size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   )
