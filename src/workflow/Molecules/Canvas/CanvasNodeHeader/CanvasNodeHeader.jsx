@@ -45,7 +45,7 @@ const ICON_CONFIG = {
   branch:     { Component: BranchIcon    },
   parallel:   { icon: 'splitscreen_add'  },
   loop:       { icon: 'repeat'           },
-  delay:      { icon: 'hourglass_empty'  },
+  delay:      { icon: 'schedule'  },
   subagent:   { icon: 'smart_toy'        },
   procedures: { Component: ProcedureIcon },
 };
@@ -97,7 +97,7 @@ export default function CanvasNodeHeader({
   return (
     <div className="cnh">
       <div className="cnh__left">
-        <span className="cnh__node-icon">
+        <span className={`cnh__node-icon${nodeType === 'subagent' ? ' cnh__node-icon--subagent' : ''}`}>
           {NodeSvg
             ? <NodeSvg />
             : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{config.icon}</span>

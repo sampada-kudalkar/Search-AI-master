@@ -35,6 +35,10 @@
   flex-shrink: 0;
 }
 
+.cnh__node-icon--subagent .material-symbols-outlined {
+  color: #6834b7;
+}
+
 .cnh__label {
   font-size: 12px;
   font-weight: 400;

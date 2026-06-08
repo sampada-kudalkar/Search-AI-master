@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FormInput, TextArea, Toggle } from '../../../elemental-stubs';
 function NativeDrawer({ isOpen, onClose, children, width = 960 }) {
   React.useEffect(() => {
@@ -22,24 +22,97 @@ function Select({ value, onChange, children }) {
   return <select value={value} onChange={(e) => onChange?.(e.target.value)} style={{ height: 36, padding: '0 12px', border: '1px solid #c5cad3', borderRadius: 4, fontSize: 14, width: '100%', fontFamily: '"Roboto", sans-serif' }}>{children}</select>;
 }
 function SelectItem({ value, children }) { return <option value={value}>{children}</option>; }
-import { OPTION_FIELD_TYPES } from '../CustomToolBuilder/CustomToolBuilder.jsx';
 import VariableChip from '../../../Molecules/Inputs/VariableChip/VariableChip';
 import styles from './CustomToolViewer.module.css';
 
 // ─── Interactive field ────────────────────────────────────────────────────────
 
-function InteractiveField({ field }) {
-  const [textValue, setTextValue] = useState(field.defaultValue || '');
+function buildInitialSnapshot(fields = []) {
+  const snap = {};
+  fields.forEach((f) => {
+    if (f.type === 'checkbox' && Array.isArray(f.defaultValue)) {
+      snap[f.id] = [...f.defaultValue];
+    } else if (f.type === 'radio' && f.defaultValue) {
+      snap[f.id] = f.defaultValue;
+    }
+  });
+  return snap;
+}
+
+function isFieldVisible(field, snapshot) {
+  if (!field.showWhen) return true;
+  const { fieldId, includes, equals } = field.showWhen;
+  const val = snapshot[fieldId];
+  if (includes !== undefined) {
+    return Array.isArray(val) && val.includes(includes);
+  }
+  if (equals !== undefined) {
+    return val === equals;
+  }
+  return true;
+}
+
+function FieldLabel({ label, required, showInfoIcon }) {
+  return (
+    <span className={styles.fieldLabelRow}>
+      <span className={styles.fieldLabel}>
+        {label}{required && <span className={styles.required}> *</span>}
+      </span>
+      {showInfoIcon && (
+        <span className={`material-symbols-outlined ${styles.fieldInfoIcon}`} title="Select the outbound caller ID for this call">
+          info
+        </span>
+      )}
+    </span>
+  );
+}
+
+function FieldHeader({ label, required, helpText, showInfoIcon }) {
+  return (
+    <>
+      <FieldLabel label={label} required={required} showInfoIcon={showInfoIcon} />
+      {helpText && <span className={styles.fieldHelp}>{helpText}</span>}
+    </>
+  );
+}
+
+function InteractiveField({ field, onValueChange }) {
+  const [textValue, setTextValue] = useState('');
   const [radioValue, setRadioValue] = useState('');
   const [checkValues, setCheckValues] = useState([]);
-  const [selectValue, setSelectValue] = useState(undefined);
+  const [selectValue, setSelectValue] = useState('');
+  const [selectValueB, setSelectValueB] = useState('');
   const [toggled, setToggled] = useState(false);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
-    setTextValue(field.defaultValue || '');
-  }, [field.id, field.defaultValue]);
+    if (['text', 'number', 'date', 'textarea', 'variable'].includes(field.type)) {
+      setTextValue(typeof field.defaultValue === 'string' ? field.defaultValue : '');
+    }
+    if (field.type === 'radio') {
+      setRadioValue(field.defaultValue || field.options?.[0] || '');
+    }
+    if (field.type === 'checkbox') {
+      setCheckValues(Array.isArray(field.defaultValue) ? [...field.defaultValue] : []);
+    }
+    if (field.type === 'select' || field.type === 'dropdown') {
+      setSelectValue(field.defaultValue || '');
+    }
+    if (field.type === 'selectRow') {
+      setSelectValue(field.selects?.[0]?.defaultValue || '');
+      setSelectValueB(field.selects?.[1]?.defaultValue || '');
+    }
+    if (field.type === 'toggle') {
+      setToggled(Boolean(field.defaultValue));
+    }
+  }, [field.id, field.defaultValue, field.type, field.options]);
+
+  useEffect(() => {
+    if (field.type === 'checkbox') {
+      onValueChange?.(field.id, checkValues);
+    }
+  }, [checkValues, field.id, field.type, onValueChange]);
 
   const label = field.label || 'Untitled field';
   const required = field.required;
@@ -48,6 +121,28 @@ function InteractiveField({ field }) {
     case 'text':
     case 'number':
     case 'date':
+      if (field.suffix || field.width === 'half') {
+        return (
+          <div className={styles.fieldWrap}>
+            <span className={styles.fieldLabel}>
+              {label}{required && <span className={styles.required}> *</span>}
+            </span>
+            <div className={styles.inputSuffixRow}>
+              <input
+                name={`view_${field.id}`}
+                type={field.type}
+                className={`${styles.suffixInput}${field.width === 'half' ? ` ${styles.suffixInputHalf}` : ''}`}
+                placeholder={field.placeholder || ''}
+                value={textValue}
+                onChange={(e) => setTextValue(e.target.value)}
+              />
+              {field.suffix && (
+                <span className={styles.fieldSuffix}>{field.suffix}</span>
+              )}
+            </div>
+          </div>
+        );
+      }
       return (
         <div className={styles.fieldWrap}>
           <FormInput
@@ -63,6 +158,32 @@ function InteractiveField({ field }) {
       );
 
     case 'textarea':
+      if (field.showVariableToolbar) {
+        return (
+          <div className={styles.fieldWrap}>
+            <span className={styles.fieldLabel}>
+              {label}{required && <span className={styles.required}> *</span>}
+            </span>
+            <div className={styles.promptBox}>
+              <textarea
+                name={`view_${field.id}`}
+                className={styles.promptTextarea}
+                placeholder={field.placeholder || ''}
+                value={textValue}
+                onChange={(e) => setTextValue(e.target.value)}
+                rows={field.rows || 5}
+              />
+              <div className={styles.promptToolbar}>
+                <button type="button" className={styles.variableBtn} title="Insert variable">
+                  <span className={styles.variableBtnBrace}>{'{'}</span>
+                  <span className={styles.variableBtnX}>x</span>
+                  <span className={styles.variableBtnBrace}>{'}'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
       return (
         <div className={styles.fieldWrap}>
           <TextArea
@@ -73,7 +194,61 @@ function InteractiveField({ field }) {
             onChange={(e) => setTextValue(e.target.value)}
             noFloatingLabel
             required={required}
+            rows={field.rows}
           />
+        </div>
+      );
+
+    case 'select':
+      return (
+        <div className={styles.fieldWrap}>
+          <FieldLabel label={label} required={required} showInfoIcon={field.showInfoIcon} />
+          <div className={styles.selectWrap}>
+            <select
+              className={styles.selectInput}
+              value={selectValue}
+              onChange={(e) => setSelectValue(e.target.value)}
+            >
+              <option value="">{field.placeholder || 'Select'}</option>
+              {(field.options || []).map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
+          </div>
+        </div>
+      );
+
+    case 'selectRow':
+      return (
+        <div className={styles.fieldWrap}>
+          <FieldLabel label={label} required={required} />
+          <div className={styles.conditionalFieldsRow}>
+            <div className={styles.selectWrap}>
+              <select
+                className={styles.selectInput}
+                value={selectValue}
+                onChange={(e) => setSelectValue(e.target.value)}
+              >
+                {(field.selects?.[0]?.options || []).map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
+            </div>
+            <div className={styles.selectWrap}>
+              <select
+                className={styles.selectInput}
+                value={selectValueB}
+                onChange={(e) => setSelectValueB(e.target.value)}
+              >
+                {(field.selects?.[1]?.options || []).map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
+            </div>
+          </div>
         </div>
       );
 
@@ -116,6 +291,19 @@ function InteractiveField({ field }) {
               </label>
             ))}
           </div>
+          {field.conditionalFields && radioValue === field.showWhenValue && (
+            <div
+              className={
+                field.conditionalLayout === 'row'
+                  ? styles.conditionalFieldsRow
+                  : styles.conditionalFields
+              }
+            >
+              {field.conditionalFields.map((sub) => (
+                <InteractiveField key={sub.id} field={sub} />
+              ))}
+            </div>
+          )}
         </div>
       );
 
@@ -123,23 +311,21 @@ function InteractiveField({ field }) {
       return (
         <div className={styles.fieldWrap}>
           {!field.hideLabel && (
-            <span className={styles.fieldLabel}>
-              {label}{required && <span className={styles.required}> *</span>}
-            </span>
+            <FieldHeader label={label} required={required} helpText={field.helpText} />
           )}
-          <div className={styles.optionGroup}>
+          <div className={field.layout === 'row' ? styles.checkboxRow : styles.optionGroup}>
             {field.options.map((opt) => (
-              <label key={opt} className={styles.optionLabel}>
+              <label key={opt} className={field.layout === 'row' ? styles.checkboxLabel : styles.optionLabel}>
                 <input
                   type="checkbox"
                   value={opt}
                   checked={checkValues.includes(opt)}
                   onChange={(e) => {
-                    if (e.target.checked) {
-                      setCheckValues((prev) => [...prev, opt]);
-                    } else {
-                      setCheckValues((prev) => prev.filter((o) => o !== opt));
-                    }
+                    const next = e.target.checked
+                      ? [...checkValues, opt]
+                      : checkValues.filter((o) => o !== opt);
+                    setCheckValues(next);
+                    onValueChange?.(field.id, next);
                   }}
                   className={styles.optionInput}
                 />
@@ -147,6 +333,14 @@ function InteractiveField({ field }) {
               </label>
             ))}
           </div>
+          {field.conditionalFields?.map((sub) => {
+            if (sub.showWhenIncludes && !checkValues.includes(sub.showWhenIncludes)) return null;
+            return (
+              <div key={sub.id} className={styles.conditionalFieldsBelow}>
+                <InteractiveField field={sub} onValueChange={onValueChange} />
+              </div>
+            );
+          })}
         </div>
       );
 
@@ -230,7 +424,14 @@ function InteractiveField({ field }) {
 
 export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [fieldSnapshot, setFieldSnapshot] = useState({});
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && tool?.fields) {
+      setFieldSnapshot(buildInitialSnapshot(tool.fields));
+    }
+  }, [isOpen, tool?.id]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -242,6 +443,11 @@ export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) 
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
+
+  const effectiveSnapshot = useMemo(() => {
+    if (Object.keys(fieldSnapshot).length > 0) return fieldSnapshot;
+    return buildInitialSnapshot(tool?.fields);
+  }, [fieldSnapshot, tool?.fields]);
 
   if (!tool) return null;
 
@@ -283,9 +489,17 @@ export default function CustomToolViewer({ isOpen, tool, onClose, onEditTool }) 
 
         {/* ─── Interactive fields ─── */}
         <div className={styles.body}>
-          {tool.fields?.map((f) => (
-            <InteractiveField key={f.id} field={f} />
-          ))}
+          {tool.fields
+            ?.filter((f) => isFieldVisible(f, effectiveSnapshot))
+            .map((f) => (
+              <InteractiveField
+                key={f.id}
+                field={f}
+                onValueChange={(id, val) => {
+                  setFieldSnapshot((prev) => ({ ...prev, [id]: val }));
+                }}
+              />
+            ))}
         </div>
       </div>
     </CommonSideDrawer>

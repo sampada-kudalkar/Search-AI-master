@@ -9,6 +9,7 @@
  * Styled to look clean but deliberately lightweight: no external deps.
  */
 import React, { useState, useRef, useEffect } from 'react';
+import './Molecules/Conditions/Conditions.css';
 
 const font = '"Roboto", arial, sans-serif';
 
@@ -197,63 +198,55 @@ export function SingleSelect({
   placeholder = 'Select',
   disabled,
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open || disabled) return undefined;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open, disabled]);
+
+  const selectedLabel = options.find((o) => o.value === selected)?.label;
+
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
-      <select
+    <div className="tc-dropdown" ref={ref}>
+      <button
+        type="button"
         id={name}
         name={name}
-        value={selected ?? ''}
+        className={`tc-dropdown__trigger${open ? ' tc-dropdown__trigger--open' : ''}${disabled ? ' tc-dropdown__trigger--readonly' : ''}`}
+        onClick={() => { if (!disabled) setOpen((v) => !v); }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         disabled={disabled}
-        onChange={(e) => {
-          const opt = options.find((o) => o.value === e.target.value);
-          if (opt) onChange?.(opt);
-        }}
-        style={{
-          appearance: 'none',
-          WebkitAppearance: 'none',
-          height: 36,
-          padding: '0 32px 0 12px',
-          border: '1px solid #c5cad3',
-          borderRadius: 4,
-          fontSize: 14,
-          fontFamily: font,
-          color: selected ? '#212121' : '#999',
-          background: disabled ? '#f5f5f5' : '#fff',
-          outline: 'none',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          boxSizing: 'border-box',
-          width: '100%',
-        }}
-        onFocus={(e) => { e.target.style.borderColor = '#1976d2'; }}
-        onBlur={(e) => { e.target.style.borderColor = '#c5cad3'; }}
       >
-        {!selected && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        )}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-      {/* Chevron icon */}
-      <span
-        className="material-symbols-outlined"
-        style={{
-          position: 'absolute',
-          right: 8,
-          top: '50%',
-          transform: 'translateY(-50%)',
-          fontSize: 18,
-          color: '#666',
-          pointerEvents: 'none',
-          lineHeight: 1,
-        }}
-      >
-        expand_more
-      </span>
+        <span className={`tc-dropdown__value${!selectedLabel ? ' tc-dropdown__value--placeholder' : ''}`}>
+          {selectedLabel || placeholder}
+        </span>
+        <span className="material-symbols-outlined tc-dropdown__chevron">expand_more</span>
+      </button>
+      {open && !disabled && (
+        <ul className="tc-dropdown__menu" role="listbox">
+          {options.map((opt) => (
+            <li
+              key={opt.value}
+              role="option"
+              aria-selected={opt.value === selected}
+              className={`tc-dropdown__option${opt.value === selected ? ' tc-dropdown__option--selected' : ''}`}
+              onClick={() => { onChange?.(opt); setOpen(false); }}
+            >
+              {opt.label}
+              {opt.value === selected && (
+                <span className="material-symbols-outlined tc-dropdown__check">check</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

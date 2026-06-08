@@ -109,7 +109,7 @@ function makeNodeDetails(type, label) {
     return { procedureIds: firstId ? [firstId] : [] };
   }
   if (type === 'branch') return { basedOn: 'conditions', branches: [] };
-  if (type === 'subagent') return { name: '', description: '' };
+  if (type === 'subagent') return { selectedAgent: '', name: '', description: '' };
   if (type === 'delay') return { name: '', duration: '', unit: '' };
   if (type === 'parallel') return { nodeName: '', description: '', branches: [{ name: '' }, { name: '' }] };
   if (type === 'loop') return { name: '', description: '', loopMode: 'manual', loopOver: null };
@@ -156,9 +156,12 @@ function makeNodeConfig(id, type, label, description) {
     titlePlaceholder = 'Enter branch name';
   } else if (type === 'subagent') {
     flowType = 'subagent';
-    titlePlaceholder = 'Enter sub-agent name';
+    titlePlaceholder = 'Call subagent';
+    descriptionPlaceholder = 'Call subagent workflow.';
   } else if (type === 'delay') {
     flowType = 'delay';
+    titlePlaceholder = 'Configure delay settings';
+    descriptionPlaceholder = 'Wait for specific time or event.';
   } else if (type === 'parallel') {
     flowType = 'parallel';
   } else if (type === 'loop') {
@@ -311,6 +314,17 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
             : {
                 ...item.data,
                 stepNumber: i + 1,
+                ...(item.flowType === 'delay'
+                  ? {
+                      titlePlaceholder: 'Configure delay settings',
+                      descriptionPlaceholder: 'Wait for specific time or event.',
+                    }
+                  : item.flowType === 'subagent'
+                    ? {
+                        titlePlaceholder: 'Call subagent',
+                        descriptionPlaceholder: 'Call subagent workflow.',
+                      }
+                    : {}),
                 // Pull title and subtitle from saved nodeDetails so canvas nodes
                 // show real content instead of placeholder text
                 title: nodeDetails[nodeId]?.taskName
@@ -335,11 +349,9 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
       const startX = -((branches.length - 1) * spacing) / 2;
       const branchChipY = y + 150;
       const branchNodeStartY = y + 260;
-      let maxBranchNodes = 0;
       branches.forEach((branch, bi) => {
         const branchX = startX + bi * spacing;
         const branchNodes = nodeDetails[branch.id]?.nodes || [];
-        maxBranchNodes = Math.max(maxBranchNodes, branchNodes.length);
         nodes.push({
           id: branch.id,
           type: 'branchPath',
@@ -419,7 +431,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           },
         });
       });
-      y += 150 + (maxBranchNodes + 1) * FLOW_NODE_STEP;
+      // Branch paths fan out to the side — do not inflate main-spine y or spine edges stretch.
     }
 
     y += getFlowVerticalStep(item, nodeId, nodeDetails, product);
@@ -1162,15 +1174,6 @@ export default function AgentBuilder({
           break;
         }
         const item = currentNodeList[i];
-        if (item.flowType === 'branch' || item.flowType === 'voiceCall') {
-          const branches = currentNodeDetails[item.id]?.branches || [];
-          let maxBranchNodes = 0;
-          branches.forEach((b) => {
-            const bNodes = currentNodeDetails[b.id]?.nodes || [];
-            maxBranchNodes = Math.max(maxBranchNodes, bNodes.length);
-          });
-          y += 150 + (maxBranchNodes + 1) * FLOW_NODE_STEP;
-        }
         y += getFlowVerticalStep(item, item.id, currentNodeDetails, product);
       }
       if (dropInsertIdx === null) dropInsertIdx = currentNodeList.length;
