@@ -77,17 +77,27 @@ export function DataTable<T extends Record<string, unknown>>({
     return <div className="flex h-48 items-center justify-center text-body text-text-secondary">No records found.</div>
   }
 
+  const allColumnsHaveWidth = columns.every((c) => c.width !== undefined)
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
   const hasRowCtas = !!rowAction || !!(rowMenuItems && rowMenuItems.length)
 
   return (
     <div className="overflow-x-auto">
-      <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
-        <colgroup>
-          {columns.map((col) => (
-            <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
-          ))}
-        </colgroup>
+      <table
+        className="text-left"
+        style={{
+          tableLayout: 'fixed',
+          width: '100%',
+          ...(allColumnsHaveWidth ? { minWidth: totalWidth } : {}),
+        }}
+      >
+        {allColumnsHaveWidth && (
+          <colgroup>
+            {columns.map((col) => (
+              <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
+            ))}
+          </colgroup>
+        )}
         <thead>
           <tr>
             {columns.map((col, i) => {
@@ -158,20 +168,27 @@ export function DataTable<T extends Record<string, unknown>>({
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
                       <div className={`absolute right-sm top-1/2 z-20 -translate-y-1/2 items-center gap-xs ${menu?.rowIndex === i ? 'flex' : 'hidden group-hover/row:flex'}`}>
-                        {rowAction && (!rowAction.visible || rowAction.visible(row)) && (
-                          <button
-                            type="button"
-                            title={rowAction.label}
-                            aria-label={rowAction.label}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              rowAction.onClick(row)
-                            }}
-                            className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-                          >
-                            <Icon name={rowAction.icon} size={20} />
-                          </button>
-                        )}
+                        {rowAction && (!rowAction.visible || rowAction.visible(row)) && (() => {
+                          const tooltipText = typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label
+                          return (
+                            <div className="group/tooltip relative">
+                              <button
+                                type="button"
+                                aria-label={tooltipText}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  rowAction.onClick(row)
+                                }}
+                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              >
+                                <Icon name={rowAction.icon} size={20} />
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+                                {tooltipText}
+                              </div>
+                            </div>
+                          )
+                        })()}
                         {rowMenuItems && rowMenuItems.length > 0 && (
                           <button
                             type="button"
@@ -182,7 +199,7 @@ export function DataTable<T extends Record<string, unknown>>({
                               setMenu(
                                 menu?.rowIndex === i
                                   ? null
-                                  : { rowIndex: i, top: r.bottom + 4, left: r.right - 168 },
+                                  : { rowIndex: i, top: r.bottom + 4, left: r.right - 216 },
                               )
                             }}
                             className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"

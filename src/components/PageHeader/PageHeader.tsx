@@ -1,6 +1,6 @@
 import { DateChange } from '../DateChange/DateChange'
 import { Icon } from '../Icon/Icon'
-import { AppointmentView, PageHeaderProps } from './PageHeader.types'
+import { AppointmentTimescale, AppointmentView, PageHeaderProps } from './PageHeader.types'
 
 function ViewToggle({
   view,
@@ -36,16 +36,50 @@ function ViewToggle({
   )
 }
 
+function TimescaleToggle({
+  timescale,
+  onTimescaleChange,
+}: {
+  timescale: AppointmentTimescale
+  onTimescaleChange?: (v: AppointmentTimescale) => void
+}) {
+  const base = 'px-sm py-xs text-body rounded-sm transition-colors'
+  return (
+    <div className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-xs">
+      <button
+        type="button"
+        onClick={() => onTimescaleChange?.('day')}
+        className={`${base} ${timescale === 'day' ? 'bg-surface-selected text-text-primary' : 'text-text-icon hover:bg-surface-hover'}`}
+      >
+        Day
+      </button>
+      <button
+        type="button"
+        onClick={() => onTimescaleChange?.('week')}
+        className={`${base} ${timescale === 'week' ? 'bg-surface-selected text-text-primary' : 'text-text-icon hover:bg-surface-hover'}`}
+      >
+        Week
+      </button>
+    </div>
+  )
+}
+
 export function PageHeader({
   date,
   providerLabel: _providerLabel = 'All customer reps',
   view = 'table',
   isToday = true,
+  timescale,
+  statusLabel,
+  primaryActionLabel,
   onPrev,
   onNext,
   onToday,
   onProviderClick: _onProviderClick,
   onViewChange,
+  onTimescaleChange,
+  onStatusClick,
+  onPrimaryAction,
   onCustomizeColumns,
   onFilter,
 }: PageHeaderProps) {
@@ -55,27 +89,43 @@ export function PageHeader({
 
       {/* Controls */}
       <div className="flex items-center gap-sm">
-        {/* All customer reps dropdown — hidden, restore by uncommenting
-        <button
-          type="button"
-          onClick={onProviderClick}
-          className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2"
-        >
-          {providerLabel}
-          <Icon name="expand_more" size={20} className="text-text-icon" />
-        </button>
-        */}
+        {statusLabel && (
+          <button
+            type="button"
+            onClick={onStatusClick}
+            className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2"
+          >
+            {statusLabel}
+            <Icon name="expand_more" size={20} className="text-text-icon" />
+          </button>
+        )}
+
+        {timescale && (
+          <TimescaleToggle timescale={timescale} onTimescaleChange={onTimescaleChange} />
+        )}
 
         <ViewToggle view={view} onViewChange={onViewChange} />
 
-        <button
-          type="button"
-          aria-label="Customize columns"
-          onClick={onCustomizeColumns}
-          className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-        >
-          <Icon name="view_column" size={20} />
-        </button>
+        {primaryActionLabel && (
+          <button
+            type="button"
+            onClick={onPrimaryAction}
+            className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+          >
+            {primaryActionLabel}
+          </button>
+        )}
+
+        {onCustomizeColumns && (
+          <button
+            type="button"
+            aria-label="Customize columns"
+            onClick={onCustomizeColumns}
+            className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+          >
+            <Icon name="view_column" size={20} />
+          </button>
+        )}
 
         <button
           type="button"

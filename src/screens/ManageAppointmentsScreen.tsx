@@ -1,71 +1,81 @@
 import { useMemo, useState } from 'react'
 import {
+  Chip,
   CustomizeColumnsDrawer,
   DataTable,
   FilterPanel,
-  // MetricTiles,
+  MessageDrawer,
   PageHeader,
-  SetupAppointmentDrawer,
   Tabs,
   TopNav,
+  type AppointmentTimescale,
   type AppointmentView,
+  type ChipVariant,
   type Column,
   type ColumnOption,
   type FilterField,
-  // type Metric,
 } from '../components'
 
 interface Appointment {
   patient: string
   status: string
-  customerRep: string
+  provider: string
   apptType: string
   insuranceStatus: string
-  vehicle: string
+  dateTime: string
   phone: string
   email: string
-  location: string
-  time: string
   [key: string]: string
 }
 
 const APPOINTMENTS: Appointment[] = [
-  { patient: 'John Doe',        status: 'Confirmed',     customerRep: 'Smith',     apptType: 'Service',          insuranceStatus: 'Verified',    vehicle: 'Toyota RAV4',       phone: '(415) 555-0132', email: 'john.doe@email.com',   location: 'Mountain View', time: '08:00 AM' },
-  { patient: 'Alice Johnson',   status: 'Confirmed',     customerRep: 'Johnson',   apptType: 'Sale - Test drive', insuranceStatus: 'NA',          vehicle: 'Ford F-Series',     phone: '(415) 555-0190', email: 'alice.j@email.com',    location: 'Palo Alto',     time: '08:30 AM' },
-  { patient: 'Patricia Clark',  status: 'No-shows',      customerRep: 'Adams',     apptType: 'Service',          insuranceStatus: 'Verified',    vehicle: 'Toyota RAV4',       phone: '(415) 555-0199', email: 'p.clark@email.com',    location: 'Mountain View', time: '08:45 AM' },
-  { patient: 'Robert Brown',    status: 'Confirmed',     customerRep: 'Williams',  apptType: 'Sale - Prospect',  insuranceStatus: 'NA',          vehicle: 'Honda CR-V',        phone: '(408) 555-0117', email: 'r.brown@email.com',    location: 'San Jose',      time: '09:00 AM' },
-  { patient: 'James Thomas',    status: 'Cancellations', customerRep: 'Davis',     apptType: 'Sale - Parts',     insuranceStatus: 'NA',          vehicle: 'Honda CR-V',        phone: '(408) 555-0166', email: 'j.thomas@email.com',   location: 'Sunnyvale',     time: '09:15 AM' },
-  { patient: 'Emily Davis',     status: 'Confirmed',     customerRep: 'Brown',     apptType: 'Service',          insuranceStatus: 'In Progress', vehicle: 'Toyota RAV4',       phone: '(650) 555-0144', email: 'emily.d@email.com',    location: 'Mountain View', time: '09:30 AM' },
-  { patient: 'Michael Wilson',  status: 'Confirmed',     customerRep: 'Jones',     apptType: 'Sale - Parts',     insuranceStatus: 'NA',          vehicle: 'Chevrolet Equinox', phone: '(408) 555-0188', email: 'm.wilson@email.com',   location: 'Sunnyvale',     time: '10:00 AM' },
-  { patient: 'Laura Jackson',   status: 'Cancellations', customerRep: 'Martinez',  apptType: 'Service',          insuranceStatus: 'In Progress', vehicle: 'Ford F-Series',     phone: '(415) 555-0199', email: 'l.jackson@email.com',  location: 'Palo Alto',     time: '10:15 AM' },
-  { patient: 'Jessica Taylor',  status: 'Confirmed',     customerRep: 'Garcia',    apptType: 'Service',          insuranceStatus: 'Unverified',  vehicle: 'Honda CR-V',        phone: '(415) 555-0155', email: 'jess.t@email.com',     location: 'Palo Alto',     time: '10:30 AM' },
-  { patient: 'William Harris',  status: 'No-shows',      customerRep: 'Baker',     apptType: 'Sale - Parts',     insuranceStatus: 'NA',          vehicle: 'Ford F-Series',     phone: '(408) 555-0166', email: 'w.harris@email.com',   location: 'San Jose',      time: '10:45 AM' },
-  { patient: 'David Martinez',  status: 'Confirmed',     customerRep: 'Rodriguez', apptType: 'Sale - Test drive', insuranceStatus: 'NA',          vehicle: 'Ford F-Series',     phone: '(669) 555-0123', email: 'd.martinez@email.com', location: 'San Jose',      time: '11:00 AM' },
-  { patient: 'Linda Thomas',    status: 'No-shows',      customerRep: 'Carter',    apptType: 'Sale - Prospect',  insuranceStatus: 'NA',          vehicle: 'Honda CR-V',        phone: '(650) 555-0177', email: 'l.thomas@email.com',   location: 'Mountain View', time: '11:15 AM' },
-  { patient: 'Sarah Anderson',  status: 'Confirmed',     customerRep: 'Miller',    apptType: 'Service',          insuranceStatus: 'Verified',    vehicle: 'Toyota RAV4',       phone: '(650) 555-0177', email: 's.anderson@email.com', location: 'Mountain View', time: '11:30 AM' },
-  { patient: 'Daniel White',    status: 'Cancellations', customerRep: 'Hernandez', apptType: 'Sale - Prospect',  insuranceStatus: 'NA',          vehicle: 'Toyota RAV4',       phone: '(669) 555-0101', email: 'd.white@email.com',    location: 'San Jose',      time: '12:00 PM' },
-  { patient: 'Kevin Moore',     status: 'No-shows',      customerRep: 'Edwards',   apptType: 'Service',          insuranceStatus: 'Unverified',  vehicle: 'Chevrolet Equinox', phone: '(408) 555-0188', email: 'k.moore@email.com',    location: 'Sunnyvale',     time: '01:00 PM' },
-  { patient: 'Megan Harris',    status: 'Cancellations', customerRep: 'Lopez',     apptType: 'Service',          insuranceStatus: 'Unverified',  vehicle: 'Chevrolet Equinox', phone: '(650) 555-0144', email: 'm.harris@email.com',   location: 'Mountain View', time: '01:30 PM' },
-  { patient: 'Chris Evans',     status: 'Cancellations', customerRep: 'Wilson',    apptType: 'Sale - Test drive', insuranceStatus: 'NA',          vehicle: 'Honda Civic',       phone: '(415) 555-0132', email: 'c.evans@email.com',    location: 'Palo Alto',     time: '02:00 PM' },
+  // Unconfirmed — 5
+  { patient: 'Megan Harris',   status: 'Unconfirmed', provider: 'Dr. Lopez',     apptType: 'Follow Up',       insuranceStatus: 'Pending',     dateTime: 'Sep 28, 2024 03:25 AM', phone: '(650) 555-0144', email: 'm.harris@email.com'    },
+  { patient: 'Chris Evans',    status: 'Unconfirmed', provider: 'Dr. Wilson',    apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Oct 08, 2024 02:00 PM', phone: '(415) 555-0132', email: 'c.evans@email.com'     },
+  { patient: 'Linda Thomas',   status: 'Unconfirmed', provider: 'Dr. Carter',    apptType: 'New Consult',     insuranceStatus: 'In Progress', dateTime: 'Oct 19, 2024 11:15 AM', phone: '(650) 555-0177', email: 'l.thomas@email.com'    },
+  { patient: 'Patricia Clark', status: 'Unconfirmed', provider: 'Dr. Adams',     apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Nov 14, 2024 08:45 AM', phone: '(415) 555-0199', email: 'p.clark@email.com'     },
+  { patient: 'William Harris', status: 'Unconfirmed', provider: 'Dr. Baker',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',     dateTime: 'Nov 15, 2024 10:45 AM', phone: '(408) 555-0166', email: 'w.harris@email.com'    },
+  // Cancelled — 5
+  { patient: 'Michael Wilson', status: 'Cancelled',   provider: 'Dr. Jones',     apptType: 'Urgent Care',     insuranceStatus: 'Verified',    dateTime: 'Feb 20, 2024 02:00 PM', phone: '(408) 555-0188', email: 'm.wilson@email.com'    },
+  { patient: 'James Thomas',   status: 'Cancelled',   provider: 'Dr. Davis',     apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'Jun 23, 2024 01:00 PM', phone: '(408) 555-0166', email: 'j.thomas@email.com'    },
+  { patient: 'Laura Jackson',  status: 'Cancelled',   provider: 'Dr. Martinez',  apptType: 'Annual Physical', insuranceStatus: 'In Progress', dateTime: 'Jul 30, 2024 06:40 AM', phone: '(415) 555-0199', email: 'l.jackson@email.com'   },
+  { patient: 'Daniel White',   status: 'Cancelled',   provider: 'Dr. Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', phone: '(669) 555-0101', email: 'd.white@email.com'     },
+  { patient: 'Kevin Moore',    status: 'Cancelled',   provider: 'Dr. Edwards',   apptType: 'Follow Up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', phone: '(408) 555-0188', email: 'k.moore@email.com'     },
+  // No-show — 4
+  { patient: 'David Martinez', status: 'No-show',     provider: 'Dr. Rodriguez', apptType: 'Follow Up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
+  { patient: 'Sarah Anderson', status: 'No-show',     provider: 'Dr. Miller',    apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
+  { patient: 'Jessica Taylor', status: 'No-show',     provider: 'Dr. Garcia',    apptType: 'Procedure',       insuranceStatus: 'In Progress', dateTime: 'Mar 11, 2024 12:30 PM', phone: '(415) 555-0155', email: 'jess.t@email.com'      },
+  { patient: 'Robert Brown',   status: 'No-show',     provider: 'Dr. Williams',  apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
 ]
 
-// const METRICS: Metric[] = [
-//   { id: 'confirmed',     value: 13, label: 'Confirmed'     },
-//   { id: 'pending',       value: 5,  label: 'Pending'       },
-//   { id: 'cancellations', value: 5,  label: 'Cancellations' },
-//   { id: 'no-shows',      value: 4,  label: 'No-shows'      },
-// ]
-
 const TAB_STATUS_MAP: Record<string, string> = {
-  confirmed: 'Confirmed',
-  cancellations: 'Cancellations',
-  'no-shows': 'No-shows',
+  unconfirmed:   'Unconfirmed',
+  cancellations: 'Cancelled',
+  'no-shows':    'No-show',
+}
+
+const STATUS_CHIP: Record<string, ChipVariant> = {
+  'Unconfirmed': 'warning',
+  'Cancelled':   'danger',
+  'No-show':     'danger',
+  'Confirmed':   'success',
+  'Rescheduled': 'neutral',
+}
+
+const STATUS_COLUMN: Column<Appointment> = {
+  key: 'status',
+  label: 'Appt status',
+  sortable: true,
+  render: (val) => (
+    <Chip label={String(val)} variant={STATUS_CHIP[String(val)] ?? 'neutral'} />
+  ),
 }
 
 const TABS = [
-  { id: 'confirmed', label: 'Confirmed', count: 13 },
-  { id: 'cancellations', label: 'Cancellations', count: 5 },
-  { id: 'no-shows', label: 'No-shows', count: 1 },
+  { id: 'unconfirmed',   label: 'Unconfirmed',   count: 5  },
+  { id: 'cancellations', label: 'Cancellations', count: 5  },
+  { id: 'no-shows',      label: 'No-shows',      count: 4  },
+  { id: 'all',           label: 'All',           count: 14 },
 ]
 
 interface ColumnDef extends Column<Appointment> {
@@ -73,35 +83,26 @@ interface ColumnDef extends Column<Appointment> {
 }
 
 const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'patient',         label: 'Name',             width: 220, sortable: true, locked: true },
-  { key: 'vehicle',         label: 'Vehicle',          width: 180, sortable: true },
-  { key: 'customerRep',     label: 'Customer rep',     width: 160, sortable: true },
-  { key: 'apptType',        label: 'Appointment type', width: 160, sortable: true },
-  { key: 'insuranceStatus', label: 'Insurance status', width: 160, sortable: true },
-  { key: 'time',            label: 'Time',             width: 110, sortable: true },
-  { key: 'phone',           label: 'Phone',            width: 160, sortable: true },
-  { key: 'email',           label: 'Email',            width: 210, sortable: true },
-  { key: 'location',        label: 'Location',         width: 160, sortable: true },
+  { key: 'patient',         label: 'Patient',          sortable: true, locked: true },
+  { key: 'provider',        label: 'Provider',         sortable: true },
+  { key: 'apptType',        label: 'Appt type',        sortable: true },
+  { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
+  { key: 'dateTime',        label: 'Appt time',        sortable: true },
+  { key: 'phone',           label: 'Phone',            sortable: true },
+  { key: 'email',           label: 'Email',            sortable: true },
 ]
 
 const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['patient', 'vehicle', 'customerRep', 'apptType', 'insuranceStatus', 'time']
+const DEFAULT_VISIBLE = ['patient', 'provider', 'apptType', 'insuranceStatus', 'dateTime']
 const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
 const FILTER_FIELDS: FilterField[] = [
-  { id: 'groups', label: 'Groups', options: opts('All dealerships', 'Northeast', 'Southeast', 'Midwest', 'West') },
-  { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
-  { id: 'city', label: 'City', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale', 'Fremont') },
-  { id: 'state', label: 'State', options: opts('California', 'Texas', 'New York', 'Florida', 'Washington') },
-  { id: 'social-manager', label: 'Social manager', options: opts('Smith', 'Johnson', 'Williams', 'Brown') },
-  { id: 'region-manager', label: 'Region manager', options: opts('Garcia', 'Rodriguez', 'Miller', 'Davis') },
-  { id: 'content-manager', label: 'Content manager', options: opts('Martinez', 'Hernandez', 'Lopez', 'Wilson') },
-  { id: 'conversation-status', label: 'Conversation status', options: opts('Open', 'In progress', 'Closed', 'Escalated') },
-  { id: 'appointment-type', label: 'Appointment type', options: opts('Service', 'Sale - First visit', 'Sale - Test drive', 'Sale - Trade-in', 'Query', 'Procedure') },
-  { id: 'insurance-status', label: 'Insurance status', options: opts('Verified', 'In Progress', 'Denied', 'Pending') },
-  { id: 'appointment-status', label: 'Appointment status', options: opts('Confirmed', 'Pending', 'No-shows', 'Cancellations') },
+  { id: 'provider',          label: 'Provider',          options: opts('Dr. Smith', 'Dr. Johnson', 'Dr. Williams', 'Dr. Brown', 'Dr. Jones') },
+  { id: 'appointment-type',  label: 'Appointment type',  options: opts('Procedure', 'New Consult', 'Follow Up', 'Annual Physical', 'Urgent Care') },
+  { id: 'insurance-status',  label: 'Insurance status',  options: opts('Verified', 'In Progress', 'Denied', 'Pending') },
+  { id: 'appointment-status',label: 'Appointment status',options: opts('Unconfirmed', 'Cancellations', 'No-shows') },
 ]
 
 const BASE_DATE = new Date(2026, 4, 25)
@@ -109,26 +110,30 @@ const BASE_DATE = new Date(2026, 4, 25)
 export function ManageAppointmentsScreen() {
   const [date, setDate] = useState(new Date(BASE_DATE))
   const [view, setView] = useState<AppointmentView>('table')
-  const [activeTab, setActiveTab] = useState('confirmed')
+  const [timescale, setTimescale] = useState<AppointmentTimescale>('day')
+  const [activeTab, setActiveTab] = useState('unconfirmed')
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER)
   const [visible, setVisible] = useState<string[]>(DEFAULT_VISIBLE)
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [appointmentFor, setAppointmentFor] = useState<string | null>(null)
+  const [messagingRow, setMessagingRow] = useState<Appointment | null>(null)
+
 
   const isToday = date.toDateString() === BASE_DATE.toDateString()
   function prevDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n }) }
   function nextDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n }) }
   function goToToday() { setDate(new Date(BASE_DATE)) }
 
-  const columns = useMemo<Column<Appointment>[]>(
-    () =>
-      order
-        .filter((k) => visible.includes(k))
-        .map((k) => DEF_BY_KEY.get(k))
-        .filter((c): c is ColumnDef => Boolean(c)),
-    [order, visible],
-  )
+  const columns = useMemo<Column<Appointment>[]>(() => {
+    const base = order
+      .filter((k) => visible.includes(k))
+      .map((k) => DEF_BY_KEY.get(k))
+      .filter((c): c is ColumnDef => Boolean(c))
+    if (activeTab === 'all') {
+      return [...base, STATUS_COLUMN]
+    }
+    return base
+  }, [order, visible, activeTab])
 
   const columnOptions = useMemo<ColumnOption[]>(
     () => order.map((k) => ({ key: k, label: DEF_BY_KEY.get(k)!.label, locked: DEF_BY_KEY.get(k)!.locked })),
@@ -136,7 +141,10 @@ export function ManageAppointmentsScreen() {
   )
 
   const filteredData = useMemo(
-    () => APPOINTMENTS.filter((a) => a.status === TAB_STATUS_MAP[activeTab]),
+    () =>
+      activeTab === 'all'
+        ? APPOINTMENTS
+        : APPOINTMENTS.filter((a) => a.status === TAB_STATUS_MAP[activeTab]),
     [activeTab],
   )
 
@@ -145,23 +153,22 @@ export function ManageAppointmentsScreen() {
       <TopNav initials="S" />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Main content */}
         <div className="flex flex-1 flex-col overflow-auto">
           <PageHeader
             date={date}
             isToday={isToday}
             view={view}
+            timescale={timescale}
+            statusLabel="Status"
+            primaryActionLabel="Book an appointment"
             onPrev={prevDay}
             onNext={nextDay}
             onToday={goToToday}
             onViewChange={setView}
+            onTimescaleChange={setTimescale}
             onCustomizeColumns={() => setCustomizeOpen(true)}
             onFilter={() => setFilterOpen((o) => !o)}
           />
-
-          {/* <div className="px-2xl pt-lg">
-            <MetricTiles metrics={METRICS} />
-          </div> */}
 
           <div className="px-2xl">
             <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
@@ -172,21 +179,20 @@ export function ManageAppointmentsScreen() {
               columns={columns}
               data={filteredData}
               rowAction={{
-                icon: 'calendar_add_on',
-                label: 'Setup appointment',
-                onClick: (row) => setAppointmentFor(row.patient),
+                icon: 'chat',
+                label: (row) => `Message ${row.patient}`,
+                onClick: (row) => setMessagingRow(row),
               }}
               rowMenuItems={[
-                { label: 'Quick send', onClick: () => {} },
-                { label: 'Quick view', onClick: () => {} },
+                { label: 'Quick send',    onClick: () => {} },
+                { label: 'Quick view',    onClick: () => {} },
                 { label: 'View activity', onClick: () => {} },
-                { label: 'View details', onClick: () => {} },
+                { label: 'View details',  onClick: () => {} },
               ]}
             />
           </div>
         </div>
 
-        {/* Filter panel (pushes content) */}
         <FilterPanel
           open={filterOpen}
           fields={FILTER_FIELDS}
@@ -209,11 +215,11 @@ export function ManageAppointmentsScreen() {
         }}
       />
 
-      <SetupAppointmentDrawer
-        open={appointmentFor !== null}
-        subject={appointmentFor ?? undefined}
-        onClose={() => setAppointmentFor(null)}
-        onOfferSlot={() => setAppointmentFor(null)}
+      <MessageDrawer
+        open={messagingRow !== null}
+        patient={messagingRow?.patient ?? ''}
+        status={messagingRow?.status}
+        onClose={() => setMessagingRow(null)}
       />
     </div>
   )
