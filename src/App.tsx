@@ -8,6 +8,16 @@ import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+function EmptyResourceScreen({ label }: { label: string }) {
+  return (
+    <div className="flex h-full flex-col">
+      <TopNav initials="S" />
+      <div className="flex flex-1 items-center justify-center text-body text-text-secondary">
+        No {label.toLowerCase()} data yet.
+      </div>
+    </div>
+  )
+}
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
@@ -299,6 +309,14 @@ export function App() {
           <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
           <ProceduresScreen product={activeProduct} />
+        ) : navActive === 'knowledge-base' ? (
+          <EmptyResourceScreen label="Knowledge base" />
+        ) : navActive === 'widgets' ? (
+          <EmptyResourceScreen label="Widgets" />
+        ) : navActive === 'phone-number' ? (
+          <EmptyResourceScreen label="Phone number" />
+        ) : navActive === 'voices' ? (
+          <EmptyResourceScreen label="Voices" />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}
