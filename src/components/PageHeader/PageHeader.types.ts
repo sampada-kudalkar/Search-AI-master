@@ -12,4 +12,6 @@ export interface PageHeaderProps {
   onViewChange?: (view: AppointmentView) => void
   onCustomizeColumns?: () => void
   onFilter?: () => void
+  onCreateSaleProspect?: () => void
+  onCreateServiceRequest?: () => void
 }

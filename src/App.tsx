@@ -8,6 +8,14 @@ import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+import { AgentDetailScreen } from './screens/AgentDetailScreen'
+import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
+import { ProceduresScreen } from './screens/ProceduresScreen'
+import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import logoSrc from './assets/birdeye-logo.svg'
+import iconMarketing from './assets/icon-marketing.svg'
+import iconAgents from './assets/icon-agents.svg'
+
 function EmptyResourceScreen({ label }: { label: string }) {
   return (
     <div className="flex h-full flex-col">
@@ -18,13 +26,6 @@ function EmptyResourceScreen({ label }: { label: string }) {
     </div>
   )
 }
-import { AgentDetailScreen } from './screens/AgentDetailScreen'
-import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
-import { ProceduresScreen } from './screens/ProceduresScreen'
-import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
-import logoSrc from './assets/birdeye-logo.svg'
-import iconMarketing from './assets/icon-marketing.svg'
-import iconAgents from './assets/icon-agents.svg'
 
 const RAIL_GROUPS: RailGroup[] = [
   {
