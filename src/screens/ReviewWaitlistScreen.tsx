@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Chip, DataTable, FormDrawer, Icon, TopNav, type ChipVariant, type Column } from '../components'
+import { Chip, DataTable, FormDrawer, Icon, Tabs, TopNav, type ChipVariant, type Column } from '../components'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -259,28 +259,8 @@ export function ReviewWaitlistScreen() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-border px-2xl">
-          <div className="flex gap-0">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-xs px-md py-sm text-body border-b-2 -mb-px transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-text-secondary hover:text-text-primary'
-                }`}
-              >
-                {tab.label}
-                <span className={`flex h-5 min-w-5 items-center justify-center rounded-full px-xs text-small ${
-                  activeTab === tab.id ? 'bg-primary text-white' : 'bg-surface-selected text-text-secondary'
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </div>
+        <div className="px-2xl">
+          <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
         </div>
 
         {/* Table */}
