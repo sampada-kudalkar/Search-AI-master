@@ -12,6 +12,8 @@ import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -318,7 +320,7 @@ export function App() {
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
         ) : navActive === 'phone-number' ? (
-          <EmptyResourceScreen label="Phone number" />
+          <PhoneNumberScreen />
         ) : navActive === 'web-widget' ? (
           <EmptyResourceScreen label="Web widget" />
         ) : navActive === 'appointment-widget' ? (
@@ -329,6 +331,8 @@ export function App() {
           <EmptyResourceScreen label="Forms" />
         ) : navActive === 'widgets' || navActive === 'voices' ? (
           <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
+        ) : navActive === 'settings' ? (
+          <SettingsScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}
