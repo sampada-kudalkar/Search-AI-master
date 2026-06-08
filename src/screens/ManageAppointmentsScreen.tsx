@@ -3,13 +3,14 @@ import {
   Chip,
   CustomizeColumnsDrawer,
   DataTable,
+  DateChange,
   FilterPanel,
+  Icon,
   MessageDrawer,
   QuickSendModal,
   Toast,
   ViewActivityDrawer,
   WeekCalendar,
-  PageHeader,
   Tabs,
   TopNav,
   type AppointmentTimescale,
@@ -162,21 +163,92 @@ export function ManageAppointmentsScreen() {
 
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
-          <PageHeader
-            date={date}
-            isToday={isToday}
-            view={view}
-            timescale={timescale}
-            statusLabel="Status"
-            primaryActionLabel="Book an appointment"
-            onPrev={prevStep}
-            onNext={nextStep}
-            onToday={goToToday}
-            onViewChange={setView}
-            onTimescaleChange={setTimescale}
-            onCustomizeColumns={() => setCustomizeOpen(true)}
-            onFilter={() => setFilterOpen((o) => !o)}
-          />
+          {/* Header — changes based on table vs calendar view */}
+          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+            {/* Left side */}
+            {view === 'calendar' ? (
+              <DateChange date={date} isToday={isToday} timescale={timescale} onPrev={prevStep} onNext={nextStep} onToday={goToToday} />
+            ) : (
+              <h1 className="text-h3 text-text-primary">Manage appointments</h1>
+            )}
+
+            {/* Right side controls */}
+            <div className="flex items-center gap-sm">
+              {view === 'calendar' && (
+                <>
+                  <button
+                    type="button"
+                    className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-l2"
+                  >
+                    Status
+                    <Icon name="expand_more" size={20} className="text-text-icon" />
+                  </button>
+
+                  <div className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-xs">
+                    <button
+                      type="button"
+                      onClick={() => setTimescale('day')}
+                      className={`rounded-sm px-sm py-xs text-body transition-colors ${timescale === 'day' ? 'bg-surface-selected text-text-primary' : 'text-text-icon hover:bg-surface-hover'}`}
+                    >
+                      Day
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTimescale('week')}
+                      className={`rounded-sm px-sm py-xs text-body transition-colors ${timescale === 'week' ? 'bg-surface-selected text-text-primary' : 'text-text-icon hover:bg-surface-hover'}`}
+                    >
+                      Week
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Table / Calendar toggle */}
+              <div className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm">
+                <button
+                  type="button"
+                  aria-label="Table view"
+                  onClick={() => setView('table')}
+                  className={`flex size-6 items-center justify-center rounded-sm transition-colors ${view === 'table' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'}`}
+                >
+                  <Icon name="table_rows" size={18} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Calendar view"
+                  onClick={() => setView('calendar')}
+                  className={`flex size-6 items-center justify-center rounded-sm transition-colors ${view === 'calendar' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'}`}
+                >
+                  <Icon name="calendar_month" size={18} />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+              >
+                Book an appointment
+              </button>
+
+              <button
+                type="button"
+                aria-label="Customize columns"
+                onClick={() => setCustomizeOpen(true)}
+                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="view_column" size={20} />
+              </button>
+
+              <button
+                type="button"
+                aria-label="Filters"
+                onClick={() => setFilterOpen((o) => !o)}
+                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="filter_list" size={20} />
+              </button>
+            </div>
+          </div>
 
           {view === 'calendar' ? (
             <div className="flex flex-1 overflow-hidden px-2xl py-lg">
