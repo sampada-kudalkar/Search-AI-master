@@ -12,6 +12,8 @@ import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -161,13 +163,13 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: true,
     items: [
-      { id: 'knowledge-base',    label: 'Knowledge base',      external: true },
-      { id: 'procedure-library', label: 'Procedures'           },
-      { id: 'phone-number',      label: 'Phone number'         },
-      { id: 'web-widget',        label: 'Web widget'           },
-      { id: 'appointment-widget',label: 'Appointment widget'   },
-      { id: 'providers',         label: 'Providers'            },
-      { id: 'forms',             label: 'Forms'                },
+      { id: 'providers',         label: 'Providers'                       },
+      { id: 'appointment-type',  label: 'Appointment type'                },
+      { id: 'availability',      label: 'Availability'                    },
+      { id: 'procedure-library', label: 'Procedures'                      },
+      { id: 'phone-number',      label: 'Phone number'                    },
+      { id: 'knowledge-base',    label: 'Knowledge base', external: true  },
+      { id: 'widgets',           label: 'Widgets',        external: true  },
     ],
   },
 ]
@@ -315,10 +317,14 @@ export function App() {
           <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
           <ProceduresScreen product={activeProduct} />
+        ) : navActive === 'appointment-type' ? (
+          <EmptyResourceScreen label="Appointment type" />
+        ) : navActive === 'availability' ? (
+          <EmptyResourceScreen label="Availability" />
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
         ) : navActive === 'phone-number' ? (
-          <EmptyResourceScreen label="Phone number" />
+          <PhoneNumberScreen />
         ) : navActive === 'web-widget' ? (
           <EmptyResourceScreen label="Web widget" />
         ) : navActive === 'appointment-widget' ? (
@@ -329,6 +335,8 @@ export function App() {
           <EmptyResourceScreen label="Forms" />
         ) : navActive === 'widgets' || navActive === 'voices' ? (
           <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
+        ) : navActive === 'settings' ? (
+          <SettingsScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

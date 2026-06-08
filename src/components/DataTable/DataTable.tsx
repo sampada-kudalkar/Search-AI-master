@@ -162,7 +162,7 @@ export function DataTable<T extends Record<string, unknown>>({
                           <div className="group/tip relative">
                             <button
                               type="button"
-                              aria-label={rowAction.label}
+                              aria-label={typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 rowAction.onClick(row)
@@ -173,7 +173,7 @@ export function DataTable<T extends Record<string, unknown>>({
                             </button>
                             {/* Styled tooltip */}
                             <span className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1a1a2e] px-sm py-xs text-small text-white opacity-0 shadow-dropdown transition-opacity group-hover/tip:opacity-100">
-                              {rowAction.label}
+                              {typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
                               <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1a1a2e]" />
                             </span>
                           </div>
