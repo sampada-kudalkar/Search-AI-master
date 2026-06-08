@@ -11,6 +11,7 @@ export function DataTable<T extends Record<string, unknown>>({
   loading = false,
   onRowClick,
   rowAction,
+  rowActions,
   rowMenuItems,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
@@ -79,7 +80,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
   const allColumnsHaveWidth = columns.every((c) => c.width !== undefined)
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
-  const hasRowCtas = !!rowAction || !!(rowMenuItems && rowMenuItems.length)
+  const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
   return (
     <div className="overflow-x-auto">
@@ -189,6 +190,25 @@ export function DataTable<T extends Record<string, unknown>>({
                             </div>
                           )
                         })()}
+                        {rowActions && rowActions.map((action, ai) => {
+                          if (action.visible && !action.visible(row)) return null
+                          const tip = typeof action.label === 'function' ? action.label(row) : action.label
+                          return (
+                            <div key={ai} className="group/tooltip relative">
+                              <button
+                                type="button"
+                                aria-label={tip}
+                                onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
+                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              >
+                                <Icon name={action.icon} size={20} />
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+                                {tip}
+                              </div>
+                            </div>
+                          )
+                        })}
                         {rowMenuItems && rowMenuItems.length > 0 && (
                           <button
                             type="button"

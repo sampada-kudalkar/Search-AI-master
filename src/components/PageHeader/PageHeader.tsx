@@ -85,7 +85,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between bg-surface px-2xl py-xl">
-      <DateChange date={date} isToday={isToday} onPrev={onPrev ?? (() => {})} onNext={onNext ?? (() => {})} onToday={onToday} />
+      <DateChange date={date} isToday={isToday} timescale={timescale} onPrev={onPrev ?? (() => {})} onNext={onNext ?? (() => {})} onToday={onToday} />
 
       {/* Controls */}
       <div className="flex items-center gap-sm">

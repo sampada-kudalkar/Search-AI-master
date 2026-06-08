@@ -5,6 +5,10 @@ import {
   DataTable,
   FilterPanel,
   MessageDrawer,
+  QuickSendModal,
+  Toast,
+  ViewActivityDrawer,
+  WeekCalendar,
   PageHeader,
   Tabs,
   TopNav,
@@ -117,11 +121,15 @@ export function ManageAppointmentsScreen() {
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [messagingRow, setMessagingRow] = useState<Appointment | null>(null)
+  const [quickSendRow, setQuickSendRow] = useState<Appointment | null>(null)
+  const [toastVisible, setToastVisible] = useState(false)
+  const [activityRow, setActivityRow] = useState<Appointment | null>(null)
 
 
   const isToday = date.toDateString() === BASE_DATE.toDateString()
-  function prevDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() - 1); return n }) }
-  function nextDay() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() + 1); return n }) }
+  const step = timescale === 'week' ? 7 : 1
+  function prevStep() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() - step); return n }) }
+  function nextStep() { setDate(d => { const n = new Date(d); n.setDate(n.getDate() + step); return n }) }
   function goToToday() { setDate(new Date(BASE_DATE)) }
 
   const columns = useMemo<Column<Appointment>[]>(() => {
@@ -161,8 +169,8 @@ export function ManageAppointmentsScreen() {
             timescale={timescale}
             statusLabel="Status"
             primaryActionLabel="Book an appointment"
-            onPrev={prevDay}
-            onNext={nextDay}
+            onPrev={prevStep}
+            onNext={nextStep}
             onToday={goToToday}
             onViewChange={setView}
             onTimescaleChange={setTimescale}
@@ -170,27 +178,37 @@ export function ManageAppointmentsScreen() {
             onFilter={() => setFilterOpen((o) => !o)}
           />
 
-          <div className="px-2xl">
-            <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
-          </div>
+          {view === 'calendar' ? (
+            <div className="flex flex-1 overflow-hidden px-2xl py-lg">
+              <div className="flex flex-1 flex-col overflow-hidden rounded-sm border border-border">
+                <WeekCalendar weekStart={date} />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="px-2xl">
+                <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
+              </div>
 
-          <div className="px-lg py-lg">
-            <DataTable
-              columns={columns}
-              data={filteredData}
-              rowAction={{
-                icon: 'chat',
-                label: (row) => `Message ${row.patient}`,
-                onClick: (row) => setMessagingRow(row),
-              }}
-              rowMenuItems={[
-                { label: 'Quick send',    onClick: () => {} },
-                { label: 'Quick view',    onClick: () => {} },
-                { label: 'View activity', onClick: () => {} },
-                { label: 'View details',  onClick: () => {} },
-              ]}
-            />
-          </div>
+              <div className="px-lg py-lg">
+                <DataTable
+                  columns={columns}
+                  data={filteredData}
+                  rowAction={{
+                    icon: 'chat',
+                    label: (row) => `Message ${row.patient}`,
+                    onClick: (row) => setMessagingRow(row),
+                  }}
+                  rowMenuItems={[
+                    { label: 'Quick send',    onClick: (row) => setQuickSendRow(row) },
+                    { label: 'Quick view',    onClick: () => {} },
+                    { label: 'View activity', onClick: (row) => setActivityRow(row) },
+                    { label: 'View details',  onClick: () => {} },
+                  ]}
+                />
+              </div>
+            </>
+          )}
         </div>
 
         <FilterPanel
@@ -220,6 +238,26 @@ export function ManageAppointmentsScreen() {
         patient={messagingRow?.patient ?? ''}
         status={messagingRow?.status}
         onClose={() => setMessagingRow(null)}
+      />
+
+      <QuickSendModal
+        open={quickSendRow !== null}
+        patient={quickSendRow?.patient ?? ''}
+        email={quickSendRow?.email}
+        onClose={() => setQuickSendRow(null)}
+        onSend={() => setToastVisible(true)}
+      />
+
+      <ViewActivityDrawer
+        open={activityRow !== null}
+        patient={activityRow?.patient ?? ''}
+        onClose={() => setActivityRow(null)}
+      />
+
+      <Toast
+        message="Review request sent"
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
       />
     </div>
   )
