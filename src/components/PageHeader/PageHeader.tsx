@@ -1,6 +1,57 @@
+import { useEffect, useRef, useState } from 'react'
 import { DateChange } from '../DateChange/DateChange'
 import { Icon } from '../Icon/Icon'
 import { AppointmentView, PageHeaderProps } from './PageHeader.types'
+
+function CreateDropdown({
+  onSaleProspect,
+  onServiceRequest,
+}: {
+  onSaleProspect?: () => void
+  onServiceRequest?: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-9 items-center gap-xs rounded-sm bg-primary px-md text-body font-medium text-white transition-colors hover:bg-primary-hover"
+      >
+        Create
+        <Icon name="expand_more" size={18} className="text-white" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-xs w-48 rounded-sm bg-surface p-md shadow-dropdown">
+          {[
+            { label: 'Sale prospect',   cb: onSaleProspect },
+            { label: 'Service request', cb: onServiceRequest },
+          ].map(({ label, cb }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => { cb?.(); setOpen(false) }}
+              className="flex w-full items-center rounded-sm px-sm py-sm text-left text-body text-text-primary transition-colors hover:bg-surface-hover"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function ViewToggle({
   view,
@@ -48,6 +99,8 @@ export function PageHeader({
   onViewChange,
   onCustomizeColumns,
   onFilter,
+  onCreateSaleProspect,
+  onCreateServiceRequest,
 }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between bg-surface px-2xl py-xl">
@@ -67,6 +120,8 @@ export function PageHeader({
         */}
 
         <ViewToggle view={view} onViewChange={onViewChange} />
+
+        <CreateDropdown onSaleProspect={onCreateSaleProspect} onServiceRequest={onCreateServiceRequest} />
 
         <button
           type="button"

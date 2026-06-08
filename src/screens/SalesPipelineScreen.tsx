@@ -89,6 +89,7 @@ interface ColumnDef extends Column<Lead> {
 
 const COLUMN_DEFS: ColumnDef[] = [
   { key: 'name',       label: 'Name',             width: 220, sortable: true, locked: true },
+  { key: 'apptType',   label: 'Appointment type', width: 160, sortable: true },
   { key: 'lookingFor', label: 'Looking for',      width: 200, sortable: true },
   {
     key: 'channel',
@@ -97,7 +98,6 @@ const COLUMN_DEFS: ColumnDef[] = [
     sortable: true,
     render: (value) => <Icon name={CHANNEL_ICON[String(value)] ?? 'chat'} size={20} className="text-text-icon" />,
   },
-  { key: 'apptType',   label: 'Appt type',        width: 160, sortable: true },
   { key: 'time',       label: 'Time',             width: 110, sortable: true },
   { key: 'updatedOn',  label: 'Updated on',       width: 180, sortable: true },
   { key: 'phone',      label: 'Phone',            width: 160, sortable: true },
