@@ -237,7 +237,7 @@ const NAV_SECTIONS_BY_PRODUCT: Record<string, NavSection[]> = {
 
 const DEFAULT_NAV_BY_PRODUCT: Record<string, string> = {
   automotive: 'manage-appointments',
-  healthcare:  'manage-appointment',
+  healthcare:  'manage-appointments',
   dental:      'manage-appointments',
 }
 
@@ -262,7 +262,7 @@ const AGENT_NAMES: Record<string, string> = {
 
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
-  const [navActive, setNavActive] = useState('manage-appointment')
+  const [navActive, setNavActive] = useState('manage-appointments')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
   const [activeProduct, setActiveProduct] = useState('healthcare')
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
