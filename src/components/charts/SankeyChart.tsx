@@ -8,8 +8,8 @@ export interface SankeyNode {
   breakdown?: Array<{ label: string; pct: string; value: number }>
 }
 export interface SankeyLink {
-  source: number
-  target: number
+  source: number | string
+  target: number | string
   value: number
 }
 export interface SankeyChartProps {
@@ -152,7 +152,11 @@ export function SankeyChart({ nodes, links, height = 360, columnHeaders, nodeCol
       )}
       <ResponsiveContainer width="100%" height={height}>
         <Sankey
-          data={{ nodes, links }}
+          data={{ nodes, links: links.map((l) => {
+            const si = typeof l.source === 'string' ? nodes.findIndex((n) => n.name === l.source) : l.source
+            const ti = typeof l.target === 'string' ? nodes.findIndex((n) => n.name === l.target) : l.target
+            return { ...l, source: si, target: ti }
+          }) }}
           nodePadding={10}
           nodeWidth={12}
           margin={{ top: 8, right: 90, bottom: 8, left: 60 }}

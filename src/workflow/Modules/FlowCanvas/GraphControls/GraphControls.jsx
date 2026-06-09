@@ -94,12 +94,9 @@ export default function GraphControls({
         </button>
       )}
 
-      <div className="graph-controls__run-wrap">
-        <button className="graph-controls__run" onClick={onRun} aria-label="Preview">
-          <span className="material-symbols-outlined">play_arrow</span>
-        </button>
-        <span className="graph-controls__run-tooltip">Preview</span>
-      </div>
+      <button className="graph-controls__run" onClick={onRun} title="Run">
+        <span className="material-symbols-outlined">play_arrow</span>
+      </button>
     </div>
   );
 }
