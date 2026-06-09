@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
-import { IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
+import { Icon, IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
-import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
+import { IntakeScreen, type IntakeDetailArgs } from './screens/IntakeScreen'
+import { IntakePatientDetailScreen } from './screens/IntakePatientDetailScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
@@ -276,7 +277,10 @@ export function App() {
     setEditingAgentName(null)
   }
 
+  const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
+
   const isEditingWorkflow = editingAgentName !== null
+  const isViewingDetail = intakeDetail !== null
 
   return (
     <ProcedureStoreProvider>
@@ -291,7 +295,7 @@ export function App() {
         activeProduct={activeProduct}
         onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && railActive !== 'settings' && railActive !== 'inbox' && (
+      {!isEditingWorkflow && !isViewingDetail && railActive !== 'settings' && railActive !== 'inbox' && (
         <SideNav
           title="Front desk"
           sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
@@ -335,8 +339,35 @@ export function App() {
           <ReviewWaitlistScreen />
         ) : navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
+        ) : navActive === 'manage-intake' && isViewingDetail ? (
+          <>
+            <TopNav title="Front desk" initials="S" />
+            <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
+              <button
+                onClick={() => setIntakeDetail(null)}
+                className="text-body text-text-action hover:underline"
+              >
+                Manage intake
+              </button>
+              <Icon name="chevron_right" size={16} className="text-text-icon" />
+              <span className="text-body text-text-primary">{intakeDetail!.detail.patient}</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <IntakePatientDetailScreen
+                patient={intakeDetail!.detail}
+                appointmentTime={intakeDetail!.appointmentTime}
+                appointmentType={intakeDetail!.appointmentType}
+                formType={intakeDetail!.row.formType}
+                status={intakeDetail!.detail.status}
+                bookedOn={intakeDetail!.row.bookedOn}
+                insuranceProvider={intakeDetail!.insuranceProvider}
+                sentVia={intakeDetail!.row.sentVia}
+                onBack={() => setIntakeDetail(null)}
+              />
+            </div>
+          </>
         ) : navActive === 'manage-intake' ? (
-          <ManageIntakeScreen />
+          <IntakeScreen onViewDetail={setIntakeDetail} />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
