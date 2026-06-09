@@ -62,7 +62,7 @@ const RAIL_GROUPS: RailGroup[] = [
     header: 'Operations',
     items: [
       { id: 'inbox', label: 'Inbox', icon: 'sms' },
-      { id: 'frontdesk', label: 'Frontdesk', icon: 'desktop_windows' },
+      { id: 'frontdesk', label: 'Front desk', icon: 'desktop_windows' },
     ],
   },
   {
@@ -197,8 +197,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent',             label: 'Frontdesk agent'             },
-      { id: 'appointment-agent',           label: 'Appointment agent'           },
-      { id: 'insurance-verification-agent',label: 'Insurance verification agent'},
       { id: 'waitlist-agent',              label: 'Waitlist agent'              },
       { id: 'pre-visit-agent',             label: 'Pre-visit agent'             },
       { id: 'reminder-agent',              label: 'Reminder agent'              },
@@ -257,6 +255,8 @@ const AGENT_NAMES: Record<string, string> = {
   'frontdesk-agent': 'Frontdesk agent',
   'reminder-agent':  'Reminder agent',
   'outreach-agent':  'Outreach agent',
+  'waitlist-agent':  'Waitlist agent',
+  'pre-visit-agent': 'Pre-visit agent',
 }
 
 
@@ -290,7 +290,7 @@ export function App() {
       />
       {!isEditingWorkflow && railActive !== 'settings' && railActive !== 'inbox' && (
         <SideNav
-          title="Frontdesk"
+          title="Front desk"
           sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
           activeId={navActive}
           onSelect={(id) => {

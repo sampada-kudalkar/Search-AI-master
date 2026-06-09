@@ -6,8 +6,6 @@ import './CanvasNodeHeader.css';
 
 const AddIcon = () => <span className="material-symbols-outlined cnh__btn-icon">add_circle</span>;
 const MoreIcon = () => <span className="material-symbols-outlined cnh__btn-icon">more_vert</span>;
-const DeleteIcon = () => <span className="material-symbols-outlined cnh__btn-icon cnh__btn-icon--delete">delete</span>;
-
 const TaskIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <path d="M8 6.58824H11.3937V5.52941H8V6.58824ZM8 10.4706H11.3937V9.41176H8V10.4706ZM5.88235 7.199C6.19824 7.199 6.46724 7.08794 6.68935 6.86582C6.91147 6.64371 7.02253 6.37471 7.02253 6.05882C7.02253 5.74306 6.91147 5.47406 6.68935 5.25182C6.46724 5.02971 6.19824 4.91865 5.88235 4.91865C5.56647 4.91865 5.29747 5.02971 5.07535 5.25182C4.85324 5.47406 4.74218 5.74306 4.74218 6.05882C4.74218 6.37471 4.85324 6.64371 5.07535 6.86582C5.29747 7.08794 5.56647 7.199 5.88235 7.199ZM5.88235 11.0814C6.19824 11.0814 6.46724 10.9703 6.68935 10.7482C6.91147 10.5259 7.02253 10.2569 7.02253 9.94118C7.02253 9.62529 6.91147 9.35629 6.68935 9.13418C6.46724 8.91206 6.19824 8.801 5.88235 8.801C5.56647 8.801 5.29747 8.91206 5.07535 9.13418C4.85324 9.35629 4.74218 9.62529 4.74218 9.94118C4.74218 10.2569 4.85324 10.5259 5.07535 10.7482C5.29747 10.9703 5.56647 11.0814 5.88235 11.0814ZM3.27606 14C2.91947 14 2.61765 13.8765 2.37059 13.6294C2.12353 13.3824 2 13.0805 2 12.7239V3.27606C2 2.91947 2.12353 2.61765 2.37059 2.37059C2.61765 2.12353 2.91947 2 3.27606 2H12.7239C13.0805 2 13.3824 2.12353 13.6294 2.37059C13.8765 2.61765 14 2.91947 14 3.27606V12.7239C14 13.0805 13.8765 13.3824 13.6294 13.6294C13.3824 13.8765 13.0805 14 12.7239 14H3.27606ZM3.27606 12.9412H12.7239C12.7783 12.9412 12.8281 12.9185 12.8732 12.8732C12.9185 12.8281 12.9412 12.7783 12.9412 12.7239V3.27606C12.9412 3.22171 12.9185 3.17194 12.8732 3.12676C12.8281 3.08147 12.7783 3.05882 12.7239 3.05882H3.27606C3.22171 3.05882 3.17194 3.08147 3.12676 3.12676C3.08147 3.17194 3.05882 3.22171 3.05882 3.27606V12.7239C3.05882 12.7783 3.08147 12.8281 3.12676 12.8732C3.17194 12.9185 3.22171 12.9412 3.27606 12.9412Z" fill="#37A248"/>
@@ -32,7 +30,7 @@ const ICON_CONFIG = {
   task:       { Component: TaskIcon      },
   branch:     { Component: BranchIcon    },
   parallel:   { icon: 'splitscreen_add'  },
-  loop:       { icon: 'repeat'           },
+  loop:       { icon: 'swap_horiz'       },
   delay:      { icon: 'schedule'  },
   subagent:   { icon: 'smart_toy'        },
   procedures: { Component: ProcedureIcon },
@@ -76,16 +74,24 @@ export default function CanvasNodeHeader({
   useEffect(() => {
     if (!menuOpen) return;
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      const target = e.target;
+      if (!(target instanceof Node)) return;
+      if (menuRef.current && !menuRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('mousedown', handler, true);
+    document.addEventListener('pointerdown', handler, true);
+    return () => {
+      document.removeEventListener('mousedown', handler, true);
+      document.removeEventListener('pointerdown', handler, true);
+    };
   }, [menuOpen]);
 
   return (
-    <div className="cnh">
+    <div className={`cnh${menuOpen ? ' cnh--menu-open' : ''}`}>
       <div className="cnh__left">
-        <span className={`cnh__node-icon${nodeType === 'subagent' ? ' cnh__node-icon--subagent' : ''}`}>
+        <span className={`cnh__node-icon${nodeType === 'subagent' ? ' cnh__node-icon--subagent' : ''}${nodeType === 'loop' ? ' cnh__node-icon--loop' : ''}`}>
           {NodeSvg
             ? <NodeSvg />
             : <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{config.icon}</span>
@@ -124,9 +130,13 @@ export default function CanvasNodeHeader({
           <div className="cnh__more-wrapper" ref={menuRef}>
             <Button type="link" customIcon={<MoreIcon />} onClick={handleMoreClick} noHover aria-label="More options" />
             {menuOpen && (
-              <div className="cnh__context-menu">
+              <div
+                className="cnh__context-menu"
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <button className="cnh__context-menu-item cnh__context-menu-item--delete" onClick={handleDelete}>
-                  <DeleteIcon />
+                  <span className="material-symbols-outlined cnh__menu-icon cnh__menu-icon--delete">delete</span>
                   <span>Delete</span>
                 </button>
               </div>

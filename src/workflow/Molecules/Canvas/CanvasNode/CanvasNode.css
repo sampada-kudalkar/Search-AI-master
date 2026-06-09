@@ -10,6 +10,12 @@
   gap: 4px;
   font-family: var(--sans, 'Roboto', sans-serif);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  overflow: visible;
+  position: relative;
+}
+
+.canvas-node:has(.cnh--menu-open) {
+  z-index: 200;
 }
 
 .canvas-node--hover {

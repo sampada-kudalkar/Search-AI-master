@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import Highcharts from 'highcharts'
-import HighchartsReact from 'highcharts-react-official'
-import HighchartsSankey from 'highcharts/modules/sankey'
 import { ChartCard, DataTable, DonutChart, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (!(Highcharts as any).seriesTypes?.sankey) { (HighchartsSankey as any)(Highcharts) }
 
 interface Conversation {
   id: string
@@ -250,73 +244,31 @@ const SUMMARY_STATS = [
   { id: 'unresolved', value: '9.8%',  label: 'Unresolved',         delta: '-10%',   trend: 'down' as const },
 ]
 
-const HC_SANKEY_DATA: [string, string, number][] = [
-  // Channel → Handler
-  ['Voice', 'Agent involved',  3200],
-  ['Voice', 'Human involved',  1800],
-  ['Text',  'Agent involved',  2400],
-  ['Text',  'Human involved',  1400],
-  ['Chat',  'Agent involved',  1800],
-  ['Chat',  'Human involved',  1200],
-  // Handler → Status
-  ['Agent involved', 'Resolved',    4200],
-  ['Agent involved', 'Routed',      1800],
-  ['Agent involved', 'Unresolved',  1400],
-  ['Human involved', 'Resolved',    2600],
-  ['Human involved', 'Routed',       900],
-  ['Human involved', 'Unresolved',   900],
+const SANKEY_NODES = [
+  { name: 'Voice' },
+  { name: 'Text' },
+  { name: 'Chat' },
+  { name: 'Agent involved' },
+  { name: 'Human involved' },
+  { name: 'Resolved' },
+  { name: 'Routed' },
+  { name: 'Unresolved' },
 ]
 
-const HC_SANKEY_NODES = [
-  { id: 'Voice',          color: '#CE5ECE' },
-  { id: 'Text',           color: '#4A2D7A' },
-  { id: 'Chat',           color: '#42A5F5' },
-  { id: 'Agent involved', color: '#5C6BC0' },
-  { id: 'Human involved', color: '#F5B301' },
-  { id: 'Resolved',       color: '#8BC34A', column: 2 },
-  { id: 'Routed',         color: '#FF7043', column: 2 },
-  { id: 'Unresolved',     color: '#BDBDBD', column: 2 },
+const SANKEY_LINKS = [
+  { source: 'Voice',          target: 'Agent involved', value: 3200 },
+  { source: 'Voice',          target: 'Human involved', value: 1800 },
+  { source: 'Text',           target: 'Agent involved', value: 2400 },
+  { source: 'Text',           target: 'Human involved', value: 1400 },
+  { source: 'Chat',           target: 'Agent involved', value: 1800 },
+  { source: 'Chat',           target: 'Human involved', value: 1200 },
+  { source: 'Agent involved', target: 'Resolved',       value: 4200 },
+  { source: 'Agent involved', target: 'Routed',         value: 1800 },
+  { source: 'Agent involved', target: 'Unresolved',     value: 1400 },
+  { source: 'Human involved', target: 'Resolved',       value: 2600 },
+  { source: 'Human involved', target: 'Routed',         value:  900 },
+  { source: 'Human involved', target: 'Unresolved',     value:  900 },
 ]
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sankeyOpts: any = {
-  chart: {
-    type: 'sankey',
-    height: 520,
-    backgroundColor: 'transparent',
-    style: { fontFamily: "'Roboto',sans-serif" },
-    margin: [16, 20, 16, 20],
-  },
-  title: { text: undefined },
-  series: [{
-    type: 'sankey' as const,
-    keys: ['from', 'to', 'weight'],
-    data: HC_SANKEY_DATA,
-    nodes: HC_SANKEY_NODES,
-    linkOpacity: 0.25,
-    dataLabels: {
-      nodeFormat: '{point.name}',
-      style: {
-        fontSize: '12px',
-        fontWeight: '400',
-        color: '#212121',
-        textOutline: 'none',
-        fontFamily: "'Roboto',sans-serif",
-      },
-      align: 'left',
-      nodeFormatter: undefined,
-      padding: 8,
-    },
-    nodeWidth: 15,
-  }],
-  tooltip: {
-    headerFormat: '',
-    pointFormat: '{point.fromNode.name} → {point.toNode.name}: <b>{point.weight:,.0f}</b>',
-    nodeFormat: '<b>{point.name}</b>: {point.sum:,.0f} conversations',
-    style: { fontFamily: "'Roboto',sans-serif", fontSize: '12px' },
-  },
-  credits: { enabled: false },
-}
 
 const OVERTIME_DATA = [
   { month: 'Dec\n2023', Resolved: 180, Routed: 120, Unresolved: 134 },
@@ -397,7 +349,7 @@ function ResponsesPanel() {
         {/* Summary */}
         <SummaryStats title="Summary" stats={SUMMARY_STATS} />
 
-        {/* Performance funnel — Highcharts Sankey */}
+        {/* Performance funnel — Sankey */}
         <ChartCard
           title="Performance funnel"
           showActions={false}
@@ -412,9 +364,7 @@ function ResponsesPanel() {
             <span className="absolute" style={{ left: '50%', transform: 'translateX(-50%)' }}>Handler</span>
             <span className="absolute right-0">Status</span>
           </div>
-          <div className="-mx-lg">
-            <HighchartsReact highcharts={Highcharts} options={sankeyOpts} />
-          </div>
+          <SankeyChart nodes={SANKEY_NODES} links={SANKEY_LINKS} height={520} />
         </ChartCard>
 
         {/* Conversations overtime — customize + 3-dot menu */}

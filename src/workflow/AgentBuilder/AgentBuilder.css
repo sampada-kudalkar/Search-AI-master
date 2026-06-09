@@ -6,8 +6,10 @@
 }
 
 .agent-builder__lhs {
-  padding: 10px;
+  width: 260px;
+  min-width: 260px;
   flex-shrink: 0;
+  padding: 10px;
   overflow: visible;
   z-index: 5;
 }

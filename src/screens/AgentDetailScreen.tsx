@@ -18,6 +18,7 @@ import {
   type Tab,
 } from '../components'
 import { AgentInstanceScreen } from './AgentInstanceScreen'
+import { CreateFrontdeskAgentScreen } from './CreateFrontdeskAgentScreen'
 
 interface AgentDetailScreenProps {
   agentName: string
@@ -37,6 +38,10 @@ interface AgentInstance {
   responseRate?: string
   avgResponseTime?: string
   noshowRate?: string
+  outreachSent?: string
+  slotsFilled?: string
+  fillRate?: string
+  timeSaved?: string
   [key: string]: string | undefined
 }
 
@@ -63,6 +68,10 @@ interface RegionRow {
   responseRate?: string
   avgResponseTime?: string
   noshowRate?: string
+  outreachSent?: string
+  slotsFilled?: string
+  fillRate?: string
+  timeSaved?: string
 }
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
@@ -84,6 +93,13 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
     { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
   ],
+  'Waitlist agent': [
+    // Total: 2,850 outreach | 2,760 slots filled | 92% fill rate | 37m time saved
+    { region: 'North region', status: 'Running', outreachSent: '800',  slotsFilled: '780',  fillRate: '90%', timeSaved: '20m', locations: '500' },
+    { region: 'East Region',  status: 'Running', outreachSent: '500',  slotsFilled: '400',  fillRate: '85%', timeSaved: '5m',  locations: '250' },
+    { region: 'South Region', status: 'Paused',  outreachSent: '500',  slotsFilled: '490',  fillRate: '75%', timeSaved: '10m', locations: '200' },
+    { region: 'West Region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
+  ],
 }
 
 const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Frontdesk agent']
@@ -98,6 +114,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
+  const [showCreateAgent, setShowCreateAgent] = useState(false)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Frontdesk agent': [
@@ -120,6 +137,12 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { id: 'appointments', value: '641', label: 'Appointments scheduled' },
       { id: 'conversion', value: '11%', label: 'Conversion rate' },
     ],
+    'Waitlist agent': [
+      { id: 'outreach', value: '2,850', label: 'Outreach sent', delta: '1.3%', trend: 'up', info: true },
+      { id: 'slots', value: '2,760', label: 'Slots filled', delta: '1.3%', trend: 'up', info: true },
+      { id: 'fillRate', value: '92%', label: 'Fill rate', delta: '1.3%', trend: 'up', info: true },
+      { id: 'timeSaved', value: '37m', label: 'Time saved', delta: '1.3%', trend: 'up', info: true },
+    ],
   }
 
   const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
@@ -139,18 +162,34 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     responseRate: r.responseRate,
     avgResponseTime: r.avgResponseTime,
     noshowRate: r.noshowRate,
+    outreachSent: (r as any).outreachSent,
+    slotsFilled: (r as any).slotsFilled,
+    fillRate: (r as any).fillRate,
+    timeSaved: (r as any).timeSaved,
   }))
 
+  const statusColumn: Column<AgentInstance> & { locked?: boolean } = {
+    key: 'status',
+    label: 'Status',
+    width: 140,
+    sortable: true,
+    render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
+  }
+
   const isReminder = agentName === 'Reminder agent'
-  const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
+  const isWaitlist = agentName === 'Waitlist agent'
+
+  const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = isWaitlist ? [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
-    {
-      key: 'status',
-      label: 'Status',
-      width: 140,
-      sortable: true,
-      render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
-    },
+    statusColumn,
+    { key: 'outreachSent', label: 'Outreach sent', width: 150, sortable: true },
+    { key: 'slotsFilled', label: 'Slots filled', width: 140, sortable: true },
+    { key: 'fillRate', label: 'Fill rate', width: 120, sortable: true },
+    { key: 'timeSaved', label: 'Time saved', width: 130, sortable: true },
+    { key: 'locations', label: 'Locations', width: 130, sortable: true },
+  ] : [
+    { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
+    statusColumn,
     ...(isReminder ? [
       { key: 'remindersSent' as keyof AgentInstance, label: 'Reminders sent', width: 160, sortable: true },
       { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
@@ -204,6 +243,15 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     )
   }
 
+  if (showCreateAgent && product === 'healthcare' && agentName === 'Frontdesk agent') {
+    return (
+      <CreateFrontdeskAgentScreen
+        onBack={() => setShowCreateAgent(false)}
+        onUseTemplate={(title) => onEditAgent?.(title)}
+      />
+    )
+  }
+
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
@@ -219,7 +267,15 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
               </button>
               {activeTab === 'agents' ? (
                 <>
-                  <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (product === 'healthcare' && agentName === 'Frontdesk agent') {
+                        setShowCreateAgent(true)
+                      }
+                    }}
+                    className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                  >
                     Create agent
                   </button>
                   <button type="button" aria-label="Customize columns" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">

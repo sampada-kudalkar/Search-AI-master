@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
 import LHSDrawer from '../LHSDrawer/LHSDrawer';
 import FlowCanvas from '../FlowCanvas/FlowCanvas';
+import { FlowDndProvider } from '../FlowCanvas/FlowDndContext';
 import RHS from '../Organisms/Panels/RHS/RHS';
 import ScheduleBased from '../Molecules/RHS/Trigger/ScheduleBased/ScheduleBased';
 import ShareModal from '../Organisms/Modals/ShareModal/ShareModal';
@@ -27,10 +28,49 @@ import {
   FLOW_CONNECTOR_GAP,
   FLOW_START_NODE_HEIGHT,
 } from '../flowLayoutConstants';
+import {
+  computeLoopCanvasHeight,
+  computeLoopBodyHeight,
+  LOOP_LAYOUT,
+} from '../Molecules/Canvas/LoopNode/LoopNode';
 import './AgentBuilder.css';
 
 const START_NODE_ID = '__start__';
 const END_NODE_ID = '__end__';
+
+function makeDefaultLoopChild(loopId) {
+  const id = `${loopId}-task-default-1`;
+  return {
+    id,
+    flowType: 'task',
+    data: {
+      stepNumber: 1,
+      title: 'Enter task name',
+      subtitle: 'Enter description',
+      toggleEnabled: true,
+    },
+  };
+}
+
+function mapLoopChildren(loopId, nodeDetails, product = 'automotive') {
+  const raw = nodeDetails?.[loopId]?.nodes || [];
+  const children = raw.length > 0 ? raw : [makeDefaultLoopChild(loopId)];
+  return children.map((childNode, childIndex) => {
+    const childDet = nodeDetails[childNode.id] || {};
+    let title = childDet.taskName ?? childNode.data?.title ?? 'Enter task name';
+    let subtitle = childDet.description ?? childNode.data?.subtitle ?? 'Enter description';
+    return {
+      id: childNode.id,
+      stepNumber: childIndex + 1,
+      title,
+      subtitle,
+      hasToggle: childNode.data?.hasToggle,
+      toggleEnabled: childNode.data?.toggleEnabled ?? true,
+      titlePlaceholder: 'Enter task name',
+      descriptionPlaceholder: 'Enter description',
+    };
+  });
+}
 
 /* ─── Error boundary for RHS panel — prevents blank screen on render error ─── */
 class RHSErrorBoundary extends React.Component {
@@ -113,7 +153,7 @@ function makeNodeDetails(type, label) {
   if (type === 'subagent') return { selectedAgent: '', name: '', description: '' };
   if (type === 'delay') return { name: '', duration: '', unit: '' };
   if (type === 'parallel') return { nodeName: '', description: '', branches: [{ name: '' }, { name: '' }] };
-  if (type === 'loop') return { name: '', description: '', loopMode: 'manual', loopOver: null };
+  if (type === 'loop') return { name: '', description: '', loopMode: 'manual', loopOver: null, nodes: [] };
   if (label === 'Custom') {
     return {
       taskName: '',
@@ -167,6 +207,8 @@ function makeNodeConfig(id, type, label, description) {
     flowType = 'parallel';
   } else if (type === 'loop') {
     flowType = 'loop';
+    titlePlaceholder = 'For each loop';
+    descriptionPlaceholder = 'Repeat the following tasks for each theme';
   } else if (type === 'voiceCall') {
     flowType = 'voiceCall';
     titlePlaceholder = 'Enter name';
@@ -240,6 +282,10 @@ function getNodeBlockHeight(item, nodeId, nodeDetails, product = 'automotive') {
   if (item?.flowType === 'procedures') {
     const ids = nodeDetails?.[nodeId]?.procedureIds ?? [];
     return estimateProceduresNodeHeight(ids, nodeDetails, nodeId, product);
+  }
+  if (item?.flowType === 'loop') {
+    const childCount = Math.max(nodeDetails?.[nodeId]?.nodes?.length ?? 0, 1);
+    return computeLoopCanvasHeight(childCount);
   }
   return FLOW_STANDARD_NODE_HEIGHT;
 }
@@ -325,22 +371,42 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
                         titlePlaceholder: 'Call subagent',
                         descriptionPlaceholder: 'Call subagent workflow.',
                       }
-                    : {}),
+                    : item.flowType === 'loop'
+                      ? {
+                          titlePlaceholder: 'For each loop',
+                          descriptionPlaceholder: 'Repeat the following tasks for each theme',
+                        }
+                      : {}),
                 // Pull title and subtitle from saved nodeDetails so canvas nodes
                 // show real content instead of placeholder text
-                title: nodeDetails[nodeId]?.taskName
-                  ?? nodeDetails[nodeId]?.triggerName
-                  ?? item.data.title,
+                title: item.flowType === 'loop'
+                  ? (nodeDetails[nodeId]?.name ?? item.data.title)
+                  : (nodeDetails[nodeId]?.taskName
+                    ?? nodeDetails[nodeId]?.triggerName
+                    ?? item.data.title),
                 subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
+                ...(item.flowType === 'loop'
+                  ? {
+                      loopBodyHeight: computeLoopBodyHeight(
+                        Math.max(nodeDetails[nodeId]?.nodes?.length ?? 0, 1),
+                      ),
+                      loopChildren: mapLoopChildren(nodeId, nodeDetails, product),
+                    }
+                  : {}),
               },
     });
     const prevIsProcedures = i > 0 && nodeList[i - 1].flowType === 'procedures';
+    const prevIsLoop = i > 0 && nodeList[i - 1].flowType === 'loop';
     edges.push({
       id: `e-${prevId}-${nodeId}`,
       source: prevId,
       target: nodeId,
       type: 'addButton',
-      ...(prevIsProcedures ? { data: { hideAddButton: true } } : {}),
+      data: {
+        connectorId: `connector-__main__-${i}`,
+        afterNodeId: prevId,
+        ...(prevIsProcedures || prevIsLoop ? { hideAddButton: true } : {}),
+      },
     });
 
     if (item.flowType === 'branch' || item.flowType === 'voiceCall') {
@@ -368,6 +434,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
 
         let previousId = branch.id;
         let previousChildFlowType = null;
+        let branchConnectorIndex = 0;
         branchNodes.forEach((childNode, childIndex) => {
           const childId = childNode.id;
           const childDet = nodeDetails[childId] || {};
@@ -403,11 +470,13 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
             target: childNode.id,
             type: 'addButton',
             data: {
+              connectorId: `connector-${branch.id}-${branchConnectorIndex}`,
               branchPathId: branch.id,
               afterNodeId: previousId === branch.id ? null : previousId,
               ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
             },
           });
+          branchConnectorIndex += 1;
           previousId = childNode.id;
           previousChildFlowType = childNode.flowType;
         });
@@ -425,6 +494,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           target: branchEndId,
           type: 'addButton',
           data: {
+            connectorId: `connector-${branch.id}-${branchConnectorIndex}`,
             branchPathId: branch.id,
             afterNodeId: previousId === branch.id ? null : previousId,
             viewOnly: !!branch.isFallback,
@@ -450,11 +520,18 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
       position: { x: 0, y: endY },
       data: { afterNodeId: lastId, hideAddBeforeEnd: lastNodeIsProcedures },
     });
+    const lastIsLoop = lastFlowType === 'loop';
     edges.push({
       id: `e-${lastId}-${END_NODE_ID}`,
       source: lastId,
       target: END_NODE_ID,
       type: 'addButton',
+      data: lastIsLoop
+        ? { hideAddButton: true }
+        : {
+            connectorId: `connector-__main__-${nodeList.length}`,
+            afterNodeId: lastId,
+          },
     });
   }
 
@@ -545,6 +622,25 @@ export default function AgentBuilder({
   useEffect(() => {
     setLiveProcedures(procedures);
   }, [procedures]);
+
+  /* ─── Ensure every loop has at least one default task child ─── */
+  useEffect(() => {
+    setNodeDetails((prev) => {
+      let updated = false;
+      const copy = { ...prev };
+      nodeList.filter((n) => n.flowType === 'loop').forEach((loopNode) => {
+        if (copy[loopNode.id]?.nodes?.length) return;
+        updated = true;
+        const defaultChild = makeDefaultLoopChild(loopNode.id);
+        copy[loopNode.id] = { ...(copy[loopNode.id] || {}), nodes: [defaultChild] };
+        copy[defaultChild.id] = {
+          taskName: 'Enter task name',
+          description: 'Enter description',
+        };
+      });
+      return updated ? copy : prev;
+    });
+  }, [nodeList]);
 
   /* ─── View-only: keep canvas state in sync when workflow props change ─── */
   useEffect(() => {
@@ -908,6 +1004,23 @@ export default function AgentBuilder({
 
   /* ─── Node management ─── */
 
+  const handleDeleteLoopChild = useCallback((loopId, childId) => {
+    setNodeDetails((prev) => {
+      const container = prev[loopId];
+      const existingNodes = container?.nodes || [];
+      if (existingNodes.length <= 1) return prev;
+      const nextNodes = existingNodes
+        .filter((node) => node.id !== childId)
+        .map((node, i) => ({ ...node, data: { ...node.data, stepNumber: i + 1 } }));
+      const copy = { ...prev, [loopId]: { ...container, nodes: nextNodes } };
+      delete copy[childId];
+      return copy;
+    });
+    if (selectedNodeId === childId) {
+      setSelectedNodeId(loopId);
+    }
+  }, [selectedNodeId]);
+
   const handleDeleteNode = useCallback((nodeId) => {
     setNodeList((prev) => {
       const updated = prev.filter((n) => n.id !== nodeId);
@@ -920,8 +1033,16 @@ export default function AgentBuilder({
       const copy = { ...prev };
       Object.values(copy).forEach((details) => {
         if (details?.nodes) {
-          details.nodes = details.nodes.filter((node) => node.id !== nodeId);
+          details.nodes = details.nodes
+            .filter((node) => node.id !== nodeId)
+            .map((node, i) => ({
+              ...node,
+              data: { ...node.data, stepNumber: i + 1 },
+            }));
         }
+      });
+      (copy[nodeId]?.nodes || []).forEach((child) => {
+        delete copy[child.id];
       });
       Object.keys(copy).forEach((key) => {
         if (key === nodeId || copy[key]?.parentId === nodeId) {
@@ -1031,7 +1152,7 @@ export default function AgentBuilder({
     if (n.type === 'branchPath') {
       return { ...n, data: { ...n.data, onDelete: () => handleDeleteBranchPath(n.id) } };
     }
-    if (n.type === 'branchEnd') return n;
+    if (n.type === 'branchEnd' || n.type === 'loopAnchor') return n;
     const nodeIdx = nodeList.findIndex((nl) => nl.id === n.id);
     const extra = {
       onDelete: () => handleDeleteNode(n.id),
@@ -1041,8 +1162,21 @@ export default function AgentBuilder({
       canMoveDown: !viewOnly && nodeIdx !== -1 && nodeIdx < nodeList.length - 1,
     };
     if (n.type === 'branch') extra.onAddBranch = () => handleAddBranchPath(n.id);
-    if (n.type === 'task' && !viewOnly) {
+    if ((n.type === 'task' || n.type === 'loop') && !viewOnly) {
       extra.onToggleChange = (enabled) => handleNodeToggleChange(n.id, enabled);
+    }
+    if (n.type === 'loop') {
+      const loopIdx = nodeList.findIndex((nl) => nl.id === n.id);
+      extra.loopNodeId = n.id;
+      extra.afterLoopConnectorId = `connector-__main__-${loopIdx + 1}`;
+      extra.onChildClick = (childId) => {
+        setSelectedNodeId(childId);
+        setDrawerOpen(true);
+      };
+      if (!viewOnly) {
+        extra.onChildDelete = (childId) => handleDeleteLoopChild(n.id, childId);
+        extra.onChildToggleChange = (childId, enabled) => handleNodeToggleChange(childId, enabled);
+      }
     }
     if (n.type === 'procedures') {
       extra.selectedProcedureId = n.id === selectedNodeId ? activeProcedureId : null;
@@ -1111,7 +1245,7 @@ export default function AgentBuilder({
     });
   }, []);
 
-  const handleDropNode = useCallback(({ type, label, description, afterNodeId, branchPathId, position, insertAtBeginning }) => {
+  const handleDropNode = useCallback(({ type, label, description, afterNodeId, branchPathId, loopBodyId, position, insertAtBeginning }) => {
     // Nothing can be inserted above the first trigger — start node is always the entry point
     if (insertAtBeginning || afterNodeId === START_NODE_ID) return;
 
@@ -1136,18 +1270,23 @@ export default function AgentBuilder({
       };
     }
 
-    if (branchPathId) {
+    if (loopBodyId && effectiveType !== 'task') {
+      return;
+    }
+
+    if (branchPathId || loopBodyId) {
+      const containerId = branchPathId || loopBodyId;
       setNodeDetails((prev) => {
-        const branchPath = prev[branchPathId] || {};
-        const existingNodes = branchPath.nodes || [];
+        const container = prev[containerId] || {};
+        const existingNodes = container.nodes || [];
         const index = afterNodeId ? existingNodes.findIndex((node) => node.id === afterNodeId) : -1;
         const nextNodes = index !== -1
           ? [...existingNodes.slice(0, index + 1), newNode, ...existingNodes.slice(index + 1)]
           : [newNode, ...existingNodes];
         return {
           ...prev,
-          [branchPathId]: {
-            ...branchPath,
+          [containerId]: {
+            ...container,
             nodes: nextNodes.map((node, i) => ({
               ...node,
               data: { ...node.data, stepNumber: i + 1 },
@@ -1160,6 +1299,9 @@ export default function AgentBuilder({
         setSelectedNodeId(id);
         setDrawerOpen(true);
         setActiveProcedureId(CUSTOM_PROCEDURE_ID);
+      } else if (loopBodyId && effectiveType === 'task') {
+        setSelectedNodeId(id);
+        setDrawerOpen(true);
       }
       return;
     }
@@ -1244,6 +1386,18 @@ export default function AgentBuilder({
       };
     }
 
+    if (effectiveType === 'loop') {
+      const defaultChild = makeDefaultLoopChild(id);
+      details = { ...details, nodes: [defaultChild] };
+      extraDetails = {
+        ...extraDetails,
+        [defaultChild.id]: {
+          taskName: 'Enter task name',
+          description: 'Enter description',
+        },
+      };
+    }
+
     setNodeDetails((prev) => ({
       ...prev,
       [id]: details,
@@ -1254,6 +1408,9 @@ export default function AgentBuilder({
       setSelectedNodeId(id);
       setDrawerOpen(true);
       setActiveProcedureId(CUSTOM_PROCEDURE_ID);
+    } else if (effectiveType === 'loop') {
+      setSelectedNodeId(id);
+      setDrawerOpen(true);
     }
   }, []);
 
@@ -1767,35 +1924,34 @@ export default function AgentBuilder({
           </div>
         )}
 
-        <div className="agent-builder">
-          <div className="agent-builder__lhs">
-            <LHSDrawer
-              defaultTab="Create manually"
-              triggerOpen
-              tasksOpen={false}
-              controlsOpen={false}
-              viewOnly={viewOnly}
-              product={product}
-              procedures={procedures}
-            />
-          </div>
+        <FlowDndProvider onDropNode={viewOnly ? undefined : handleDropNode} viewOnly={viewOnly}>
+          <div className="agent-builder">
+            <div className="agent-builder__lhs">
+              <LHSDrawer
+                defaultTab="Create manually"
+                defaultOpenSection="Tasks"
+                viewOnly={viewOnly}
+                product={product}
+                procedures={procedures}
+              />
+            </div>
 
-          <div className={`agent-builder__canvas${drawerOpen ? ' agent-builder__canvas--with-rhs' : ''}`}>
-            <FlowCanvas
-              nodes={nodes}
-              edges={edges}
-              onNodeClick={handleNodeClick}
-              onDropNode={viewOnly ? undefined : handleDropNode}
-              onNodesReorder={viewOnly ? undefined : handleNodesReorder}
-              selectedNodeId={selectedNodeId}
-              orientation="vertical"
-              viewOnly={viewOnly}
-              onEdit={viewOnly ? onEdit : undefined}
-              onRun={() => setPreviewOpen((v) => !v)}
-              previewOpen={previewOpen}
-              previewActive={previewActive}
-            />
-          </div>
+            <div className={`agent-builder__canvas${drawerOpen ? ' agent-builder__canvas--with-rhs' : ''}`}>
+              <FlowCanvas
+                nodes={nodes}
+                edges={edges}
+                onNodeClick={handleNodeClick}
+                onDropNode={viewOnly ? undefined : handleDropNode}
+                onNodesReorder={viewOnly ? undefined : handleNodesReorder}
+                selectedNodeId={selectedNodeId}
+                orientation="vertical"
+                viewOnly={viewOnly}
+                onEdit={viewOnly ? onEdit : undefined}
+                onRun={() => setPreviewOpen((v) => !v)}
+                previewOpen={previewOpen}
+                previewActive={previewActive}
+              />
+            </div>
 
           {drawerOpen && (
             <div key={selectedNodeId} className="agent-builder__rhs">
@@ -1816,7 +1972,8 @@ export default function AgentBuilder({
               />
             </div>
           )}
-        </div>
+          </div>
+        </FlowDndProvider>
       </div>
 
       {/* ─── Share modal ─── */}
