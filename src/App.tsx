@@ -8,6 +8,9 @@ import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+import { ProvidersScreen } from './screens/ProvidersScreen'
+import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
+import { AvailabilityScreen } from './screens/AvailabilityScreen'
 function EmptyResourceScreen({ label }: { label: string }) {
   return (
     <div className="flex h-full flex-col">
@@ -317,6 +320,12 @@ export function App() {
           <EmptyResourceScreen label="Phone number" />
         ) : navActive === 'voices' ? (
           <EmptyResourceScreen label="Voices" />
+        ) : navActive === 'hc-providers' || navActive === 'providers' ? (
+          <ProvidersScreen />
+        ) : navActive === 'hc-appointment-type' || navActive === 'appointment-type' ? (
+          <AppointmentTypeScreen />
+        ) : navActive === 'hc-availability' || navActive === 'availability' ? (
+          <AvailabilityScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

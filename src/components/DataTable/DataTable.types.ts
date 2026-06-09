@@ -18,7 +18,7 @@ export type SortDir = 'asc' | 'desc'
 export interface RowAction<T> {
   /** Material Symbols icon name for the page-specific primary CTA. */
   icon: string
-  label: string
+  label: string | ((row: T) => string)
   onClick: (row: T) => void
   /** When provided, the button is only rendered for rows where this returns true. */
   visible?: (row: T) => boolean
@@ -41,4 +41,8 @@ export interface DataTableProps<T = Record<string, unknown>> {
   rowAction?: RowAction<T>
   /** Items in the three-dots "more" menu shown on row hover. */
   rowMenuItems?: RowMenuItem<T>[]
+  /** Hide the horizontal scrollbar until the user hovers over the table. */
+  scrollOnHover?: boolean
+  /** Returns extra className(s) for the <tr> — use for row-level styling like disabled/dimmed. */
+  rowClassName?: (row: T, index: number) => string
 }
