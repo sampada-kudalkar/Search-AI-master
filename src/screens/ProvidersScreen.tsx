@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { DataTable, Icon, TopNav, type Column } from '../components'
+import { useEffect, useRef, useState } from 'react'
+import { DataTable, Icon, SelectMenu, Toast, TopNav, type Column, type SelectOption } from '../components'
 
 // ── Toggle ───────────────────────────────────────────────────────────────────
 interface ToggleProps {
@@ -45,6 +45,137 @@ const PROVIDERS: ProviderRow[] = [
   { initials: 'SC', name: 'Dr. Sarah Chen',    role: 'meditech.com',       operatory: 'Operatory 3',          appointmentType: 'Invisalign Consultation',         location: 'San Francisco, CA', available: true  },
 ]
 
+// ── Dropdown data ─────────────────────────────────────────────────────────────
+const LOCATION_OPTIONS: SelectOption[] = [
+  { value: 'sf', label: 'San Francisco, CA' },
+  { value: 'sj', label: 'San Jose, CA' },
+  { value: 'oak', label: 'Oakland, CA' },
+  { value: 'pa', label: 'Palo Alto, CA' },
+  { value: 'berk', label: 'Berkeley, CA' },
+]
+
+const ROLE_OPTIONS: SelectOption[] = [
+  { value: 'general', label: 'General dentist' },
+  { value: 'ortho', label: 'Orthodontist' },
+  { value: 'hygienist', label: 'Dental hygienist' },
+  { value: 'surgeon', label: 'Oral surgeon' },
+  { value: 'perio', label: 'Periodontist' },
+  { value: 'endo', label: 'Endodontist' },
+]
+
+const OPERATORY_OPTIONS: SelectOption[] = [
+  { value: 'op1', label: 'Operatory 1' },
+  { value: 'op2', label: 'Operatory 2' },
+  { value: 'op3', label: 'Operatory 3' },
+  { value: 'op4', label: 'Operatory 4' },
+  { value: 'op5', label: 'Operatory 5' },
+]
+
+const APPT_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'npe', label: 'New patient exam' },
+  { value: 'cleaning', label: 'Routine cleaning' },
+  { value: 'emergency', label: 'Emergency visit' },
+  { value: 'invisalign', label: 'Invisalign consultation' },
+  { value: 'filling', label: 'Tooth filling' },
+  { value: 'whitening', label: 'Whitening treatment' },
+]
+
+const PMS_SYSTEM_OPTIONS: SelectOption[] = [
+  { value: 'dentrix', label: 'Dentrix' },
+  { value: 'eaglesoft', label: 'Eaglesoft' },
+  { value: 'opendental', label: 'Open Dental' },
+  { value: 'curve', label: 'Curve Dental' },
+  { value: 'carestream', label: 'Carestream' },
+]
+
+const PMS_PROVIDER_OPTIONS: Record<string, SelectOption[]> = {
+  dentrix: [
+    { value: 'dtx-001', label: 'DTX-001 – Dr. Sarah Chen (General)' },
+    { value: 'dtx-002', label: 'DTX-002 – Dr. Marcus Rivera (Ortho)' },
+    { value: 'dtx-003', label: 'DTX-003 – Amy Torres (Hygienist)' },
+    { value: 'dtx-004', label: 'DTX-004 – Dr. James Kim (Oral Surgery)' },
+  ],
+  eaglesoft: [
+    { value: 'es-001', label: 'ES-001 – Dr. Sarah Chen' },
+    { value: 'es-002', label: 'ES-002 – Dr. Marcus Rivera' },
+    { value: 'es-003', label: 'ES-003 – Amy Torres' },
+  ],
+  opendental: [
+    { value: 'od-001', label: 'OD-001 – Dr. Sarah Chen' },
+    { value: 'od-002', label: 'OD-002 – Dr. Marcus Rivera' },
+  ],
+  curve: [
+    { value: 'cv-001', label: 'CV-001 – Dr. Sarah Chen' },
+    { value: 'cv-002', label: 'CV-002 – Dr. James Kim' },
+  ],
+  carestream: [
+    { value: 'cs-001', label: 'CS-001 – Dr. Sarah Chen' },
+  ],
+}
+
+// ── DropdownField ─────────────────────────────────────────────────────────────
+interface DropdownFieldProps {
+  label: string
+  required?: boolean
+  infoIcon?: boolean
+  options: SelectOption[]
+  value: string[]
+  multi?: boolean
+  placeholder?: string
+  onChange: (v: string[]) => void
+}
+function DropdownField({ label, required, infoIcon, options, value, multi = false, placeholder = 'Select', onChange }: DropdownFieldProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  const displayLabel = value.length === 0
+    ? placeholder
+    : value.length === 1
+      ? (options.find(o => o.value === value[0])?.label ?? placeholder)
+      : `${value.length} selected`
+
+  return (
+    <div className="flex flex-col gap-xs">
+      <div className="flex items-center gap-xs">
+        <label className="text-small text-text-secondary">
+          {label}{required && <span className="text-danger"> *</span>}
+        </label>
+        {infoIcon && <Icon name="info" size={14} className="text-text-tertiary" />}
+      </div>
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className={`flex h-9 w-full items-center justify-between rounded-sm border px-md text-body text-text-primary transition-colors hover:bg-surface-hover ${open ? 'border-primary' : 'border-border'}`}
+        >
+          <span className={value.length === 0 ? 'text-text-tertiary' : ''}>{displayLabel}</span>
+          <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="shrink-0 text-text-icon" />
+        </button>
+        {open && (
+          <div className="absolute left-0 top-[calc(100%+4px)] z-[60] w-full">
+            <SelectMenu
+              options={options}
+              value={value}
+              multi={multi}
+              onChange={(v) => { onChange(v); if (!multi) setOpen(false) }}
+              onApply={() => setOpen(false)}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Edit Drawer ───────────────────────────────────────────────────────────────
 interface EditDrawerProps {
   open: boolean
@@ -52,9 +183,25 @@ interface EditDrawerProps {
 }
 function EditDrawer({ open, onClose }: EditDrawerProps) {
   const [firstName, setFirstName] = useState('Sarah')
-  const [secondName, setSecondName] = useState('Sarah')
+  const [lastName, setLastName] = useState('Chen')
   const [bookable, setBookable] = useState(true)
   const [pmsExpanded, setPmsExpanded] = useState(true)
+
+  const [location, setLocation]       = useState(['sf'])
+  const [role, setRole]               = useState(['general'])
+  const [operatories, setOperatories] = useState(['op1', 'op2'])
+  const [apptTypes, setApptTypes]     = useState(['npe', 'cleaning', 'invisalign'])
+  const [pmsSystem, setPmsSystem]     = useState(['dentrix'])
+  const [pmsProvider, setPmsProvider] = useState(['dtx-001'])
+
+  // Reset provider selection when PMS system changes
+  function handlePmsSystemChange(v: string[]) {
+    setPmsSystem(v)
+    setPmsProvider([])
+  }
+
+  const pmsProviderOptions = PMS_PROVIDER_OPTIONS[pmsSystem[0]] ?? []
+  const selectedProviderLabel = pmsProviderOptions.find(o => o.value === pmsProvider[0])?.label
 
   if (!open) return null
 
@@ -63,7 +210,7 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
       <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
       <div className="fixed right-0 top-0 z-50 flex h-full w-[650px] flex-col bg-surface shadow-modal">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-2xl py-lg">
+        <div className="flex items-center justify-between px-2xl py-lg">
           <div className="flex items-center gap-sm">
             <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
               <Icon name="arrow_back" size={18} />
@@ -77,63 +224,30 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
 
         {/* Body */}
         <div className="flex flex-1 flex-col gap-lg overflow-auto p-2xl">
-          {/* First + Second name row */}
+          {/* First + Last name */}
           <div className="grid grid-cols-2 gap-md">
             <div className="flex flex-col gap-xs">
               <label className="text-small text-text-secondary">First name <span className="text-danger">*</span></label>
               <input
-                className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none"
+                className="h-9 rounded-sm border border-border px-md text-body text-text-primary focus:border-primary focus:outline-none"
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-xs">
-              <label className="text-small text-text-secondary">Second name <span className="text-danger">*</span></label>
+              <label className="text-small text-text-secondary">Last name <span className="text-danger">*</span></label>
               <input
-                className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none"
-                value={secondName}
-                onChange={e => setSecondName(e.target.value)}
+                className="h-9 rounded-sm border border-border px-md text-body text-text-primary focus:border-primary focus:outline-none"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Location */}
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Location <span className="text-danger">*</span></label>
-            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
-              <option>San Francisco, CA</option>
-            </select>
-          </div>
-
-          {/* Role */}
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Role</label>
-            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
-              <option>General dentist</option>
-              <option>Orthodontist</option>
-              <option>Dental Hygienist</option>
-              <option>Oral Surgeon</option>
-            </select>
-          </div>
-
-          {/* Operatory */}
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Operatory</label>
-            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
-              <option>2 selected</option>
-            </select>
-          </div>
-
-          {/* Appointment type */}
-          <div className="flex flex-col gap-xs">
-            <div className="flex items-center gap-xs">
-              <label className="text-small text-text-secondary">Appointment type</label>
-              <Icon name="info" size={14} className="text-text-tertiary" />
-            </div>
-            <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
-              <option>3 selected</option>
-            </select>
-          </div>
+          <DropdownField label="Location" required options={LOCATION_OPTIONS} value={location} onChange={setLocation} />
+          <DropdownField label="Role" options={ROLE_OPTIONS} value={role} onChange={setRole} />
+          <DropdownField label="Operatory" options={OPERATORY_OPTIONS} value={operatories} multi onChange={setOperatories} placeholder="Select operatories" />
+          <DropdownField label="Appointment type" infoIcon options={APPT_TYPE_OPTIONS} value={apptTypes} multi onChange={setApptTypes} placeholder="Select appointment types" />
 
           {/* Bookable */}
           <div className="flex items-center justify-between gap-md">
@@ -157,23 +271,26 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
             {pmsExpanded && (
               <div className="flex flex-col gap-md border-t border-border p-md">
                 <div className="grid grid-cols-2 gap-md">
-                  <div className="flex flex-col gap-xs">
-                    <label className="text-small text-text-secondary">PMS system</label>
-                    <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
-                      <option>Dentrix</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-xs">
-                    <label className="text-small text-text-secondary">Provider in Dentrix</label>
-                    <select className="h-9 rounded-sm border border-border pl-md pr-2xl text-body text-text-primary focus:border-primary focus:outline-none">
-                      <option>Dentrix</option>
-                    </select>
-                  </div>
+                  <DropdownField
+                    label="PMS system"
+                    options={PMS_SYSTEM_OPTIONS}
+                    value={pmsSystem}
+                    onChange={handlePmsSystemChange}
+                  />
+                  <DropdownField
+                    label={`Provider in ${PMS_SYSTEM_OPTIONS.find(o => o.value === pmsSystem[0])?.label ?? 'PMS'}`}
+                    options={pmsProviderOptions}
+                    value={pmsProvider}
+                    onChange={setPmsProvider}
+                    placeholder="Select provider"
+                  />
                 </div>
-                <div className="flex items-center gap-sm rounded-sm border border-blue-200 bg-blue-50 px-md py-sm">
-                  <Icon name="info" size={16} className="text-blue-500" />
-                  <span className="text-small text-blue-700">Mapped to DTX-001 – Dr. Sarah Chen (General)</span>
-                </div>
+                {selectedProviderLabel && (
+                  <div className="flex items-center gap-sm rounded-sm border border-blue-200 bg-blue-50 px-md py-sm">
+                    <Icon name="info" size={16} className="text-blue-500" />
+                    <span className="text-small text-blue-700">Mapped to {selectedProviderLabel}</span>
+                  </div>
+                )}
                 <p className="text-small text-text-secondary">Maps this provider to their record in your practice management software.</p>
               </div>
             )}
@@ -188,16 +305,24 @@ function EditDrawer({ open, onClose }: EditDrawerProps) {
 export function ProvidersScreen() {
   const [bannerDismissed, setBannerDismissed] = useState(false)
   const [editDrawerOpen, setEditDrawerOpen] = useState(false)
+  const [toastVisible, setToastVisible] = useState(false)
   const [availableMap, setAvailableMap] = useState<Record<number, boolean>>(
     Object.fromEntries(PROVIDERS.map((p, i) => [i, p.available]))
   )
   const [_location] = useState('San Francisco, CA')
 
+  // Sort: available rows first
+  const sortedProviders = [...PROVIDERS].sort((a, b) => {
+    const aAvail = availableMap[PROVIDERS.indexOf(a)] ?? a.available
+    const bAvail = availableMap[PROVIDERS.indexOf(b)] ?? b.available
+    return (bAvail ? 1 : 0) - (aAvail ? 1 : 0)
+  })
+
   const COLUMNS: Column<ProviderRow>[] = [
     {
-      key: 'name', label: 'Provider', width: 220,
+      key: 'name', label: 'Provider', width: 220, sortable: true,
       render: (_v, row) => (
-        <div className={`flex items-center gap-sm ${row.dimmed ? 'opacity-40' : ''}`}>
+        <div className="flex items-center gap-sm">
           <div className="flex size-8 items-center justify-center rounded-full bg-surface-selected text-small text-text-secondary">
             {row.initials as string}
           </div>
@@ -205,9 +330,9 @@ export function ProvidersScreen() {
         </div>
       ),
     },
-    { key: 'role', label: 'Role', width: 160 },
+    { key: 'role', label: 'Role', width: 160, sortable: true },
     {
-      key: 'operatory', label: 'Operatory', width: 180,
+      key: 'operatory', label: 'Operatory', width: 180, sortable: true,
       render: (_v, row) => {
         const parts = (row.operatory as string).split(', ')
         return (
@@ -219,7 +344,7 @@ export function ProvidersScreen() {
       },
     },
     {
-      key: 'appointmentType', label: 'Appointment type', width: 220,
+      key: 'appointmentType', label: 'Appointment type', width: 220, sortable: true,
       render: (_v, row) => {
         const parts = (row.appointmentType as string).split(', ')
         return (
@@ -230,9 +355,9 @@ export function ProvidersScreen() {
         )
       },
     },
-    { key: 'location', label: 'Location', width: 180 },
+    { key: 'location', label: 'Location', width: 180, sortable: true },
     {
-      key: 'available', label: 'Available', width: 100,
+      key: 'available', label: 'Available', width: 100, sortable: true,
       render: (_v, row) => {
         const idx = PROVIDERS.indexOf(row as ProviderRow)
         return (
@@ -252,6 +377,11 @@ export function ProvidersScreen() {
 
   return (
     <div className="flex h-full flex-col">
+      <Toast
+        message="Syncing from PMS — your data will be updated in a few minutes."
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+      />
       <TopNav initials="S" />
 
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
@@ -268,7 +398,11 @@ export function ProvidersScreen() {
             <select className="h-9 rounded-sm border border-border-selected bg-surface pl-md pr-2xl text-body text-text-primary hover:bg-surface-l2 focus:outline-none">
               <option>{_location}</option>
             </select>
-            <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
+            <button
+              type="button"
+              onClick={() => setToastVisible(true)}
+              className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+            >
               <Icon name="refresh" size={18} />
               Sync from PMS
             </button>
@@ -291,9 +425,9 @@ export function ProvidersScreen() {
 
           <DataTable
             columns={COLUMNS}
-            data={PROVIDERS}
+            data={sortedProviders}
             rowMenuItems={rowMenuItems}
-            rowClassName={(_row, i) => (availableMap[i] === false ? 'opacity-40' : '')}
+            rowClassName={() => ''}
           />
         </div>
       </div>

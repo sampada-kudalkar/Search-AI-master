@@ -56,7 +56,7 @@ export function MessageDrawer({ open, patient, status = 'Unconfirmed', onClose }
         className={`fixed right-0 top-0 z-[101] flex h-full w-[650px] flex-col bg-surface shadow-modal transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-lg py-md">
+        <div className="flex items-center justify-between px-lg py-md">
           <div className="flex items-center gap-sm">
             <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
               <Icon name="arrow_back" size={20} />

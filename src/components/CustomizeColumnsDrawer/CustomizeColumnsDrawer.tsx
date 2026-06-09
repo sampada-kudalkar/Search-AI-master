@@ -97,7 +97,7 @@ export function CustomizeColumnsDrawer({
         }`}
       >
         {/* Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-2xl">
+        <div className="flex h-16 shrink-0 items-center justify-between px-2xl">
           <div className="flex items-center gap-sm">
             <button
               type="button"
