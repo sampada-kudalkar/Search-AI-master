@@ -21,6 +21,8 @@ import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
 import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
+import { WebWidgetsScreen } from './screens/WebWidgetsScreen'
+import { AppointmentWidgetsScreen } from './screens/AppointmentWidgetsScreen'
 import { InboxScreen } from './screens/InboxScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
@@ -266,6 +268,7 @@ export function App() {
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
   const [activeProduct, setActiveProduct] = useState('healthcare')
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
+  const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
 
   function handleProductChange(id: string) {
     setActiveProduct(id)
@@ -308,7 +311,13 @@ export function App() {
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
         {railActive === 'settings' ? (
-          <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} />
+          settingsSubScreen === 'web-widgets' ? (
+            <WebWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
+          ) : settingsSubScreen === 'appointment-widgets' ? (
+            <AppointmentWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
+          ) : (
+            <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} onWebWidgets={() => setSettingsSubScreen('web-widgets')} onAppointmentWidgets={() => setSettingsSubScreen('appointment-widgets')} />
+          )
         ) : railActive === 'inbox' ? (
           <InboxScreen />
         ) : isEditingWorkflow ? (
