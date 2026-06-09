@@ -8,6 +8,7 @@ import EmptyStates from '../Patterns/EmptyStates/EmptyStates';
 import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
+import PreviewPanel from '../Molecules/PreviewPanel/PreviewPanel';
 import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/ReminderToolDrawer';
 import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
@@ -563,6 +564,8 @@ export default function AgentBuilder({
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   // Tracks which procedure is open in the detail view (UI-only, not persisted)
   const [activeProcedureId, setActiveProcedureId] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewActive, setPreviewActive] = useState(false);
   // Tool viewer state
   const [viewingTool, setViewingTool] = useState(null); // full tool object
   const [reminderToolOpen, setReminderToolOpen] = useState(false);
@@ -1462,7 +1465,9 @@ export default function AgentBuilder({
             }));
             handleCloseDrawer();
           }}
-          onPreview={() => {}}
+          onPreview={() => setPreviewOpen((v) => !v)}
+          previewOpen={previewOpen}
+          previewActive={previewActive}
           onExpand={() => {}}
           triggerName={currentDetails.triggerName ?? ''}
           description={currentDetails.description ?? ''}
@@ -1848,6 +1853,15 @@ export default function AgentBuilder({
               <RHSErrorBoundary key={selectedNodeId}>
                 {renderRHSPanel()}
               </RHSErrorBoundary>
+            </div>
+          )}
+
+          {previewOpen && (
+            <div className="agent-builder__preview">
+              <PreviewPanel
+                onClose={() => { setPreviewOpen(false); setPreviewActive(false); }}
+                onPreviewActiveChange={setPreviewActive}
+              />
             </div>
           )}
         </div>
