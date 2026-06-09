@@ -31,6 +31,8 @@ export interface StackedBarChartProps {
   wrapXLabels?: boolean
   /** Show value labels above each bar and hide the Y-axis + horizontal grid lines. */
   showBarLabels?: boolean
+  /** Hide the bottom legend. */
+  hideLegend?: boolean
 }
 
 const axisTick = { fontSize: 12, fill: '#212121', fontFamily: 'Roboto' }
@@ -99,7 +101,7 @@ function StackedBarTooltip({
   )
 }
 
-export function StackedBarChart({ data, series, xKey, height = 300, grouped = false, xAxisAngle, wrapXLabels, showBarLabels }: StackedBarChartProps) {
+export function StackedBarChart({ data, series, xKey, height = 300, grouped = false, xAxisAngle, wrapXLabels, showBarLabels, hideLegend }: StackedBarChartProps) {
   const xTick = xAxisAngle
     ? { ...axisTick, angle: xAxisAngle, textAnchor: 'end' as const, dy: 4 }
     : axisTick
@@ -131,13 +133,15 @@ export function StackedBarChart({ data, series, xKey, height = 300, grouped = fa
             />
           )}
         />
-        <Legend
-          align="left"
-          iconType="circle"
-          iconSize={8}
-          formatter={(value) => <span style={{ color: '#555555' }}>{value}</span>}
-          wrapperStyle={{ fontSize: 12, fontFamily: 'Roboto', paddingTop: 8 }}
-        />
+        {!hideLegend && (
+          <Legend
+            align="left"
+            iconType="circle"
+            iconSize={8}
+            formatter={(value) => <span style={{ color: '#555555' }}>{value}</span>}
+            wrapperStyle={{ fontSize: 12, fontFamily: 'Roboto', paddingTop: 8 }}
+          />
+        )}
         {series.map((s, i) => (
           <Bar
             key={s.key}

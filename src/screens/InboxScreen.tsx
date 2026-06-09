@@ -606,18 +606,18 @@ function ConversationManagedPanel() {
             nodes={CM_SANKEY_NODES}
             links={CM_SANKEY_LINKS}
             height={340}
-            colors={[
-              '#CE5ECE', // Calls — pink/magenta
-              '#4A2D7A', // SMS — dark purple
-              '#42A5F5', // Email — blue
-              '#4cae3d', // Tagged — green
-              '#BDBDBD', // Untagged — gray
-              '#5C6BC0', // Routed — blue
-              '#F5A623', // Pending — amber
-              '#C62828', // Missed — dark red
-              '#8BC34A', // Resolved — green
-              '#BDBDBD', // Unresolved — gray
-            ]}
+            nodeColors={{
+              0: '#CE5ECE', // Calls — pink/magenta
+              1: '#4A2D7A', // SMS — dark purple
+              2: '#42A5F5', // Email — blue
+              3: '#4cae3d', // Tagged — green
+              4: '#BDBDBD', // Untagged — gray
+              5: '#5C6BC0', // Routed — blue
+              6: '#F5A623', // Pending — amber
+              7: '#C62828', // Missed — dark red
+              8: '#8BC34A', // Resolved — green
+              9: '#BDBDBD', // Unresolved — gray
+            }}
           />
         </ChartCard>
 

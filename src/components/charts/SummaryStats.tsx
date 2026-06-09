@@ -38,7 +38,7 @@ export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
                       s.trend === 'down' ? 'text-chip-danger-text' : 'text-chip-success-text'
                     }`}
                   >
-                    {s.trend === 'down' ? '-' : '+'}{s.delta}
+                    {s.trend === 'down' ? '-' : '+'}{s.delta.replace(/^[+-]/, '')}
                   </span>
                 )}
               </div>

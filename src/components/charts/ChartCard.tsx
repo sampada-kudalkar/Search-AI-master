@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { Icon } from '../Icon/Icon'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { ChartCardButton } from './ChartCardButton'
 
 export interface ChartCardProps {
   title: string
@@ -9,8 +9,43 @@ export interface ChartCardProps {
   toolbar?: ReactNode
   /** Show the trailing customize/menu icons (decorative on the prototype). */
   showActions?: boolean
+  /** Override the left action icon (defaults to 'table_rows'). */
+  leftActionIcon?: string
   className?: string
   children: ReactNode
+}
+
+function MoreMenu() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      <ChartCardButton icon="more_vert" label="More" onClick={() => setOpen((v) => !v)} />
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-xs w-48 rounded-sm bg-surface p-md shadow-dropdown">
+          {['Download', 'Email'].map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center rounded-sm px-sm py-sm text-left text-body text-text-primary transition-colors hover:bg-surface-hover"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function ChartCard({ title, titleSuffix, toolbar, showActions = true, className = '', children }: ChartCardProps) {
@@ -25,20 +60,7 @@ export function ChartCard({ title, titleSuffix, toolbar, showActions = true, cla
           {toolbar}
           {showActions && (
             <div className="flex items-center gap-xs">
-              <button
-                type="button"
-                aria-label="Customize chart"
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-              >
-                <Icon name="instant_mix" size={20} />
-              </button>
-              <button
-                type="button"
-                aria-label="More"
-                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-              >
-                <Icon name="more_vert" size={20} />
-              </button>
+              <MoreMenu />
             </div>
           )}
         </div>

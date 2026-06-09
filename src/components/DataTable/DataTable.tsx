@@ -13,6 +13,8 @@ export function DataTable<T extends Record<string, unknown>>({
   rowAction,
   rowActions,
   rowMenuItems,
+  scrollOnHover = false,
+  rowClassName,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -78,27 +80,17 @@ export function DataTable<T extends Record<string, unknown>>({
     return <div className="flex h-48 items-center justify-center text-body text-text-secondary">No records found.</div>
   }
 
-  const allColumnsHaveWidth = columns.every((c) => c.width !== undefined)
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
   const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
   return (
-    <div className="overflow-x-auto">
-      <table
-        className="text-left"
-        style={{
-          tableLayout: 'fixed',
-          width: '100%',
-          ...(allColumnsHaveWidth ? { minWidth: totalWidth } : {}),
-        }}
-      >
-        {allColumnsHaveWidth && (
-          <colgroup>
-            {columns.map((col) => (
-              <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
-            ))}
-          </colgroup>
-        )}
+    <div className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}`}>
+      <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
+        <colgroup>
+          {columns.map((col) => (
+            <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
             {columns.map((col, i) => {
@@ -152,7 +144,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onClick={() => onRowClick?.(row)}
               className={`group/row border-b border-border last:border-b-0 transition-colors hover:bg-surface-hover ${
                 onRowClick ? 'cursor-pointer' : ''
-              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''}`}
+              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''} ${rowClassName ? rowClassName(row, i) : ''}`}
             >
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1

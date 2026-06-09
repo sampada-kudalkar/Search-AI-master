@@ -8,6 +8,24 @@ import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+import { ProvidersScreen } from './screens/ProvidersScreen'
+import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
+import { AvailabilityScreen } from './screens/AvailabilityScreen'
+import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
+import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
+import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
+import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
+import { AgentDetailScreen } from './screens/AgentDetailScreen'
+import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
+import { ProceduresScreen } from './screens/ProceduresScreen'
+import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
+import { InboxScreen } from './screens/InboxScreen'
+import logoSrc from './assets/birdeye-logo.svg'
+import iconMarketing from './assets/icon-marketing.svg'
+import iconAgents from './assets/icon-agents.svg'
+
 function EmptyResourceScreen({ label }: { label: string }) {
   return (
     <div className="flex h-full flex-col">
@@ -18,16 +36,6 @@ function EmptyResourceScreen({ label }: { label: string }) {
     </div>
   )
 }
-import { AgentDetailScreen } from './screens/AgentDetailScreen'
-import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
-import { ProceduresScreen } from './screens/ProceduresScreen'
-import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
-import { SettingsScreen } from './screens/SettingsScreen'
-import { InboxScreen } from './screens/InboxScreen'
-import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
-import logoSrc from './assets/birdeye-logo.svg'
-import iconMarketing from './assets/icon-marketing.svg'
-import iconAgents from './assets/icon-agents.svg'
 
 const RAIL_GROUPS: RailGroup[] = [
   {
@@ -112,9 +120,13 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: true,
     items: [
-      { id: 'providers',         label: 'Providers'  },
-      { id: 'procedure-library', label: 'Procedures' },
-      { id: 'widgets',           label: 'Widgets'    },
+      { id: 'knowledge-base',     label: 'Knowledge base',     external: true },
+      { id: 'procedure-library',  label: 'Procedures'          },
+      { id: 'phone-number',       label: 'Phone number'        },
+      { id: 'web-widget',         label: 'Web widget'          },
+      { id: 'appointment-widget', label: 'Appointment widget'  },
+      { id: 'providers',          label: 'Providers'           },
+      { id: 'forms',              label: 'Forms'               },
     ],
   },
 ]
@@ -160,7 +172,7 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
       { id: 'providers',         label: 'Providers'          },
       { id: 'appointment-type',  label: 'Appointment type'   },
       { id: 'availability',      label: 'Availability'       },
-      { id: 'procedure-library', label: 'Procedure'          },
+      { id: 'procedure-library', label: 'Procedures'         },
       { id: 'phone-number',      label: 'Phone number'       },
       { id: 'knowledge-base',    label: 'Knowledge base',    external: true },
       { id: 'widgets',           label: 'Widgets',           external: true },
@@ -247,6 +259,7 @@ const AGENT_NAMES: Record<string, string> = {
   'outreach-agent':  'Outreach agent',
 }
 
+
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointment')
@@ -325,14 +338,38 @@ export function App() {
           <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
           <ProceduresScreen product={activeProduct} />
+        ) : navActive === 'appointment-type' ? (
+          <EmptyResourceScreen label="Appointment type" />
+        ) : navActive === 'availability' ? (
+          <EmptyResourceScreen label="Availability" />
         ) : navActive === 'knowledge-base' ? (
           <EmptyResourceScreen label="Knowledge base" />
-        ) : navActive === 'widgets' ? (
-          <EmptyResourceScreen label="Widgets" />
         ) : navActive === 'phone-number' ? (
           <PhoneNumberScreen />
         ) : navActive === 'voices' ? (
           <EmptyResourceScreen label="Voices" />
+        ) : navActive === 'web-widget' ? (
+          <EmptyResourceScreen label="Web widget" />
+        ) : navActive === 'appointment-widget' ? (
+          <EmptyResourceScreen label="Appointment widget" />
+        ) : navActive === 'forms' ? (
+          <EmptyResourceScreen label="Forms" />
+        ) : navActive === 'widgets' ? (
+          <EmptyResourceScreen label="Widgets" />
+        ) : navActive === 'hc-providers' || navActive === 'providers' ? (
+          <ProvidersScreen />
+        ) : navActive === 'hc-appointment-type' || navActive === 'appointment-type' ? (
+          <AppointmentTypeScreen />
+        ) : navActive === 'hc-availability' || navActive === 'availability' ? (
+          <AvailabilityScreen />
+        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
+          <HCFrontdeskOverviewScreen />
+        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (
+          <HCNoShowsScreen />
+        ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
+          <HCWaitlistFilledScreen />
+        ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
+          <HCIntakesCompletedScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}

@@ -43,4 +43,8 @@ export interface DataTableProps<T = Record<string, unknown>> {
   rowActions?: RowAction<T>[]
   /** Items in the three-dots "more" menu shown on row hover. */
   rowMenuItems?: RowMenuItem<T>[]
+  /** Hide the horizontal scrollbar until the user hovers over the table. */
+  scrollOnHover?: boolean
+  /** Returns extra className(s) for the <tr> — use for row-level styling like disabled/dimmed. */
+  rowClassName?: (row: T, index: number) => string
 }

@@ -31,6 +31,7 @@ export { DataTable } from './DataTable/DataTable'
 
 // Charts (Recharts-based + CSS heatmap) — reusable across report pages
 export { ChartCard } from './charts/ChartCard'
+export { ChartCardButton } from './charts/ChartCardButton'
 export { ChartStatRow } from './charts/ChartStatRow'
 export { HBarList } from './charts/HBarList'
 export { RatingBarChart } from './charts/RatingBarChart'
