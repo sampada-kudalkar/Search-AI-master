@@ -92,7 +92,7 @@ export function WorkflowEditorScreen({
     ],
   }
 
-  const workflow = isHC && agentBaseName === 'Frontdesk agent'
+  const workflow = isHC && agentBaseName === 'Front desk agent'
     ? {
         nodes: baseWorkflow.nodes,
         nodeDetails: {

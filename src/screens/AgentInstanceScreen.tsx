@@ -45,7 +45,7 @@ const TABS: Tab[] = [
 ]
 
 const METRICS_BY_AGENT: Record<string, Metric[]> = {
-  'Frontdesk agent': [
+  'Front desk agent': [
     { id: 'interactions', value: '18,420', label: 'Interactions handled', delta: '1.3%', trend: 'up', info: true },
     { id: 'fcr', value: '87%', label: 'First contact resolution', delta: '2.1%', trend: 'up', info: true },
     { id: 'aht', value: '1m 42s', label: 'Average handle time', delta: '0.8%', trend: 'down', info: true },
@@ -117,7 +117,7 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
 
   const isWorkflowTab = activeTab === 'workflow'
   const showHealthcareLogs =
-    activeTab === 'logs' && product === 'healthcare' && agentName === 'Frontdesk agent'
+    activeTab === 'logs' && product === 'healthcare' && agentName === 'Front desk agent'
 
   return (
     <div className="flex h-full flex-col">
