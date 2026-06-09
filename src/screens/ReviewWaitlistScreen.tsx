@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Chip, DataTable, FilterPanel, FormDrawer, Icon, QuickSendModal, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type FilterField } from '../components'
+import { Chip, DataTable, FilterPanel, FormDrawer, Icon, QuickSendModal, QuickViewDrawer, Toast, TopNav, ViewActivityDrawer, type ChipVariant, type Column, type FilterField, type QuickViewWaitlist } from '../components'
 
 type WaitlistStatus = 'Waitlisted' | 'Slot offered' | 'Slot filled'
 type OutreachChannel = 'chat' | 'call' | 'text'
@@ -202,6 +202,7 @@ export function ReviewWaitlistScreen() {
   const [activityRow, setActivityRow] = useState<WaitlistRow | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
   const [toastVisible, setToastVisible] = useState(false)
+  const [quickViewRow, setQuickViewRow] = useState<QuickViewWaitlist | null>(null)
 
   const counts = {
     waitlisted:     rows.filter((r) => r.status === 'Waitlisted').length,
@@ -312,7 +313,7 @@ export function ReviewWaitlistScreen() {
             }}
             rowMenuItems={[
               { label: 'Quick send',    onClick: (row) => setQuickSendRow(row) },
-              { label: 'Quick view',    onClick: () => {} },
+              { label: 'Quick view',    onClick: (row) => setQuickViewRow({ patient: row.patient, provider: 'Dr. Smith', location: 'New York, NY', apptType: row.apptType, slotPreference: 'Morning', waitingSince: row.waitingSince, status: row.status }) },
               { label: 'View activity', onClick: (row) => setActivityRow(row) },
               { label: 'View details',  onClick: () => {} },
             ]}
@@ -370,6 +371,12 @@ export function ReviewWaitlistScreen() {
         open={activityRow !== null}
         patient={activityRow?.patient ?? ''}
         onClose={() => setActivityRow(null)}
+      />
+
+      <QuickViewDrawer
+        open={quickViewRow !== null}
+        waitlist={quickViewRow}
+        onClose={() => setQuickViewRow(null)}
       />
 
       <Toast

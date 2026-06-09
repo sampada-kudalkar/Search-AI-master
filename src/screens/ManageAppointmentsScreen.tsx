@@ -16,12 +16,14 @@ import {
   DayCalendar,
   Tabs,
   TopNav,
+  QuickViewDrawer,
   type AppointmentTimescale,
   type AppointmentView,
   type ChipVariant,
   type Column,
   type ColumnOption,
   type FilterField,
+  type QuickViewAppointment,
 } from '../components'
 
 interface Appointment {
@@ -140,6 +142,7 @@ export function ManageAppointmentsScreen() {
   const [quickSendRow, setQuickSendRow] = useState<Appointment | null>(null)
   const [toastVisible, setToastVisible] = useState(false)
   const [activityRow, setActivityRow] = useState<Appointment | null>(null)
+  const [quickViewRow, setQuickViewRow] = useState<QuickViewAppointment | null>(null)
 
 
   const isToday = date.toDateString() === BASE_DATE.toDateString()
@@ -305,7 +308,7 @@ export function ManageAppointmentsScreen() {
                   }}
                   rowMenuItems={[
                     { label: 'Quick send',    onClick: (row) => setQuickSendRow(row) },
-                    { label: 'Quick view',    onClick: () => {} },
+                    { label: 'Quick view',    onClick: (row) => setQuickViewRow({ patient: row.patient, provider: row.provider, apptType: row.apptType, dateTime: row.dateTime, status: row.status }) },
                     { label: 'View activity', onClick: (row) => setActivityRow(row) },
                     { label: 'View details',  onClick: () => {} },
                   ]}
@@ -357,6 +360,12 @@ export function ManageAppointmentsScreen() {
         open={activityRow !== null}
         patient={activityRow?.patient ?? ''}
         onClose={() => setActivityRow(null)}
+      />
+
+      <QuickViewDrawer
+        open={quickViewRow !== null}
+        appointment={quickViewRow}
+        onClose={() => setQuickViewRow(null)}
       />
 
       <Toast
