@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
 import LHSDrawer from '../LHSDrawer/LHSDrawer';
 import FlowCanvas from '../FlowCanvas/FlowCanvas';
-import { FlowDndProvider } from '../FlowCanvas/FlowDndContext';
 import RHS from '../Organisms/Panels/RHS/RHS';
 import ScheduleBased from '../Molecules/RHS/Trigger/ScheduleBased/ScheduleBased';
 import ShareModal from '../Organisms/Modals/ShareModal/ShareModal';
@@ -9,7 +8,8 @@ import EmptyStates from '../Patterns/EmptyStates/EmptyStates';
 import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
-import PreviewPanel from '../Molecules/PreviewPanel/PreviewPanel';
+import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/ReminderToolDrawer';
+import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
 import {
   getProcedureById,
@@ -28,49 +28,10 @@ import {
   FLOW_CONNECTOR_GAP,
   FLOW_START_NODE_HEIGHT,
 } from '../flowLayoutConstants';
-import {
-  computeLoopCanvasHeight,
-  computeLoopBodyHeight,
-  LOOP_LAYOUT,
-} from '../Molecules/Canvas/LoopNode/LoopNode';
 import './AgentBuilder.css';
 
 const START_NODE_ID = '__start__';
 const END_NODE_ID = '__end__';
-
-function makeDefaultLoopChild(loopId) {
-  const id = `${loopId}-task-default-1`;
-  return {
-    id,
-    flowType: 'task',
-    data: {
-      stepNumber: 1,
-      title: 'Enter task name',
-      subtitle: 'Enter description',
-      toggleEnabled: true,
-    },
-  };
-}
-
-function mapLoopChildren(loopId, nodeDetails, product = 'automotive') {
-  const raw = nodeDetails?.[loopId]?.nodes || [];
-  const children = raw.length > 0 ? raw : [makeDefaultLoopChild(loopId)];
-  return children.map((childNode, childIndex) => {
-    const childDet = nodeDetails[childNode.id] || {};
-    let title = childDet.taskName ?? childNode.data?.title ?? 'Enter task name';
-    let subtitle = childDet.description ?? childNode.data?.subtitle ?? 'Enter description';
-    return {
-      id: childNode.id,
-      stepNumber: childIndex + 1,
-      title,
-      subtitle,
-      hasToggle: childNode.data?.hasToggle,
-      toggleEnabled: childNode.data?.toggleEnabled ?? true,
-      titlePlaceholder: 'Enter task name',
-      descriptionPlaceholder: 'Enter description',
-    };
-  });
-}
 
 /* ─── Error boundary for RHS panel — prevents blank screen on render error ─── */
 class RHSErrorBoundary extends React.Component {
@@ -153,7 +114,7 @@ function makeNodeDetails(type, label) {
   if (type === 'subagent') return { selectedAgent: '', name: '', description: '' };
   if (type === 'delay') return { name: '', duration: '', unit: '' };
   if (type === 'parallel') return { nodeName: '', description: '', branches: [{ name: '' }, { name: '' }] };
-  if (type === 'loop') return { name: '', description: '', loopMode: 'manual', loopOver: null, nodes: [] };
+  if (type === 'loop') return { name: '', description: '', loopMode: 'manual', loopOver: null };
   if (label === 'Custom') {
     return {
       taskName: '',
@@ -175,6 +136,7 @@ const TASK_DROP_DEFAULTS = {
   'Reschedule appointment': { description: 'Change an existing appointment date or time' },
   'Cancel appointment': { description: 'Cancel a scheduled appointment' },
   'Confirm appointment': { description: 'Confirm appointment details with the customer' },
+  'Appointment reminder': { description: '3 weeks, 3 days and 24 hours before · Email & text', selectedTools: ['reminder-tool'] },
   'Update contact property': { description: 'Update a field on the contact record' },
   'Add contact to list': { description: 'Add the contact to a marketing or CRM list' },
   'Remove contact from list': { description: 'Remove the contact from a list' },
@@ -207,8 +169,6 @@ function makeNodeConfig(id, type, label, description) {
     flowType = 'parallel';
   } else if (type === 'loop') {
     flowType = 'loop';
-    titlePlaceholder = 'For each loop';
-    descriptionPlaceholder = 'Repeat the following tasks for each theme';
   } else if (type === 'voiceCall') {
     flowType = 'voiceCall';
     titlePlaceholder = 'Enter name';
@@ -283,10 +243,6 @@ function getNodeBlockHeight(item, nodeId, nodeDetails, product = 'automotive') {
     const ids = nodeDetails?.[nodeId]?.procedureIds ?? [];
     return estimateProceduresNodeHeight(ids, nodeDetails, nodeId, product);
   }
-  if (item?.flowType === 'loop') {
-    const childCount = Math.max(nodeDetails?.[nodeId]?.nodes?.length ?? 0, 1);
-    return computeLoopCanvasHeight(childCount);
-  }
   return FLOW_STANDARD_NODE_HEIGHT;
 }
 
@@ -311,6 +267,8 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
   let y = 0;
   const nodes = [];
   const edges = [];
+  // Shared sequential step counter — incremented for every rendered content node
+  let stepCounter = 0;
 
   nodes.push({
     id: START_NODE_ID,
@@ -328,6 +286,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
     const prevId = i === 0 ? START_NODE_ID : nodeList[i - 1].id;
     lastNodeY = y;
     lastNodeBlockHeight = getNodeBlockHeight(item, nodeId, nodeDetails, product);
+    const topLevelStep = ++stepCounter;
     nodes.push({
       id: nodeId,
       type: item.flowType,
@@ -335,14 +294,14 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
       data: item.flowType === 'branch'
         ? {
             ...item.data,
-            stepNumber: i + 1,
+            stepNumber: topLevelStep,
             title: 'Based on conditions',
             subtitle: 'Build condition-specific flows',
           }
         : item.data?.subtype === 'Schedule-based'
           ? {
               ...item.data,
-              stepNumber: i + 1,
+              stepNumber: topLevelStep,
               headerLabel: 'Schedule-based trigger',
               title: nodeDetails[nodeId]?.triggerName ?? item.data.title,
               subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
@@ -350,7 +309,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           : item.flowType === 'procedures'
             ? {
                 ...item.data,
-                stepNumber: i + 1,
+                stepNumber: topLevelStep,
                 procedureItems: mapProcedureItems(
                   nodeDetails[nodeId]?.procedureIds,
                   nodeDetails,
@@ -360,7 +319,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
               }
             : {
                 ...item.data,
-                stepNumber: i + 1,
+                stepNumber: topLevelStep,
                 ...(item.flowType === 'delay'
                   ? {
                       titlePlaceholder: 'Configure delay settings',
@@ -371,48 +330,32 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
                         titlePlaceholder: 'Call subagent',
                         descriptionPlaceholder: 'Call subagent workflow.',
                       }
-                    : item.flowType === 'loop'
-                      ? {
-                          titlePlaceholder: 'For each loop',
-                          descriptionPlaceholder: 'Repeat the following tasks for each theme',
-                        }
-                      : {}),
+                    : {}),
                 // Pull title and subtitle from saved nodeDetails so canvas nodes
                 // show real content instead of placeholder text
-                title: item.flowType === 'loop'
-                  ? (nodeDetails[nodeId]?.name ?? item.data.title)
-                  : (nodeDetails[nodeId]?.taskName
-                    ?? nodeDetails[nodeId]?.triggerName
-                    ?? item.data.title),
+                title: nodeDetails[nodeId]?.taskName
+                  ?? nodeDetails[nodeId]?.triggerName
+                  ?? item.data.title,
                 subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
-                ...(item.flowType === 'loop'
-                  ? {
-                      loopBodyHeight: computeLoopBodyHeight(
-                        Math.max(nodeDetails[nodeId]?.nodes?.length ?? 0, 1),
-                      ),
-                      loopChildren: mapLoopChildren(nodeId, nodeDetails, product),
-                    }
-                  : {}),
               },
     });
     const prevIsProcedures = i > 0 && nodeList[i - 1].flowType === 'procedures';
-    const prevIsLoop = i > 0 && nodeList[i - 1].flowType === 'loop';
     edges.push({
       id: `e-${prevId}-${nodeId}`,
       source: prevId,
       target: nodeId,
       type: 'addButton',
-      data: {
-        connectorId: `connector-__main__-${i}`,
-        afterNodeId: prevId,
-        ...(prevIsProcedures || prevIsLoop ? { hideAddButton: true } : {}),
-      },
+      ...(prevIsProcedures ? { data: { hideAddButton: true } } : {}),
     });
 
     if (item.flowType === 'branch' || item.flowType === 'voiceCall') {
       const isVoiceCall = item.flowType === 'voiceCall';
       const branches = nodeDetails[nodeId]?.branches || [];
-      const spacing = 480;
+      // Use wider spacing when any branch arm contains a nested voiceCall (which fans out further)
+      const hasNestedVoiceCall = !isVoiceCall && branches.some(b =>
+        (nodeDetails[b.id]?.nodes || []).some(n => n.flowType === 'voiceCall')
+      );
+      const spacing = hasNestedVoiceCall ? 1100 : 480;
       const startX = -((branches.length - 1) * spacing) / 2;
       const branchChipY = y + 150;
       const branchNodeStartY = y + 260;
@@ -434,12 +377,11 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
 
         let previousId = branch.id;
         let previousChildFlowType = null;
-        let branchConnectorIndex = 0;
         branchNodes.forEach((childNode, childIndex) => {
           const childId = childNode.id;
           const childDet = nodeDetails[childId] || {};
           // Enrich child node data from nodeDetails — same logic as top-level nodes
-          let childData = { ...childNode.data, stepNumber: childNode.data?.stepNumber ?? null };
+          let childData = { ...childNode.data, stepNumber: ++stepCounter };
           if (childNode.flowType === 'procedures') {
             childData = {
               ...childData,
@@ -470,37 +412,73 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
             target: childNode.id,
             type: 'addButton',
             data: {
-              connectorId: `connector-${branch.id}-${branchConnectorIndex}`,
               branchPathId: branch.id,
               afterNodeId: previousId === branch.id ? null : previousId,
               ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
             },
           });
-          branchConnectorIndex += 1;
           previousId = childNode.id;
           previousChildFlowType = childNode.flowType;
+
+          // Recursively fan out voiceCall sub-branches when voiceCall is nested inside a branch path
+          if (childNode.flowType === 'voiceCall') {
+            const vcBranches = nodeDetails[childId]?.branches || [];
+            const vcSpacing = 480;
+            const vcStartX = branchX - ((vcBranches.length - 1) * vcSpacing) / 2;
+            const vcChipY = branchNodeStartY + childIndex * 250 + 150;
+            const vcNodeStartY = branchNodeStartY + childIndex * 250 + 260;
+            vcBranches.forEach((vcBranch, vcBi) => {
+              const vcBranchX = vcStartX + vcBi * vcSpacing;
+              const vcBranchNodes = nodeDetails[vcBranch.id]?.nodes || [];
+              nodes.push({
+                id: vcBranch.id,
+                type: 'branchPath',
+                position: { x: vcBranchX, y: vcChipY },
+                data: { label: vcBranch.name, parentId: childId, isFallback: !!vcBranch.isFallback, isVoiceCallBranch: true },
+              });
+              edges.push({ id: `e-${childId}-${vcBranch.id}`, source: childId, target: vcBranch.id, type: 'branchFan' });
+              let vcPrevId = vcBranch.id;
+              vcBranchNodes.forEach((vcChild, vcIdx) => {
+                const vcChildId = vcChild.id;
+                const vcChildDet = nodeDetails[vcChildId] || {};
+                let vcChildData = { ...vcChild.data, stepNumber: ++stepCounter };
+                if (vcChild.flowType !== 'delay' && vcChild.flowType !== 'branch') {
+                  vcChildData = { ...vcChildData, title: vcChildDet.taskName ?? vcChildDet.triggerName ?? vcChildData.title, subtitle: vcChildDet.description ?? vcChildData.subtitle };
+                }
+                nodes.push({ id: vcChildId, type: vcChild.flowType, position: { x: vcBranchX, y: vcNodeStartY + vcIdx * 250 }, data: vcChildData });
+                edges.push({ id: `e-${vcPrevId}-${vcChildId}`, source: vcPrevId, target: vcChildId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
+                vcPrevId = vcChildId;
+              });
+              const vcEndId = `${vcBranch.id}-end`;
+              nodes.push({ id: vcEndId, type: 'branchEnd', position: { x: vcBranchX, y: vcNodeStartY + vcBranchNodes.length * 250 }, data: { parentId: vcBranch.id } });
+              edges.push({ id: `e-${vcPrevId}-${vcEndId}`, source: vcPrevId, target: vcEndId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
+            });
+          }
         });
 
-        const branchEndId = `${branch.id}-end`;
-        nodes.push({
-          id: branchEndId,
-          type: 'branchEnd',
-          position: { x: branchX, y: branchNodeStartY + branchNodes.length * 250 },
-          data: { parentId: branch.id },
-        });
-        edges.push({
-          id: `e-${previousId}-${branchEndId}`,
-          source: previousId,
-          target: branchEndId,
-          type: 'addButton',
-          data: {
-            connectorId: `connector-${branch.id}-${branchConnectorIndex}`,
-            branchPathId: branch.id,
-            afterNodeId: previousId === branch.id ? null : previousId,
-            viewOnly: !!branch.isFallback,
-            ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
-          },
-        });
+        // Skip branchEnd when the last child is a voiceCall — it already has its own branch-end nodes
+        const lastChildIsVoiceCall = branchNodes.length > 0 && branchNodes[branchNodes.length - 1].flowType === 'voiceCall';
+        if (!lastChildIsVoiceCall) {
+          const branchEndId = `${branch.id}-end`;
+          nodes.push({
+            id: branchEndId,
+            type: 'branchEnd',
+            position: { x: branchX, y: branchNodeStartY + branchNodes.length * 250 },
+            data: { parentId: branch.id },
+          });
+          edges.push({
+            id: `e-${previousId}-${branchEndId}`,
+            source: previousId,
+            target: branchEndId,
+            type: 'addButton',
+            data: {
+              branchPathId: branch.id,
+              afterNodeId: previousId === branch.id ? null : previousId,
+              viewOnly: !!branch.isFallback,
+              ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
+            },
+          });
+        }
       });
       // Branch paths fan out to the side — do not inflate main-spine y or spine edges stretch.
     }
@@ -520,18 +498,11 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
       position: { x: 0, y: endY },
       data: { afterNodeId: lastId, hideAddBeforeEnd: lastNodeIsProcedures },
     });
-    const lastIsLoop = lastFlowType === 'loop';
     edges.push({
       id: `e-${lastId}-${END_NODE_ID}`,
       source: lastId,
       target: END_NODE_ID,
       type: 'addButton',
-      data: lastIsLoop
-        ? { hideAddButton: true }
-        : {
-            connectorId: `connector-__main__-${nodeList.length}`,
-            afterNodeId: lastId,
-          },
     });
   }
 
@@ -594,10 +565,10 @@ export default function AgentBuilder({
   const [activeProcedureId, setActiveProcedureId] = useState(null);
   // Tool viewer state
   const [viewingTool, setViewingTool] = useState(null); // full tool object
+  const [reminderToolOpen, setReminderToolOpen] = useState(false);
+  const [voiceCallToolOpen, setVoiceCallToolOpen] = useState(false);
   const [toolPickerOpen, setToolPickerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewActive, setPreviewActive] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
     const startNode = base[START_NODE_ID];
@@ -622,25 +593,6 @@ export default function AgentBuilder({
   useEffect(() => {
     setLiveProcedures(procedures);
   }, [procedures]);
-
-  /* ─── Ensure every loop has at least one default task child ─── */
-  useEffect(() => {
-    setNodeDetails((prev) => {
-      let updated = false;
-      const copy = { ...prev };
-      nodeList.filter((n) => n.flowType === 'loop').forEach((loopNode) => {
-        if (copy[loopNode.id]?.nodes?.length) return;
-        updated = true;
-        const defaultChild = makeDefaultLoopChild(loopNode.id);
-        copy[loopNode.id] = { ...(copy[loopNode.id] || {}), nodes: [defaultChild] };
-        copy[defaultChild.id] = {
-          taskName: 'Enter task name',
-          description: 'Enter description',
-        };
-      });
-      return updated ? copy : prev;
-    });
-  }, [nodeList]);
 
   /* ─── View-only: keep canvas state in sync when workflow props change ─── */
   useEffect(() => {
@@ -1004,23 +956,6 @@ export default function AgentBuilder({
 
   /* ─── Node management ─── */
 
-  const handleDeleteLoopChild = useCallback((loopId, childId) => {
-    setNodeDetails((prev) => {
-      const container = prev[loopId];
-      const existingNodes = container?.nodes || [];
-      if (existingNodes.length <= 1) return prev;
-      const nextNodes = existingNodes
-        .filter((node) => node.id !== childId)
-        .map((node, i) => ({ ...node, data: { ...node.data, stepNumber: i + 1 } }));
-      const copy = { ...prev, [loopId]: { ...container, nodes: nextNodes } };
-      delete copy[childId];
-      return copy;
-    });
-    if (selectedNodeId === childId) {
-      setSelectedNodeId(loopId);
-    }
-  }, [selectedNodeId]);
-
   const handleDeleteNode = useCallback((nodeId) => {
     setNodeList((prev) => {
       const updated = prev.filter((n) => n.id !== nodeId);
@@ -1033,16 +968,8 @@ export default function AgentBuilder({
       const copy = { ...prev };
       Object.values(copy).forEach((details) => {
         if (details?.nodes) {
-          details.nodes = details.nodes
-            .filter((node) => node.id !== nodeId)
-            .map((node, i) => ({
-              ...node,
-              data: { ...node.data, stepNumber: i + 1 },
-            }));
+          details.nodes = details.nodes.filter((node) => node.id !== nodeId);
         }
-      });
-      (copy[nodeId]?.nodes || []).forEach((child) => {
-        delete copy[child.id];
       });
       Object.keys(copy).forEach((key) => {
         if (key === nodeId || copy[key]?.parentId === nodeId) {
@@ -1152,7 +1079,7 @@ export default function AgentBuilder({
     if (n.type === 'branchPath') {
       return { ...n, data: { ...n.data, onDelete: () => handleDeleteBranchPath(n.id) } };
     }
-    if (n.type === 'branchEnd' || n.type === 'loopAnchor') return n;
+    if (n.type === 'branchEnd') return n;
     const nodeIdx = nodeList.findIndex((nl) => nl.id === n.id);
     const extra = {
       onDelete: () => handleDeleteNode(n.id),
@@ -1162,21 +1089,8 @@ export default function AgentBuilder({
       canMoveDown: !viewOnly && nodeIdx !== -1 && nodeIdx < nodeList.length - 1,
     };
     if (n.type === 'branch') extra.onAddBranch = () => handleAddBranchPath(n.id);
-    if ((n.type === 'task' || n.type === 'loop') && !viewOnly) {
+    if (n.type === 'task' && !viewOnly) {
       extra.onToggleChange = (enabled) => handleNodeToggleChange(n.id, enabled);
-    }
-    if (n.type === 'loop') {
-      const loopIdx = nodeList.findIndex((nl) => nl.id === n.id);
-      extra.loopNodeId = n.id;
-      extra.afterLoopConnectorId = `connector-__main__-${loopIdx + 1}`;
-      extra.onChildClick = (childId) => {
-        setSelectedNodeId(childId);
-        setDrawerOpen(true);
-      };
-      if (!viewOnly) {
-        extra.onChildDelete = (childId) => handleDeleteLoopChild(n.id, childId);
-        extra.onChildToggleChange = (childId, enabled) => handleNodeToggleChange(childId, enabled);
-      }
     }
     if (n.type === 'procedures') {
       extra.selectedProcedureId = n.id === selectedNodeId ? activeProcedureId : null;
@@ -1245,7 +1159,7 @@ export default function AgentBuilder({
     });
   }, []);
 
-  const handleDropNode = useCallback(({ type, label, description, afterNodeId, branchPathId, loopBodyId, position, insertAtBeginning }) => {
+  const handleDropNode = useCallback(({ type, label, description, afterNodeId, branchPathId, position, insertAtBeginning }) => {
     // Nothing can be inserted above the first trigger — start node is always the entry point
     if (insertAtBeginning || afterNodeId === START_NODE_ID) return;
 
@@ -1263,30 +1177,27 @@ export default function AgentBuilder({
       : label;
     let details = makeNodeDetails(effectiveType, effectiveType === 'procedures' ? procedureSeed : label);
     if (effectiveType === 'task' && description && label !== 'Custom') {
+      const taskDefaults = TASK_DROP_DEFAULTS[description] || {};
       details = {
         ...details,
         taskName: description,
-        description: TASK_DROP_DEFAULTS[description]?.description ?? '',
+        description: taskDefaults.description ?? '',
+        ...(taskDefaults.selectedTools ? { selectedTools: taskDefaults.selectedTools } : {}),
       };
     }
 
-    if (loopBodyId && effectiveType !== 'task') {
-      return;
-    }
-
-    if (branchPathId || loopBodyId) {
-      const containerId = branchPathId || loopBodyId;
+    if (branchPathId) {
       setNodeDetails((prev) => {
-        const container = prev[containerId] || {};
-        const existingNodes = container.nodes || [];
+        const branchPath = prev[branchPathId] || {};
+        const existingNodes = branchPath.nodes || [];
         const index = afterNodeId ? existingNodes.findIndex((node) => node.id === afterNodeId) : -1;
         const nextNodes = index !== -1
           ? [...existingNodes.slice(0, index + 1), newNode, ...existingNodes.slice(index + 1)]
           : [newNode, ...existingNodes];
         return {
           ...prev,
-          [containerId]: {
-            ...container,
+          [branchPathId]: {
+            ...branchPath,
             nodes: nextNodes.map((node, i) => ({
               ...node,
               data: { ...node.data, stepNumber: i + 1 },
@@ -1299,9 +1210,6 @@ export default function AgentBuilder({
         setSelectedNodeId(id);
         setDrawerOpen(true);
         setActiveProcedureId(CUSTOM_PROCEDURE_ID);
-      } else if (loopBodyId && effectiveType === 'task') {
-        setSelectedNodeId(id);
-        setDrawerOpen(true);
       }
       return;
     }
@@ -1362,39 +1270,24 @@ export default function AgentBuilder({
     }
 
     if (effectiveType === 'voiceCall') {
-      const completedId  = `${id}-vc-completed`;
-      const rejectedId   = `${id}-vc-rejected`;
-      const missedId     = `${id}-vc-missed`;
-      const voicemailId  = `${id}-vc-voicemail`;
+      const acceptedId = `${id}-vc-accepted`;
+      const rejectedId = `${id}-vc-rejected`;
+      const missedId  = `${id}-vc-missed`;
       details = {
         taskName: 'Initiate voice call',
         description: 'Call the customer',
         toolId: 'initiate-voice-call',
         selectedTools: ['initiate-voice-call'],
         branches: [
-          { id: completedId,  name: 'Call completed', isVoiceCallBranch: true },
-          { id: rejectedId,   name: 'Call rejected',  isVoiceCallBranch: true },
-          { id: missedId,     name: 'Call missed',    isVoiceCallBranch: true },
-          { id: voicemailId,  name: 'Voicemail',      isVoiceCallBranch: true },
+          { id: acceptedId, name: 'Call accepted', isVoiceCallBranch: true },
+          { id: rejectedId, name: 'Call rejected', isVoiceCallBranch: true },
+          { id: missedId,   name: 'Call missed',   isVoiceCallBranch: true },
         ],
       };
       extraDetails = {
-        [completedId]:  { branchName: 'Call completed', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [rejectedId]:   { branchName: 'Call rejected',  parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [missedId]:     { branchName: 'Call missed',    parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [voicemailId]:  { branchName: 'Voicemail',      parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-      };
-    }
-
-    if (effectiveType === 'loop') {
-      const defaultChild = makeDefaultLoopChild(id);
-      details = { ...details, nodes: [defaultChild] };
-      extraDetails = {
-        ...extraDetails,
-        [defaultChild.id]: {
-          taskName: 'Enter task name',
-          description: 'Enter description',
-        },
+        [acceptedId]: { branchName: 'Call accepted', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [rejectedId]: { branchName: 'Call rejected', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [missedId]:   { branchName: 'Call missed',   parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
       };
     }
 
@@ -1408,9 +1301,6 @@ export default function AgentBuilder({
       setSelectedNodeId(id);
       setDrawerOpen(true);
       setActiveProcedureId(CUSTOM_PROCEDURE_ID);
-    } else if (effectiveType === 'loop') {
-      setSelectedNodeId(id);
-      setDrawerOpen(true);
     }
   }, []);
 
@@ -1792,6 +1682,7 @@ export default function AgentBuilder({
             initialValues: currentDetails,
             onFieldChange: activeFieldChange,
             onEditTool: (toolId) => {
+              if (toolId === 'initiate-voice-call') { setVoiceCallToolOpen(true); return; }
               getCustomToolsByIds([toolId]).then((tools) => {
                 if (tools[0]) setViewingTool(tools[0]);
               });
@@ -1813,6 +1704,7 @@ export default function AgentBuilder({
           initialValues: currentDetails,
           onFieldChange: activeFieldChange,
           onOpenTool: (toolId) => {
+            if (toolId === 'reminder-tool') { setReminderToolOpen(true); return; }
             getCustomToolsByIds([toolId]).then((tools) => {
               if (tools[0]) setViewingTool(tools[0]);
             });
@@ -1924,34 +1816,32 @@ export default function AgentBuilder({
           </div>
         )}
 
-        <FlowDndProvider onDropNode={viewOnly ? undefined : handleDropNode} viewOnly={viewOnly}>
-          <div className="agent-builder">
-            <div className="agent-builder__lhs">
-              <LHSDrawer
-                defaultTab="Create manually"
-                defaultOpenSection="Tasks"
-                viewOnly={viewOnly}
-                product={product}
-                procedures={procedures}
-              />
-            </div>
+        <div className="agent-builder">
+          <div className="agent-builder__lhs">
+            <LHSDrawer
+              defaultTab="Create manually"
+              triggerOpen
+              tasksOpen={false}
+              controlsOpen={false}
+              viewOnly={viewOnly}
+              product={product}
+              procedures={procedures}
+            />
+          </div>
 
-            <div className={`agent-builder__canvas${drawerOpen ? ' agent-builder__canvas--with-rhs' : ''}`}>
-              <FlowCanvas
-                nodes={nodes}
-                edges={edges}
-                onNodeClick={handleNodeClick}
-                onDropNode={viewOnly ? undefined : handleDropNode}
-                onNodesReorder={viewOnly ? undefined : handleNodesReorder}
-                selectedNodeId={selectedNodeId}
-                orientation="vertical"
-                viewOnly={viewOnly}
-                onEdit={viewOnly ? onEdit : undefined}
-                onRun={() => setPreviewOpen((v) => !v)}
-                previewOpen={previewOpen}
-                previewActive={previewActive}
-              />
-            </div>
+          <div className={`agent-builder__canvas${drawerOpen ? ' agent-builder__canvas--with-rhs' : ''}`}>
+            <FlowCanvas
+              nodes={nodes}
+              edges={edges}
+              onNodeClick={handleNodeClick}
+              onDropNode={viewOnly ? undefined : handleDropNode}
+              onNodesReorder={viewOnly ? undefined : handleNodesReorder}
+              selectedNodeId={selectedNodeId}
+              orientation="vertical"
+              viewOnly={viewOnly}
+              onEdit={viewOnly ? onEdit : undefined}
+            />
+          </div>
 
           {drawerOpen && (
             <div key={selectedNodeId} className="agent-builder__rhs">
@@ -1960,20 +1850,7 @@ export default function AgentBuilder({
               </RHSErrorBoundary>
             </div>
           )}
-
-          {previewOpen && (
-            <div className="agent-builder__preview">
-              <PreviewPanel
-                onClose={() => {
-                  setPreviewOpen(false);
-                  setPreviewActive(false);
-                }}
-                onPreviewActiveChange={setPreviewActive}
-              />
-            </div>
-          )}
-          </div>
-        </FlowDndProvider>
+        </div>
       </div>
 
       {/* ─── Share modal ─── */}
@@ -1985,6 +1862,12 @@ export default function AgentBuilder({
           onClose={() => setShareModalOpen(false)}
         />
       )}
+
+      {/* ─── Reminder tool drawer ─── */}
+      <ReminderToolDrawer isOpen={reminderToolOpen} onClose={() => setReminderToolOpen(false)} />
+
+      {/* ─── Voice call tool drawer ─── */}
+      <VoiceCallToolDrawer isOpen={voiceCallToolOpen} onClose={() => setVoiceCallToolOpen(false)} />
 
       {/* ─── Tool configuration overlay ─── */}
       {viewingTool && (

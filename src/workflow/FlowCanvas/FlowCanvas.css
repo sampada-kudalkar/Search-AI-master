@@ -32,8 +32,7 @@
   top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
-  overflow: visible;
+  z-index: 4;
 }
 
 /* ─── Node centering wrapper ─── */
@@ -97,31 +96,6 @@
   background: transparent !important;
   box-shadow: none !important;
   width: auto !important;
-  overflow: visible !important;
-}
-
-.flow-canvas .react-flow__node:has(.cnh--menu-open) {
-  z-index: 200 !important;
-}
-
-.flow-canvas .react-flow__edges {
-  z-index: 2 !important;
-  pointer-events: none;
-}
-
-.flow-canvas .react-flow__edges foreignObject {
-  pointer-events: all;
-}
-
-.flow-canvas .react-flow__node-loop {
-  z-index: 3 !important;
-}
-
-.flow-canvas .react-flow__node-task,
-.flow-canvas .react-flow__node-procedures,
-.flow-canvas .react-flow__node-delay,
-.flow-canvas .react-flow__node-subagent {
-  z-index: 3 !important;
 }
 
 .flow-canvas .react-flow__edge-path {
@@ -142,18 +116,13 @@
 }
 
 /* ─── Custom edge add button ─── */
-.flow-canvas__edge-add-wrapper,
-.flow-canvas__connector-drop-zone {
-  width: 100%;
-  height: 100%;
+.flow-canvas__edge-add-wrapper {
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: all;
-}
-
-.flow-canvas__connector-drop-zone--over {
-  cursor: copy;
 }
 
 .flow-canvas__edge-add {
@@ -241,11 +210,4 @@
   font-size: 12px;
   line-height: 18px;
   white-space: nowrap;
-}
-
-.flow-canvas__loop-anchor {
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
 }
