@@ -28,11 +28,6 @@ interface AgentDetailScreenProps {
 interface AgentInstance {
   name: string
   status: string
-  interactions: string
-  fcr: string
-  aht: string
-  escalation: string
-  locations: string
   [key: string]: string
 }
 
@@ -50,11 +45,7 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
 interface RegionRow {
   region: string
   status: string
-  interactions: string
-  fcr: string
-  aht: string
-  escalation: string
-  locations: string
+  [key: string]: string
 }
 
 /* Per-agent regional breakdown — numbers sum / average to match METRICS_BY_AGENT tiles */
@@ -79,6 +70,13 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'East region',  status: 'Running', interactions: '610', fcr: '37%', aht: '3m 10s', escalation: '12%', locations: '212' },
     { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
     { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
+  ],
+  'Waitlist agent': [
+    // Total: 2,850 outreach | 2,760 slots filled | 92% fill rate | 37m time saved
+    { region: 'North region', status: 'Running', outreachSent: '800',  slotsFilled: '780',  fillRate: '90%', timeSaved: '20m', locations: '500' },
+    { region: 'East Region',  status: 'Running', outreachSent: '500',  slotsFilled: '400',  fillRate: '85%', timeSaved: '5m',  locations: '250' },
+    { region: 'South Region', status: 'Paused',  outreachSent: '500',  slotsFilled: '490',  fillRate: '75%', timeSaved: '10m', locations: '200' },
+    { region: 'West Region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
   ],
 }
 
@@ -117,6 +115,12 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { id: 'appointments', value: '641', label: 'Appointments scheduled' },
       { id: 'conversion', value: '11%', label: 'Conversion rate' },
     ],
+    'Waitlist agent': [
+      { id: 'outreach', value: '2,850', label: 'Outreach sent', delta: '1.3%', trend: 'up', info: true },
+      { id: 'slots', value: '2,760', label: 'Slots filled', delta: '1.3%', trend: 'up', info: true },
+      { id: 'fillRate', value: '92%', label: 'Fill rate', delta: '1.3%', trend: 'up', info: true },
+      { id: 'timeSaved', value: '37m', label: 'Time saved', delta: '1.3%', trend: 'up', info: true },
+    ],
   }
 
   const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
@@ -124,25 +128,37 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
 
   const regions = REGIONS_BY_AGENT[agentName] ?? DEFAULT_REGIONS
-  const data: AgentInstance[] = regions.map((r) => ({
-    name: `${agentName} - ${r.region}`,
-    status: r.status,
-    interactions: r.interactions,
-    fcr: r.fcr,
-    aht: r.aht,
-    escalation: r.escalation,
-    locations: r.locations,
-  }))
+  const data: AgentInstance[] = regions.map((r) => {
+    const { region, ...fields } = r
+    return {
+      name: `${agentName} - ${region}`,
+      ...fields,
+    }
+  })
 
-  const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
+  const STATUS_COLUMN: Column<AgentInstance> = {
+    key: 'status',
+    label: 'Status',
+    width: 140,
+    sortable: true,
+    render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
+  }
+
+  const COLUMN_DEFS_BY_AGENT: Record<string, Array<Column<AgentInstance> & { locked?: boolean }>> = {
+    'Waitlist agent': [
+      { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
+      STATUS_COLUMN,
+      { key: 'outreachSent', label: 'Outreach sent', width: 150, sortable: true },
+      { key: 'slotsFilled', label: 'Slots filled', width: 140, sortable: true },
+      { key: 'fillRate', label: 'Fill rate', width: 120, sortable: true },
+      { key: 'timeSaved', label: 'Time saved', width: 130, sortable: true },
+      { key: 'locations', label: 'Locations', width: 130, sortable: true },
+    ],
+  }
+
+  const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = COLUMN_DEFS_BY_AGENT[agentName] ?? [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
-    {
-      key: 'status',
-      label: 'Status',
-      width: 140,
-      sortable: true,
-      render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
-    },
+    STATUS_COLUMN,
     { key: 'interactions', label: 'Interactions handled', width: 180, sortable: true },
     { key: 'fcr', label: 'First contact resolution', width: 200, sortable: true },
     { key: 'aht', label: 'Average handle time', width: 180, sortable: true },

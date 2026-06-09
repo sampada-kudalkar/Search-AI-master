@@ -54,6 +54,13 @@
   background: #f5f5f5;
 }
 
+.lhs-entity-group__item--dragging {
+  opacity: 0.35;
+  border-style: dashed;
+  border-color: #1976d2;
+  cursor: grabbing;
+}
+
 .lhs-entity-group__item--editing:hover {
   background: #f5f8ff;
 }

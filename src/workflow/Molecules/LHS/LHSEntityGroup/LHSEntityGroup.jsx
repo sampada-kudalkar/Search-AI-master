@@ -1,5 +1,94 @@
 import React, { useState, useRef } from 'react';
+import { useDraggable } from '@dnd-kit/core';
 import './LHSEntityGroup.css';
+
+function EntityGroupItem({
+  item,
+  idx,
+  nodeType,
+  parentLabel,
+  viewOnly,
+  readOnly,
+  editingIdx,
+  editDraft,
+  setEditDraft,
+  canEdit,
+  dragAlwaysVisible,
+  onStartEdit,
+  onCommitEdit,
+  onDeleteItem,
+  onCancelEdit,
+}) {
+  const canDrag = !viewOnly && (readOnly || editingIdx !== idx);
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `lhs-${nodeType}-${parentLabel}-${item}-${idx}`,
+    disabled: !canDrag,
+    data: {
+      type: nodeType,
+      label: parentLabel,
+      description: item,
+      dragPreview: { label: item },
+    },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={[
+        'lhs-entity-group__item',
+        editingIdx === idx ? 'lhs-entity-group__item--editing' : '',
+        isDragging ? 'lhs-entity-group__item--dragging' : '',
+      ].filter(Boolean).join(' ')}
+      {...(canDrag ? listeners : {})}
+      {...(canDrag ? attributes : {})}
+    >
+      {editingIdx === idx ? (
+        <input
+          className="lhs-entity-group__item-input"
+          value={editDraft}
+          autoFocus
+          onChange={(e) => setEditDraft(e.target.value)}
+          onBlur={() => onCommitEdit(idx)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') { e.preventDefault(); onCommitEdit(idx); }
+            if (e.key === 'Escape') { e.preventDefault(); onCancelEdit(); }
+          }}
+        />
+      ) : (
+        <span className="lhs-entity-group__item-label">{item}</span>
+      )}
+
+      {!viewOnly && (
+        <div className="lhs-entity-group__item-actions">
+          {canEdit && editingIdx === idx ? (
+            <button
+              className="lhs-entity-group__item-btn lhs-entity-group__item-btn--delete"
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => onDeleteItem(idx)}
+            >
+              <span className="material-symbols-outlined">delete</span>
+            </button>
+          ) : canEdit ? (
+            <button
+              className="lhs-entity-group__item-btn lhs-entity-group__item-btn--edit"
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={(e) => { e.stopPropagation(); onStartEdit(idx); }}
+            >
+              <span className="material-symbols-outlined">edit</span>
+            </button>
+          ) : null}
+          <span
+            className={`lhs-entity-group__item-drag material-symbols-outlined${dragAlwaysVisible ? ' lhs-entity-group__item-drag--visible' : ''}`}
+          >
+            drag_indicator
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function LHSEntityGroup({ title, items = [], nodeType, parentLabel, onItemsChange, viewOnly = false, readOnly = false, dragAlwaysVisible = false }) {
   const canEdit = !viewOnly && !readOnly && !!onItemsChange;
@@ -8,13 +97,6 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
   const [addingNew, setAddingNew] = useState(false);
   const [newDraft, setNewDraft] = useState('');
   const addGuardRef = useRef(false);
-
-  const handleDragStart = (e, item) => {
-    e.dataTransfer.setData('application/reactflow-type', nodeType);
-    e.dataTransfer.setData('application/reactflow-label', parentLabel);
-    e.dataTransfer.setData('application/reactflow-description', item);
-    e.dataTransfer.effectAllowed = 'copy';
-  };
 
   const startEdit = (idx) => {
     setEditingIdx(idx);
@@ -58,57 +140,24 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
 
       <div className="lhs-entity-group__items">
         {items.map((item, idx) => (
-          <div
+          <EntityGroupItem
             key={idx}
-            className={`lhs-entity-group__item${editingIdx === idx ? ' lhs-entity-group__item--editing' : ''}`}
-            draggable={!viewOnly && (readOnly || editingIdx !== idx)}
-            onDragStart={(e) => !viewOnly && (readOnly || editingIdx !== idx) && handleDragStart(e, item)}
-          >
-            {editingIdx === idx ? (
-              <input
-                className="lhs-entity-group__item-input"
-                value={editDraft}
-                autoFocus
-                onChange={(e) => setEditDraft(e.target.value)}
-                onBlur={() => commitEdit(idx)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); commitEdit(idx); }
-                  if (e.key === 'Escape') { e.preventDefault(); setEditingIdx(null); }
-                }}
-              />
-            ) : (
-              <span className="lhs-entity-group__item-label">{item}</span>
-            )}
-
-            {!viewOnly && (
-              <div className="lhs-entity-group__item-actions">
-                {canEdit && editingIdx === idx ? (
-                  <button
-                    className="lhs-entity-group__item-btn lhs-entity-group__item-btn--delete"
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => deleteItem(idx)}
-                  >
-                    <span className="material-symbols-outlined">delete</span>
-                  </button>
-                ) : canEdit ? (
-                  <button
-                    className="lhs-entity-group__item-btn lhs-entity-group__item-btn--edit"
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={(e) => { e.stopPropagation(); startEdit(idx); }}
-                  >
-                    <span className="material-symbols-outlined">edit</span>
-                  </button>
-                ) : null}
-                <span
-                  className={`lhs-entity-group__item-drag material-symbols-outlined${dragAlwaysVisible ? ' lhs-entity-group__item-drag--visible' : ''}`}
-                >
-                  drag_indicator
-                </span>
-              </div>
-            )}
-          </div>
+            item={item}
+            idx={idx}
+            nodeType={nodeType}
+            parentLabel={parentLabel}
+            viewOnly={viewOnly}
+            readOnly={readOnly}
+            editingIdx={editingIdx}
+            editDraft={editDraft}
+            setEditDraft={setEditDraft}
+            canEdit={canEdit}
+            dragAlwaysVisible={dragAlwaysVisible}
+            onStartEdit={startEdit}
+            onCommitEdit={commitEdit}
+            onDeleteItem={deleteItem}
+            onCancelEdit={() => setEditingIdx(null)}
+          />
         ))}
 
         {addingNew && (

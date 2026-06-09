@@ -12,6 +12,7 @@ import {
 } from '../components'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
 import { AgentLogsTab } from './AgentLogsTab'
+import { AgentSettingsTab } from './AgentSettingsTab'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
 
 interface AgentInstanceScreenProps {
@@ -65,6 +66,12 @@ const METRICS_BY_AGENT: Record<string, Metric[]> = {
     { id: 'appointments', value: '268', label: 'Appointments scheduled', delta: '5.4%', trend: 'up', info: true },
     { id: 'conversion', value: '9%', label: 'Conversion rate', delta: '0.7%', trend: 'up', info: true },
   ],
+  'Waitlist agent': [
+    { id: 'outreach', value: '800', label: 'Outreach sent', delta: '1.3%', trend: 'up', info: true },
+    { id: 'slots', value: '780', label: 'Slots filled', delta: '1.3%', trend: 'up', info: true },
+    { id: 'fillRate', value: '90%', label: 'Fill rate', delta: '1.3%', trend: 'up', info: true },
+    { id: 'timeSaved', value: '20m', label: 'Time saved', delta: '1.3%', trend: 'up', info: true },
+  ],
 }
 
 const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
@@ -89,6 +96,12 @@ const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
     { location: 'Chicago, IL',      interactions: '242', fcr: '42%', aht: '2m 48s', escalation: '9%',  count: '98'  },
     { location: 'Boston, MA',       interactions: '193', fcr: '40%', aht: '2m 55s', escalation: '10%', count: '76'  },
     { location: 'Philadelphia, PA', interactions: '165', fcr: '38%', aht: '3m 05s', escalation: '10%', count: '60'  },
+  ],
+  'Waitlist agent': [
+    { location: 'Atlanta, GA',      interactions: '280', fcr: '91%', aht: '18m', escalation: '6%', count: '180' },
+    { location: 'Chicago, IL',      interactions: '210', fcr: '90%', aht: '20m', escalation: '7%', count: '140' },
+    { location: 'Boston, MA',      interactions: '160', fcr: '89%', aht: '22m', escalation: '8%', count: '110' },
+    { location: 'Philadelphia, PA', interactions: '150', fcr: '88%', aht: '24m', escalation: '8%', count: '70'  },
   ],
 }
 
@@ -121,6 +134,7 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
   const locations = LOCATIONS_BY_AGENT[agentName] ?? LOCATIONS_BY_AGENT['Frontdesk agent']
 
   const isWorkflowTab = activeTab === 'workflow'
+  const isSettingsTab = activeTab === 'settings'
   const showHealthcareLogs =
     activeTab === 'logs' && product === 'healthcare' && agentName === 'Frontdesk agent'
 
@@ -142,13 +156,23 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
           <h1 className="text-h3 text-text-primary">{instanceName}</h1>
           <Chip label={status} variant="success" />
         </div>
-        <button
-          type="button"
-          className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
-        >
-          Actions
-          <Icon name="expand_more" size={20} className="text-text-icon" />
-        </button>
+        <div className="flex items-center gap-sm">
+          <button
+            type="button"
+            className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
+          >
+            Actions
+            <Icon name="expand_more" size={20} className="text-text-icon" />
+          </button>
+          {isSettingsTab && (
+            <button
+              type="button"
+              className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+            >
+              Save
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -163,6 +187,8 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
           onEdit={() => onEditAgent?.(instanceName)}
           product={product}
         />
+      ) : isSettingsTab ? (
+        <AgentSettingsTab product={product} agentName={agentName} />
       ) : (
         <div className="flex-1 overflow-auto">
           {activeTab === 'outcomes' ? (
