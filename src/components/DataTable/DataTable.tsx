@@ -11,7 +11,10 @@ export function DataTable<T extends Record<string, unknown>>({
   loading = false,
   onRowClick,
   rowAction,
+  rowActions,
   rowMenuItems,
+  scrollOnHover = false,
+  rowClassName,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -78,10 +81,10 @@ export function DataTable<T extends Record<string, unknown>>({
   }
 
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
-  const hasRowCtas = !!rowAction || !!(rowMenuItems && rowMenuItems.length)
+  const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}`}>
       <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
         <colgroup>
           {columns.map((col) => (
@@ -100,7 +103,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   <button
                     type="button"
                     onClick={() => toggleSort(col)}
-                    className={`flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
+                    className={`group/hdr flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
                   >
                     <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
                       {col.label}
@@ -109,7 +112,7 @@ export function DataTable<T extends Record<string, unknown>>({
                       <Icon
                         name={sorted && sort.dir === 'asc' ? 'expand_less' : 'expand_more'}
                         size={16}
-                        className={`shrink-0 ${sorted ? 'text-text-primary' : 'text-text-icon'}`}
+                        className={`shrink-0 transition-opacity ${sorted ? 'text-text-primary opacity-100' : 'text-text-icon opacity-0 group-hover/hdr:opacity-100'}`}
                       />
                     )}
                   </button>
@@ -141,7 +144,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onClick={() => onRowClick?.(row)}
               className={`group/row border-b border-border last:border-b-0 transition-colors hover:bg-surface-hover ${
                 onRowClick ? 'cursor-pointer' : ''
-              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''}`}
+              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''} ${rowClassName ? rowClassName(row, i) : ''}`}
             >
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1
@@ -208,7 +211,7 @@ export function DataTable<T extends Record<string, unknown>>({
                               setMenu(
                                 menu?.rowIndex === i
                                   ? null
-                                  : { rowIndex: i, top: r.bottom + 4, left: r.right - 168 },
+                                  : { rowIndex: i, top: r.bottom + 4, left: r.right - 216 },
                               )
                             }}
                             className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
@@ -231,22 +234,30 @@ export function DataTable<T extends Record<string, unknown>>({
         <>
           <div className="fixed inset-0 z-[105]" onClick={() => setMenu(null)} />
           <div
-            className="fixed z-[110] min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+            className="fixed z-[110] min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
             style={{ top: menu.top, left: menu.left }}
           >
-            {rowMenuItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => {
-                  item.onClick(sortedData[menu.rowIndex])
-                  setMenu(null)
-                }}
-                className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
-              >
-                {item.label}
-              </button>
-            ))}
+            {rowMenuItems
+              .filter((item) => {
+                const row = sortedData[menu.rowIndex]
+                return item.visible ? item.visible(row) : true
+              })
+              .map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    item.onClick(sortedData[menu.rowIndex])
+                    setMenu(null)
+                  }}
+                  className={`flex w-full items-center justify-between px-md py-md text-left text-body hover:bg-surface-hover ${
+                    item.variant === 'danger' ? 'text-chip-danger-text' : 'text-text-primary'
+                  }`}
+                >
+                  {item.label}
+                  {item.icon && <Icon name={item.icon} size={16} className="shrink-0 text-text-icon" />}
+                </button>
+              ))}
           </div>
         </>
       )}

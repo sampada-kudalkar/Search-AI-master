@@ -6,6 +6,7 @@ import {
   FilterPanel,
   Icon,
   InfoCard,
+  InfoCardListItem,
   MetricTiles,
   Tabs,
   TopNav,
@@ -21,6 +22,7 @@ import { AgentInstanceScreen } from './AgentInstanceScreen'
 interface AgentDetailScreenProps {
   agentName: string
   onEditAgent?: (agentName: string) => void
+  product?: string
 }
 
 interface AgentInstance {
@@ -31,6 +33,10 @@ interface AgentInstance {
   aht: string
   escalation: string
   locations: string
+  remindersSent: string
+  responseRate: string
+  avgResponseTime: string
+  noshowRate: string
   [key: string]: string
 }
 
@@ -40,40 +46,41 @@ const TABS: Tab[] = [
 ]
 
 const STATUS_VARIANT: Record<string, ChipVariant> = {
-  Active: 'success',
-  Training: 'warning',
-  Paused: 'neutral',
-  Inactive: 'danger',
+  Running: 'success',
+  Paused:  'warning',
+  Draft:   'neutral',
 }
 
 const REGIONS = [
-  { region: 'North region', status: 'Active', interactions: '162', fcr: '93%', aht: '2m 18s', escalation: '8%', locations: '358' },
-  { region: 'East region', status: 'Training', interactions: '98', fcr: '89%', aht: '3m 05s', escalation: '12%', locations: '212' },
-  { region: 'South region', status: 'Paused', interactions: '33', fcr: '90%', aht: '2m 41s', escalation: '10%', locations: '180' },
-  { region: 'West region', status: 'Inactive', interactions: '13', fcr: '83%', aht: '4m 02s', escalation: '14%', locations: '140' },
+  { region: 'North region', status: 'Running', interactions: '162', fcr: '93%', aht: '2m 18s', escalation: '8%',  locations: '358', remindersSent: '102', responseRate: '15%', avgResponseTime: '20m', noshowRate: '11%' },
+  { region: 'East Region',  status: 'Running', interactions: '98',  fcr: '89%', aht: '3m 05s', escalation: '12%', locations: '212', remindersSent: '98',  responseRate: '9%',  avgResponseTime: '5m',  noshowRate: '11%' },
+  { region: 'South Region', status: 'Paused',  interactions: '33',  fcr: '90%', aht: '2m 41s', escalation: '10%', locations: '180', remindersSent: '53',  responseRate: '9%',  avgResponseTime: '10m', noshowRate: '11%' },
+  { region: 'West Region',  status: 'Draft',   interactions: '13',  fcr: '83%', aht: '4m 02s', escalation: '14%', locations: '140', remindersSent: '35',  responseRate: '8%',  avgResponseTime: '2m',  noshowRate: '11%' },
 ]
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
+type LibraryView = 'grid' | 'list'
 
-export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenProps) {
+export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
+  const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
-    'Frontdesk agent': [
-      { id: 'interactions', value: '18,420', label: 'Interactions handled' },
-      { id: 'fcr', value: '87%', label: 'First contact resolution' },
-      { id: 'aht', value: '1m 42s', label: 'Average handle time' },
-      { id: 'escalation', value: '8%', label: 'Escalation rate' },
+    'Front desk agent': [
+      { id: 'interactions', value: '18,420', label: 'Interactions handled', info: true },
+      { id: 'fcr', value: '87%', label: 'First contact resolution', info: true },
+      { id: 'aht', value: '1m 42s', label: 'Average handle time', info: true },
+      { id: 'escalation', value: '8%', label: 'Escalation rate', info: true },
     ],
     'Reminder agent': [
-      { id: 'confirmed', value: '3,847', label: 'Appointments confirmed' },
-      { id: 'reschedule', value: '12%', label: 'Reschedule rate' },
-      { id: 'noshow', value: '34%', label: 'No-show reduction' },
-      { id: 'messages', value: '11,541', label: 'Messages sent' },
+      { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
+      { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true },
+      { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true },
+      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
     ],
     'Outreach agent': [
       { id: 'leads', value: '2,103', label: 'Leads contacted' },
@@ -84,10 +91,10 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
   }
 
   const DEFAULT_METRICS: Metric[] = [
-    { id: 'interactions', value: '2,850', label: 'Interactions handled' },
-    { id: 'fcr', value: '92%', label: 'First contact resolution rate' },
-    { id: 'aht', value: '2m 34s', label: 'Average handle time' },
-    { id: 'escalation', value: '11%', label: 'Escalation rate' },
+    { id: 'interactions', value: '2,850', label: 'Interactions handled', info: true },
+    { id: 'fcr', value: '92%', label: 'First contact resolution rate', info: true },
+    { id: 'aht', value: '2m 34s', label: 'Average handle time', info: true },
+    { id: 'escalation', value: '11%', label: 'Escalation rate', info: true },
   ]
 
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
@@ -100,8 +107,13 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
     aht: r.aht,
     escalation: r.escalation,
     locations: r.locations,
+    remindersSent: r.remindersSent,
+    responseRate: r.responseRate,
+    avgResponseTime: r.avgResponseTime,
+    noshowRate: r.noshowRate,
   }))
 
+  const isReminder = agentName === 'Reminder agent'
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
     {
@@ -111,10 +123,17 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
       sortable: true,
       render: (v) => <Chip label={String(v)} variant={STATUS_VARIANT[String(v)] ?? 'neutral'} />,
     },
-    { key: 'interactions', label: 'Interactions handled', width: 180, sortable: true },
-    { key: 'fcr', label: 'First contact resolution', width: 200, sortable: true },
-    { key: 'aht', label: 'Average handle time', width: 180, sortable: true },
-    { key: 'escalation', label: 'Escalation rate', width: 150, sortable: true },
+    ...(isReminder ? [
+      { key: 'remindersSent' as keyof AgentInstance, label: 'Reminders sent', width: 160, sortable: true },
+      { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
+      { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
+      { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
+    ] : [
+      { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 180, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution', width: 200, sortable: true },
+      { key: 'aht' as keyof AgentInstance, label: 'Average handle time', width: 180, sortable: true },
+      { key: 'escalation' as keyof AgentInstance, label: 'Escalation rate', width: 150, sortable: true },
+    ]),
     { key: 'locations', label: 'Locations', width: 130, sortable: true },
   ]
 
@@ -133,7 +152,7 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
   )
 
   const FILTER_FIELDS: FilterField[] = [
-    { id: 'status', label: 'Status', options: opts('Active', 'Training', 'Paused', 'Inactive') },
+    { id: 'status', label: 'Status', options: opts('Running', 'Paused', 'Draft') },
     { id: 'region', label: 'Region', options: opts('North region', 'East region', 'South region', 'West region') },
     { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
   ]
@@ -142,25 +161,19 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
     {
       title: `${agentName} routing and triage`,
       description:
-        'Handles inbound calls, identifies intent, routes hot leads, and transfers to the right team with full context.',
-    },
-    {
-      title: `${agentName} for new lead intake`,
-      description:
-        'Captures contact details, qualifies budget and timeline, and guides shoppers to the right vehicle and appointment.',
-    },
-    {
-      title: `${agentName} for test-drive scheduling`,
-      description: 'Confirms vehicle availability, books a test-drive slot, and sends reminders with directions.',
-    },
-    {
-      title: `${agentName} for trade-in inquiries`,
-      description: 'Collects vehicle details, shares an instant estimate range, and books an appraisal appointment.',
+        'Handles inbound calls, texts, and web chats to identify patient needs, answer questions from the knowledge base, manage appointments & verify insurance',
     },
   ]
 
   if (selectedInstance) {
-    return <AgentInstanceScreen instanceName={selectedInstance} onBack={() => setSelectedInstance(null)} onEditAgent={onEditAgent} />
+    return (
+      <AgentInstanceScreen
+        instanceName={selectedInstance}
+        onBack={() => setSelectedInstance(null)}
+        onEditAgent={onEditAgent}
+        product={product}
+      />
+    )
   }
 
   return (
@@ -176,11 +189,11 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
               <button type="button" aria-label="Search" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                 <Icon name="search" size={20} />
               </button>
-              <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body font-medium text-white transition-colors hover:bg-primary-hover">
-                Create agent
-              </button>
-              {activeTab === 'agents' && (
+              {activeTab === 'agents' ? (
                 <>
+                  <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+                    Create agent
+                  </button>
                   <button type="button" aria-label="Customize columns" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
                     <Icon name="view_column" size={20} />
                   </button>
@@ -188,13 +201,43 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
                     <Icon name="filter_list" size={20} />
                   </button>
                 </>
+              ) : (
+                <div className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm">
+                  <button
+                    type="button"
+                    aria-label="Grid view"
+                    onClick={() => setLibraryView('grid')}
+                    className={`flex size-6 items-center justify-center rounded-sm transition-colors ${
+                      libraryView === 'grid' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'
+                    }`}
+                  >
+                    <Icon name="grid_view" size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="List view"
+                    onClick={() => setLibraryView('list')}
+                    className={`flex size-6 items-center justify-center rounded-sm transition-colors ${
+                      libraryView === 'list' ? 'bg-surface-selected text-text-primary' : 'text-text-icon'
+                    }`}
+                  >
+                    <Icon name="table_rows" size={18} />
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
           {/* Tabs */}
           <div className="px-2xl">
-            <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
+            <Tabs
+              tabs={TABS}
+              activeTab={activeTab}
+              onChange={(tabId) => {
+                setActiveTab(tabId)
+                if (tabId === 'library') setLibraryView('grid')
+              }}
+            />
           </div>
 
           {activeTab === 'agents' ? (
@@ -207,24 +250,31 @@ export function AgentDetailScreen({ agentName, onEditAgent }: AgentDetailScreenP
                   columns={columns}
                   data={data}
                   onRowClick={(row) => setSelectedInstance(row.name)}
-                  rowAction={{
-                    icon: 'edit',
-                    label: 'Edit agent',
-                    onClick: (row) => onEditAgent?.(row.name),
-                  }}
                   rowMenuItems={[
-                    { label: 'Duplicate agent', onClick: () => {} },
-                    { label: 'View activity', onClick: () => {} },
+                    { label: 'Edit', onClick: (row) => onEditAgent?.(row.name) },
+                    {
+                      label: 'Pause',
+                      onClick: () => {},
+                      visible: (row) => row.status === 'Running',
+                    },
+                    { label: 'Duplicate', onClick: () => {} },
                     { label: 'View details', onClick: (row) => setSelectedInstance(row.name) },
-                    { label: 'Pause agent', onClick: () => {} },
+                    { label: 'Reports', onClick: () => {} },
+                    { label: 'Delete', onClick: () => {}, variant: 'danger' },
                   ]}
                 />
               </div>
             </>
-          ) : (
+          ) : libraryView === 'grid' ? (
             <div className="grid grid-cols-1 gap-lg px-2xl py-lg md:grid-cols-2 xl:grid-cols-3">
               {libraryCards.map((card) => (
                 <InfoCard key={card.title} {...card} />
+              ))}
+            </div>
+          ) : (
+            <div className="px-2xl py-lg">
+              {libraryCards.map((card, i) => (
+                <InfoCardListItem key={card.title} first={i === 0} {...card} />
               ))}
             </div>
           )}

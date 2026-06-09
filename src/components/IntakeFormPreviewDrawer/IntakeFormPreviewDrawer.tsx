@@ -18,7 +18,6 @@ export function IntakeFormPreviewDrawer({
   open,
   patient,
   onClose,
-  onViewDetails,
 }: IntakeFormPreviewDrawerProps) {
   const [basicOpen, setBasicOpen] = useState(true)
 
@@ -123,18 +122,6 @@ export function IntakeFormPreviewDrawer({
             </div>
           ))}
         </div>
-
-        {onViewDetails && (
-          <div className="shrink-0 border-t border-border px-2xl py-lg">
-            <button
-              type="button"
-              onClick={onViewDetails}
-              className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-            >
-              View all details
-            </button>
-          </div>
-        )}
       </aside>
     </div>
   )

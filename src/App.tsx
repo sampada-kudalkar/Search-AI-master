@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Icon, IconRail, SideNav, TopNav, type NavSection, type RailGroup } from './components'
+import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
+import { Icon, IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
@@ -8,12 +9,36 @@ import { IntakePatientDetailScreen } from './screens/IntakePatientDetailScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+import { ProvidersScreen } from './screens/ProvidersScreen'
+import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
+import { AvailabilityScreen } from './screens/AvailabilityScreen'
+import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
+import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
+import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
+import { HCIntakesCompletedScreen } from './screens/HCIntakesCompletedScreen'
 import { AgentDetailScreen } from './screens/AgentDetailScreen'
 import { WorkflowEditorScreen } from './screens/WorkflowEditorScreen'
 import { ProceduresScreen } from './screens/ProceduresScreen'
+import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
+import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
+import { WebWidgetsScreen } from './screens/WebWidgetsScreen'
+import { AppointmentWidgetsScreen } from './screens/AppointmentWidgetsScreen'
+import { InboxScreen } from './screens/InboxScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
+
+function EmptyResourceScreen({ label }: { label: string }) {
+  return (
+    <div className="flex h-full flex-col">
+      <TopNav initials="S" />
+      <div className="flex flex-1 items-center justify-center text-body text-text-secondary">
+        No {label.toLowerCase()} data yet.
+      </div>
+    </div>
+  )
+}
 
 const RAIL_GROUPS: RailGroup[] = [
   {
@@ -40,7 +65,7 @@ const RAIL_GROUPS: RailGroup[] = [
     header: 'Operations',
     items: [
       { id: 'inbox', label: 'Inbox', icon: 'sms' },
-      { id: 'frontdesk', label: 'Frontdesk', icon: 'desktop_windows' },
+      { id: 'frontdesk', label: 'Front desk', icon: 'desktop_windows' },
     ],
   },
   {
@@ -62,32 +87,31 @@ const RAIL_GROUPS: RailGroup[] = [
   },
 ]
 
-const NAV_SECTIONS: NavSection[] = [
+const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
     defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
-      { id: 'manage-intake',       label: 'Manage intake'       },
       { id: 'sales-pipeline',      label: 'Sales pipeline'      },
       { id: 'service-requests',    label: 'Service requests'    },
     ],
   },
   {
     id: 'agent',
-    label: 'Agent',
-    defaultExpanded: false,
+    label: 'Agents',
+    defaultExpanded: true,
     items: [
-      { id: 'frontdesk-agent', label: 'Frontdesk agent' },
-      { id: 'reminder-agent', label: 'Reminder agent' },
-      { id: 'outreach-agent', label: 'Outreach agent' },
+      { id: 'frontdesk-agent', label: 'Front desk agent' },
+      { id: 'reminder-agent',  label: 'Reminder agent'  },
+      { id: 'outreach-agent',  label: 'Outreach agent'  },
     ],
   },
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: false,
+    defaultExpanded: true,
     items: [
       { id: 'conversations', label: 'Appointment overview' },
       { id: 'sales',         label: 'Sales'                },
@@ -97,60 +121,224 @@ const NAV_SECTIONS: NavSection[] = [
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: false,
+    defaultExpanded: true,
     items: [
-      { id: 'knowledge-base', label: 'Knowledge base' },
-      { id: 'procedure-library', label: 'Procedures' },
-      { id: 'widgets', label: 'Widgets' },
-      { id: 'phone-number', label: 'Phone number' },
-      { id: 'voices', label: 'Voices' },
+      { id: 'knowledge-base',     label: 'Knowledge base',     external: true },
+      { id: 'procedure-library',  label: 'Procedures'          },
+      { id: 'phone-number',       label: 'Phone number'        },
+      { id: 'web-widget',         label: 'Web widget'          },
+      { id: 'appointment-widget', label: 'Appointment widget'  },
+      { id: 'providers',          label: 'Providers'           },
+      { id: 'forms',              label: 'Forms'               },
     ],
   },
 ]
 
+const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
+  {
+    id: 'human-actions',
+    label: 'Human actions',
+    defaultExpanded: true,
+    items: [
+      { id: 'manage-appointments', label: 'Manage appointments' },
+      { id: 'review-waitlist',     label: 'Review waitlist'     },
+      { id: 'manage-intake',       label: 'Manage intake'       },
+    ],
+  },
+  {
+    id: 'agent',
+    label: 'Agents',
+    defaultExpanded: true,
+    items: [
+      { id: 'frontdesk-agent',  label: 'Front desk agent'  },
+      { id: 'waitlist-agent',   label: 'Waitlist agent'   },
+      { id: 'pre-visit-agent',  label: 'Pre-visit agent'  },
+      { id: 'reminder-agent',   label: 'Reminder agent'   },
+    ],
+  },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    defaultExpanded: true,
+    items: [
+      { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
+      { id: 'hc-no-shows',           label: 'No shows prevented' },
+      { id: 'hc-waitlist',           label: 'Waitlist filled'    },
+      { id: 'hc-intakes',            label: 'Intakes completed'  },
+    ],
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    defaultExpanded: true,
+    items: [
+      { id: 'providers',         label: 'Providers'          },
+      { id: 'appointment-type',  label: 'Appointment type'   },
+      { id: 'availability',      label: 'Availability'       },
+      { id: 'procedure-library', label: 'Procedures'         },
+      { id: 'phone-number',      label: 'Phone number'       },
+      { id: 'knowledge-base',    label: 'Knowledge base',    external: true },
+      { id: 'widgets',           label: 'Widgets',           external: true },
+    ],
+  },
+]
+
+const DENTAL_NAV_SECTIONS: NavSection[] = [
+  {
+    id: 'human-actions',
+    label: 'Human actions',
+    defaultExpanded: true,
+    items: [
+      { id: 'manage-appointments', label: 'Manage appointments' },
+      { id: 'review-waitlist',     label: 'Review waitlist'     },
+      { id: 'manage-intake',       label: 'Manage intake'       },
+    ],
+  },
+  {
+    id: 'agent',
+    label: 'Agents',
+    defaultExpanded: true,
+    items: [
+      { id: 'frontdesk-agent',             label: 'Front desk agent'             },
+      { id: 'waitlist-agent',              label: 'Waitlist agent'              },
+      { id: 'pre-visit-agent',             label: 'Pre-visit agent'             },
+      { id: 'reminder-agent',              label: 'Reminder agent'              },
+      { id: 'recall-agent',                label: 'Recall agent'                },
+      { id: 'revenue-agent',               label: 'Revenue agent'               },
+      { id: 'treatment-plan-agent',        label: 'Treatment plan agent'        },
+    ],
+  },
+  {
+    id: 'outcomes',
+    label: 'Outcomes',
+    defaultExpanded: true,
+    items: [
+      { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
+      { id: 'dental-no-shows',           label: 'No shows prevented'   },
+      { id: 'dental-waitlist',           label: 'Waitlist filled'       },
+      { id: 'dental-intakes',            label: 'Intakes completed'     },
+    ],
+  },
+  {
+    id: 'resources',
+    label: 'Resources',
+    defaultExpanded: true,
+    items: [
+      { id: 'providers',         label: 'Providers'  },
+      { id: 'procedure-library', label: 'Procedures' },
+    ],
+  },
+]
+
+const NAV_SECTIONS_BY_PRODUCT: Record<string, NavSection[]> = {
+  automotive: AUTOMOTIVE_NAV_SECTIONS,
+  healthcare:  HEALTHCARE_NAV_SECTIONS,
+  dental:      DENTAL_NAV_SECTIONS,
+}
+
+const DEFAULT_NAV_BY_PRODUCT: Record<string, string> = {
+  automotive: 'manage-appointments',
+  healthcare:  'manage-appointments',
+  dental:      'manage-appointments',
+}
+
+const PRODUCTS: Product[] = [
+  { id: 'healthcare', label: 'Birdeye Healthcare' },
+  { id: 'dental',     label: 'Birdeye Dental'     },
+  { id: 'automotive', label: 'Birdeye Automotive'  },
+]
+
+const PRODUCT_BRAND: Record<string, string> = {
+  healthcare: 'Birdeye Healthcare',
+  dental:     'Birdeye Dental',
+  automotive: 'Birdeye Automotive',
+}
+
 const AGENT_NAMES: Record<string, string> = {
-  'frontdesk-agent': 'Frontdesk agent',
+  'frontdesk-agent': 'Front desk agent',
   'reminder-agent':  'Reminder agent',
   'outreach-agent':  'Outreach agent',
+  'waitlist-agent':  'Waitlist agent',
+  'pre-visit-agent': 'Pre-visit agent',
 }
+
 
 export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+  const [activeProduct, setActiveProduct] = useState('healthcare')
+  const [settingsTab, setSettingsTab] = useState<string | null>(null)
+  const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
+
+  function handleProductChange(id: string) {
+    setActiveProduct(id)
+    setNavActive(DEFAULT_NAV_BY_PRODUCT[id] ?? 'manage-appointments')
+    setEditingAgentName(null)
+  }
+
   const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
 
   const isEditingWorkflow = editingAgentName !== null
   const isViewingDetail = intakeDetail !== null
 
   return (
+    <ProcedureStoreProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
       <IconRail
         logoSrc={logoSrc}
-        brand="Birdeye"
+        brand={PRODUCT_BRAND[activeProduct]}
         groups={RAIL_GROUPS}
         activeId={railActive}
         onSelect={setRailActive}
+        products={PRODUCTS}
+        activeProduct={activeProduct}
+        onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && !isViewingDetail && (
+      {!isEditingWorkflow && !isViewingDetail && railActive !== 'settings' && railActive !== 'inbox' && (
         <SideNav
-          title="Frontdesk"
-          sections={NAV_SECTIONS}
+          title="Front desk"
+          sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
           activeId={navActive}
-          onSelect={(id) => { setIntakeDetail(null); setNavActive(id) }}
+          onSelect={(id) => {
+            if (id === 'knowledge-base') {
+              setRailActive('settings')
+              setSettingsTab('Knowledge')
+            } else if (id === 'widgets') {
+              setRailActive('settings')
+              setSettingsTab('Widgets')
+            } else {
+              setNavActive(id)
+            }
+          }}
         />
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
-        {isEditingWorkflow ? (
+        {railActive === 'settings' ? (
+          settingsSubScreen === 'web-widgets' ? (
+            <WebWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
+          ) : settingsSubScreen === 'appointment-widgets' ? (
+            <AppointmentWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
+          ) : (
+            <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} onWebWidgets={() => setSettingsSubScreen('web-widgets')} onAppointmentWidgets={() => setSettingsSubScreen('appointment-widgets')} />
+          )
+        ) : railActive === 'inbox' ? (
+          <InboxScreen />
+        ) : isEditingWorkflow ? (
           <>
             <TopNav title="Front desk" initials="S" />
             <div className="flex-1 overflow-hidden">
               <WorkflowEditorScreen
                 agentName={editingAgentName}
                 onClose={() => setEditingAgentName(null)}
+                product={activeProduct}
               />
             </div>
           </>
+        ) : navActive === 'review-waitlist' ? (
+          <ReviewWaitlistScreen />
+        ) : navActive === 'sales-pipeline' ? (
+          <SalesPipelineScreen />
         ) : navActive === 'manage-intake' && isViewingDetail ? (
           <>
             <TopNav title="Front desk" initials="S" />
@@ -180,8 +368,6 @@ export function App() {
           </>
         ) : navActive === 'manage-intake' ? (
           <IntakeScreen onViewDetail={setIntakeDetail} />
-        ) : navActive === 'sales-pipeline' ? (
-          <SalesPipelineScreen />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
@@ -191,17 +377,47 @@ export function App() {
         ) : navActive === 'service' ? (
           <ServiceScreen />
         ) : navActive === 'procedure-library' ? (
-          <ProceduresScreen />
+          <ProceduresScreen product={activeProduct} />
+        ) : navActive === 'knowledge-base' ? (
+          <EmptyResourceScreen label="Knowledge base" />
+        ) : navActive === 'phone-number' ? (
+          <PhoneNumberScreen />
+        ) : navActive === 'voices' ? (
+          <EmptyResourceScreen label="Voices" />
+        ) : navActive === 'web-widget' ? (
+          <EmptyResourceScreen label="Web widget" />
+        ) : navActive === 'appointment-widget' ? (
+          <EmptyResourceScreen label="Appointment widget" />
+        ) : navActive === 'forms' ? (
+          <EmptyResourceScreen label="Forms" />
+        ) : navActive === 'widgets' ? (
+          <EmptyResourceScreen label="Widgets" />
+        ) : navActive === 'hc-providers' || navActive === 'providers' ? (
+          <ProvidersScreen />
+        ) : navActive === 'hc-appointment-type' || navActive === 'appointment-type' ? (
+          <AppointmentTypeScreen />
+        ) : navActive === 'hc-availability' || navActive === 'availability' ? (
+          <AvailabilityScreen />
+        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
+          <HCFrontdeskOverviewScreen />
+        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (
+          <HCNoShowsScreen />
+        ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
+          <HCWaitlistFilledScreen />
+        ) : navActive === 'hc-intakes' || navActive === 'dental-intakes' ? (
+          <HCIntakesCompletedScreen />
         ) : AGENT_NAMES[navActive] ? (
           <AgentDetailScreen
             key={navActive}
             agentName={AGENT_NAMES[navActive]}
             onEditAgent={setEditingAgentName}
+            product={activeProduct}
           />
         ) : (
           <ManageAppointmentsScreen />
         )}
       </main>
     </div>
+    </ProcedureStoreProvider>
   )
 }

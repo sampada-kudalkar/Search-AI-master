@@ -1,4 +1,10 @@
-export type FormFieldType = 'text' | 'select'
+export type FormFieldType = 'text' | 'select' | 'template-picker'
+
+export interface TemplateOption {
+  label: string
+  body: string
+  hasAttachment?: boolean
+}
 
 export interface FormField {
   key: string
@@ -7,11 +13,15 @@ export interface FormField {
   placeholder?: string
   /** Options for select fields. */
   options?: string[]
+  /** Options for template-picker fields. */
+  templateOptions?: TemplateOption[]
 }
 
 export interface FormDrawerProps {
   open: boolean
   title: string
+  /** Optional secondary line shown beneath the title (e.g. patient name). */
+  subtitle?: string
   fields: FormField[]
   /** Primary button label (e.g. "Add", "Offer slot"). */
   submitLabel: string

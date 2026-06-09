@@ -20,5 +20,4 @@ export interface IntakeFormPreviewDrawerProps {
   open: boolean
   patient: IntakePreviewPatient | null
   onClose: () => void
-  onViewDetails?: () => void
 }
