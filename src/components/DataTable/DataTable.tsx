@@ -103,7 +103,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   <button
                     type="button"
                     onClick={() => toggleSort(col)}
-                    className={`flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
+                    className={`group/hdr flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
                   >
                     <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
                       {col.label}
@@ -112,7 +112,7 @@ export function DataTable<T extends Record<string, unknown>>({
                       <Icon
                         name={sorted && sort.dir === 'asc' ? 'expand_less' : 'expand_more'}
                         size={16}
-                        className={`shrink-0 ${sorted ? 'text-text-primary' : 'text-text-icon'}`}
+                        className={`shrink-0 transition-opacity ${sorted ? 'text-text-primary opacity-100' : 'text-text-icon opacity-0 group-hover/hdr:opacity-100'}`}
                       />
                     )}
                   </button>
