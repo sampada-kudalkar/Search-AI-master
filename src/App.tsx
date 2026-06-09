@@ -8,6 +8,9 @@ import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
+import { ProvidersScreen } from './screens/ProvidersScreen'
+import { AppointmentTypeScreen } from './screens/AppointmentTypeScreen'
+import { AvailabilityScreen } from './screens/AvailabilityScreen'
 import { HCFrontdeskOverviewScreen } from './screens/HCFrontdeskOverviewScreen'
 import { HCNoShowsScreen } from './screens/HCNoShowsScreen'
 import { HCWaitlistFilledScreen } from './screens/HCWaitlistFilledScreen'
@@ -18,6 +21,7 @@ import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
 import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
+import { InboxScreen } from './screens/InboxScreen'
 import logoSrc from './assets/birdeye-logo.svg'
 import iconMarketing from './assets/icon-marketing.svg'
 import iconAgents from './assets/icon-agents.svg'
@@ -143,10 +147,10 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Agents',
     defaultExpanded: true,
     items: [
-      { id: 'frontdesk-agent',              label: 'Frontdesk agent'             },
-      { id: 'waitlist-agent',               label: 'Waitlist agent'              },
-      { id: 'pre-visit-agent',              label: 'Pre-visit agent'             },
-      { id: 'reminder-agent',               label: 'Reminder agent'              },
+      { id: 'frontdesk-agent',  label: 'Frontdesk agent'  },
+      { id: 'waitlist-agent',   label: 'Waitlist agent'   },
+      { id: 'pre-visit-agent',  label: 'Pre-visit agent'  },
+      { id: 'reminder-agent',   label: 'Reminder agent'   },
     ],
   },
   {
@@ -165,13 +169,13 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Resources',
     defaultExpanded: true,
     items: [
-      { id: 'providers',         label: 'Providers'                       },
-      { id: 'appointment-type',  label: 'Appointment type'                },
-      { id: 'availability',      label: 'Availability'                    },
-      { id: 'procedure-library', label: 'Procedures'                      },
-      { id: 'phone-number',      label: 'Phone number'                    },
-      { id: 'knowledge-base',    label: 'Knowledge base', external: true  },
-      { id: 'widgets',           label: 'Widgets',        external: true  },
+      { id: 'providers',         label: 'Providers'          },
+      { id: 'appointment-type',  label: 'Appointment type'   },
+      { id: 'availability',      label: 'Availability'       },
+      { id: 'procedure-library', label: 'Procedures'         },
+      { id: 'phone-number',      label: 'Phone number'       },
+      { id: 'knowledge-base',    label: 'Knowledge base',    external: true },
+      { id: 'widgets',           label: 'Widgets',           external: true },
     ],
   },
 ]
@@ -260,7 +264,8 @@ export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointment')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
-  const [activeProduct, setActiveProduct] = useState('healthcare')
+  const [activeProduct, setActiveProduct] = useState('automotive')
+  const [settingsTab, setSettingsTab] = useState<string | null>(null)
 
   function handleProductChange(id: string) {
     setActiveProduct(id)
@@ -283,16 +288,30 @@ export function App() {
         activeProduct={activeProduct}
         onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && (
+      {!isEditingWorkflow && railActive !== 'settings' && railActive !== 'inbox' && (
         <SideNav
           title="Front desk"
           sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
           activeId={navActive}
-          onSelect={setNavActive}
+          onSelect={(id) => {
+            if (id === 'knowledge-base') {
+              setRailActive('settings')
+              setSettingsTab('Knowledge')
+            } else if (id === 'widgets') {
+              setRailActive('settings')
+              setSettingsTab('Widgets')
+            } else {
+              setNavActive(id)
+            }
+          }}
         />
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
-        {isEditingWorkflow ? (
+        {railActive === 'settings' ? (
+          <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} />
+        ) : railActive === 'inbox' ? (
+          <InboxScreen />
+        ) : isEditingWorkflow ? (
           <>
             <TopNav title="Front desk" initials="S" />
             <div className="flex-1 overflow-hidden">
@@ -327,18 +346,22 @@ export function App() {
           <EmptyResourceScreen label="Knowledge base" />
         ) : navActive === 'phone-number' ? (
           <PhoneNumberScreen />
+        ) : navActive === 'voices' ? (
+          <EmptyResourceScreen label="Voices" />
         ) : navActive === 'web-widget' ? (
           <EmptyResourceScreen label="Web widget" />
         ) : navActive === 'appointment-widget' ? (
           <EmptyResourceScreen label="Appointment widget" />
-        ) : navActive === 'providers' ? (
-          <EmptyResourceScreen label="Providers" />
         ) : navActive === 'forms' ? (
           <EmptyResourceScreen label="Forms" />
-        ) : navActive === 'widgets' || navActive === 'voices' ? (
-          <EmptyResourceScreen label={navActive === 'widgets' ? 'Widgets' : 'Voices'} />
-        ) : navActive === 'settings' ? (
-          <SettingsScreen />
+        ) : navActive === 'widgets' ? (
+          <EmptyResourceScreen label="Widgets" />
+        ) : navActive === 'hc-providers' || navActive === 'providers' ? (
+          <ProvidersScreen />
+        ) : navActive === 'hc-appointment-type' || navActive === 'appointment-type' ? (
+          <AppointmentTypeScreen />
+        ) : navActive === 'hc-availability' || navActive === 'availability' ? (
+          <AvailabilityScreen />
         ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
           <HCFrontdeskOverviewScreen />
         ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (

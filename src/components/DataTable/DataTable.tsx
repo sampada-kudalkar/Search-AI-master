@@ -11,7 +11,10 @@ export function DataTable<T extends Record<string, unknown>>({
   loading = false,
   onRowClick,
   rowAction,
+  rowActions,
   rowMenuItems,
+  scrollOnHover = false,
+  rowClassName,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -78,10 +81,10 @@ export function DataTable<T extends Record<string, unknown>>({
   }
 
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
-  const hasRowCtas = !!rowAction || !!(rowMenuItems && rowMenuItems.length)
+  const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}`}>
       <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
         <colgroup>
           {columns.map((col) => (
@@ -141,7 +144,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onClick={() => onRowClick?.(row)}
               className={`group/row border-b border-border last:border-b-0 transition-colors hover:bg-surface-hover ${
                 onRowClick ? 'cursor-pointer' : ''
-              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''}`}
+              } ${menu?.rowIndex === i ? 'bg-surface-hover' : ''} ${rowClassName ? rowClassName(row, i) : ''}`}
             >
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1
@@ -158,26 +161,46 @@ export function DataTable<T extends Record<string, unknown>>({
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
                       <div className={`absolute right-sm top-1/2 z-20 -translate-y-1/2 items-center gap-xs ${menu?.rowIndex === i ? 'flex' : 'hidden group-hover/row:flex'}`}>
-                        {rowAction && (!rowAction.visible || rowAction.visible(row)) && (
-                          <div className="group/tip relative">
-                            <button
-                              type="button"
-                              aria-label={typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                rowAction.onClick(row)
-                              }}
-                              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-                            >
-                              <Icon name={rowAction.icon} size={20} />
-                            </button>
-                            {/* Styled tooltip */}
-                            <span className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1a1a2e] px-sm py-xs text-small text-white opacity-0 shadow-dropdown transition-opacity group-hover/tip:opacity-100">
-                              {typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label}
-                              <span className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-[#1a1a2e]" />
-                            </span>
-                          </div>
-                        )}
+                        {rowAction && (!rowAction.visible || rowAction.visible(row)) && (() => {
+                          const tooltipText = typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label
+                          return (
+                            <div className="group/tooltip relative">
+                              <button
+                                type="button"
+                                aria-label={tooltipText}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  rowAction.onClick(row)
+                                }}
+                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              >
+                                <Icon name={rowAction.icon} size={20} />
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+                                {tooltipText}
+                              </div>
+                            </div>
+                          )
+                        })()}
+                        {rowActions && rowActions.map((action, ai) => {
+                          if (action.visible && !action.visible(row)) return null
+                          const tip = typeof action.label === 'function' ? action.label(row) : action.label
+                          return (
+                            <div key={ai} className="group/tooltip relative">
+                              <button
+                                type="button"
+                                aria-label={tip}
+                                onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
+                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              >
+                                <Icon name={action.icon} size={20} />
+                              </button>
+                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+                                {tip}
+                              </div>
+                            </div>
+                          )
+                        })}
                         {rowMenuItems && rowMenuItems.length > 0 && (
                           <button
                             type="button"
@@ -188,7 +211,7 @@ export function DataTable<T extends Record<string, unknown>>({
                               setMenu(
                                 menu?.rowIndex === i
                                   ? null
-                                  : { rowIndex: i, top: r.bottom + 4, left: r.right - 168 },
+                                  : { rowIndex: i, top: r.bottom + 4, left: r.right - 216 },
                               )
                             }}
                             className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
