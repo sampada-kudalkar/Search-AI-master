@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { useDraggable } from '@dnd-kit/core';
 import { FormInput } from '../elemental-stubs';
 import NodeType from '../Organisms/Accordion/NodeType/NodeType';
 import AIChatBubble from '../Molecules/AIChatBubble/AIChatBubble';
@@ -372,39 +371,25 @@ function buildInitialSubItems(isHC) {
 
 /* ─── Card Row ─── */
 export function CardRow({ label, icon, svgIcon, action, isActive, onClick, onHover, cardRef, nodeType, viewOnly, procedureId }) {
-  const isDraggable = action === 'drag' && !viewOnly;
-  const dragId = `lhs-${nodeType}-${procedureId || label}`;
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: dragId,
-    disabled: !isDraggable,
-    data: {
-      type: nodeType,
-      label: procedureId || label,
-      description: label,
-      dragPreview: { label, icon, svgIcon: !!svgIcon },
-    },
-  });
-
-  const setRefs = (el) => {
-    setNodeRef(el);
-    if (typeof cardRef === 'function') cardRef(el);
-    else if (cardRef) cardRef.current = el;
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('application/reactflow-type', nodeType);
+    // For procedure cards, use the procedureId as the label so AgentBuilder
+    // can seed the first procedureIds entry correctly
+    e.dataTransfer.setData('application/reactflow-label', procedureId || label);
+    e.dataTransfer.setData('application/reactflow-description', label);
+    e.dataTransfer.effectAllowed = 'copy';
   };
+
+  const isDraggable = action === 'drag' && !viewOnly;
 
   return (
     <div
-      ref={setRefs}
-      className={[
-        'lhs-drawer__card',
-        action === 'drag' ? 'lhs-drawer__card--drag' : '',
-        isActive ? 'lhs-drawer__card--active' : '',
-        viewOnly ? 'lhs-drawer__card--view-only' : '',
-        isDragging ? 'lhs-drawer__card--dragging' : '',
-      ].filter(Boolean).join(' ')}
+      ref={cardRef}
+      className={`lhs-drawer__card ${action === 'drag' ? 'lhs-drawer__card--drag' : ''} ${isActive ? 'lhs-drawer__card--active' : ''} ${viewOnly ? 'lhs-drawer__card--view-only' : ''}`}
       onClick={onClick}
       onMouseEnter={onHover}
-      {...(isDraggable ? listeners : {})}
-      {...(isDraggable ? attributes : {})}
+      draggable={isDraggable}
+      onDragStart={isDraggable ? handleDragStart : undefined}
     >
       {svgIcon ? (
         <span className="lhs-drawer__card-icon" style={{ display: 'flex', alignItems: 'center', color: '#212121' }}>
