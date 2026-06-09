@@ -18,6 +18,7 @@ import {
   type Tab,
 } from '../components'
 import { AgentInstanceScreen } from './AgentInstanceScreen'
+import { CreateFrontdeskAgentScreen } from './CreateFrontdeskAgentScreen'
 
 interface AgentDetailScreenProps {
   agentName: string
@@ -92,6 +93,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
+  const [showCreateAgent, setShowCreateAgent] = useState(false)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Frontdesk agent': [
@@ -205,6 +207,15 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     )
   }
 
+  if (showCreateAgent && product === 'healthcare' && agentName === 'Frontdesk agent') {
+    return (
+      <CreateFrontdeskAgentScreen
+        onBack={() => setShowCreateAgent(false)}
+        onUseTemplate={(title) => onEditAgent?.(title)}
+      />
+    )
+  }
+
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
@@ -220,7 +231,15 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
               </button>
               {activeTab === 'agents' ? (
                 <>
-                  <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (product === 'healthcare' && agentName === 'Frontdesk agent') {
+                        setShowCreateAgent(true)
+                      }
+                    }}
+                    className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                  >
                     Create agent
                   </button>
                   <button type="button" aria-label="Customize columns" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
