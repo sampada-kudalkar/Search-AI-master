@@ -110,9 +110,11 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     defaultExpanded: true,
     items: [
-      { id: 'conversations', label: 'Appointment overview' },
-      { id: 'sales',         label: 'Sales'                },
-      { id: 'service',       label: 'Service'              },
+      { id: 'auto-frontdesk-overview',   label: 'Frontdesk overview'   },
+      { id: 'auto-no-shows',             label: 'No shows prevented'   },
+      { id: 'conversations',             label: 'Appointment overview', strikethrough: true },
+      { id: 'sales',                     label: 'Sales',                strikethrough: true },
+      { id: 'service',                   label: 'Service',              strikethrough: true },
     ],
   },
   {
@@ -362,9 +364,9 @@ export function App() {
           <AppointmentTypeScreen />
         ) : navActive === 'hc-availability' || navActive === 'availability' ? (
           <AvailabilityScreen />
-        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
+        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' || navActive === 'auto-frontdesk-overview' ? (
           <HCFrontdeskOverviewScreen />
-        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (
+        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' || navActive === 'auto-no-shows' ? (
           <HCNoShowsScreen />
         ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
           <HCWaitlistFilledScreen />
