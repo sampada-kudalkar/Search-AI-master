@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { TopNav, Icon } from '../components'
 
 // Uploaded procedure.svg icon
@@ -9,6 +9,39 @@ function ProcedureBookIcon({ size = 24, className = '' }: { size?: number; class
     </svg>
   )
 }
+function ThreeDotMenu({ onEdit, onDuplicate, onDelete }: { onEdit: () => void; onDuplicate: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex size-6 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-selected"
+      >
+        <Icon name="more_vert" size={16} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-xs min-w-[140px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+          <button type="button" className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover" onClick={() => { setOpen(false); onEdit() }}>Edit</button>
+          <button type="button" className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover" onClick={() => { setOpen(false); onDuplicate() }}>Duplicate</button>
+          <button type="button" className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover" onClick={() => { setOpen(false); onDelete() }}>Delete</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 import { useProcedureStore } from '../data/ProcedureStoreContext'
 import { type Procedure } from '../data/procedureData'
 import { ProcedureDetailScreen } from './ProcedureDetailScreen'
@@ -16,7 +49,7 @@ import { ProcedureDetailScreen } from './ProcedureDetailScreen'
 type ViewMode = 'grid' | 'list'
 
 export function ProceduresScreen({ product = 'automotive' }: { product?: string }) {
-  const { procedures } = useProcedureStore()
+  const { procedures, addProcedure, deleteProcedure } = useProcedureStore()
   const isHC = product === 'healthcare' || product === 'dental'
   const allProcedures = procedures.filter((p) =>
     isHC ? p.category === 'Healthcare Frontdesk' : p.category !== 'Healthcare Frontdesk'
@@ -125,6 +158,8 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
                   key={p.id}
                   procedure={p}
                   onOpen={() => setEditing(p)}
+                  onDuplicate={() => addProcedure({ ...p, id: `${p.id}-copy-${Date.now()}`, name: `${p.name} (copy)` })}
+                  onDelete={() => deleteProcedure(p.id)}
                 />
               ))}
             </div>
@@ -136,6 +171,8 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
                   procedure={p}
                   first={i === 0}
                   onOpen={() => setEditing(p)}
+                  onDuplicate={() => addProcedure({ ...p, id: `${p.id}-copy-${Date.now()}`, name: `${p.name} (copy)` })}
+                  onDelete={() => deleteProcedure(p.id)}
                 />
               ))}
             </div>
@@ -150,14 +187,21 @@ export function ProceduresScreen({ product = 'automotive' }: { product?: string 
 interface CardProps {
   procedure: Procedure
   onOpen: () => void
+  onDuplicate: () => void
+  onDelete: () => void
 }
 
-function ProcedureCard({ procedure, onOpen }: CardProps) {
+function ProcedureCard({ procedure, onOpen, onDuplicate, onDelete }: CardProps) {
   return (
     <div
       onClick={onOpen}
-      className="group flex min-h-[160px] cursor-pointer flex-col rounded-md border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected"
+      className="group relative flex min-h-[160px] cursor-pointer flex-col rounded-md border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected"
     >
+      {/* Three-dot menu — top right */}
+      <div className="absolute right-sm top-sm">
+        <ThreeDotMenu onEdit={onOpen} onDuplicate={onDuplicate} onDelete={onDelete} />
+      </div>
+
       <div className="mb-md">
         <ProcedureBookIcon size={22} className="text-text-secondary" />
       </div>
@@ -178,13 +222,13 @@ interface RowProps extends CardProps {
   first: boolean
 }
 
-function ProcedureRow({ procedure, first, onOpen }: RowProps) {
+function ProcedureRow({ procedure, first, onOpen, onDuplicate, onDelete }: RowProps) {
   return (
     <div
-      onClick={onOpen}
       className={`flex cursor-pointer items-center gap-lg px-lg py-md transition-colors hover:bg-surface-hover ${
         first ? '' : 'border-t border-border'
       }`}
+      onClick={onOpen}
     >
       <ProcedureBookIcon size={20} className="shrink-0 text-text-secondary" />
       <div className="min-w-0 flex-1">
@@ -195,6 +239,7 @@ function ProcedureRow({ procedure, first, onOpen }: RowProps) {
         <Icon name="schedule" size={14} />
         {procedure.lastEdited}
       </div>
+      <ThreeDotMenu onEdit={onOpen} onDuplicate={onDuplicate} onDelete={onDelete} />
     </div>
   )
 }

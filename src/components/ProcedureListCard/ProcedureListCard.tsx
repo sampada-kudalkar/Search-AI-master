@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Icon } from '../Icon/Icon'
 import { Link } from '../Link/Link'
 
@@ -25,6 +25,73 @@ function Checkbox({ checked }: { checked: boolean }) {
   )
 }
 
+function ThreeDotMenu({
+  onEdit,
+  onDuplicate,
+  onDelete,
+}: {
+  onEdit?: () => void
+  onDuplicate?: () => void
+  onDelete?: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={menuRef} className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex size-6 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-selected"
+      >
+        <Icon name="more_vert" size={16} />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-xs min-w-[140px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+          {onEdit && (
+            <button
+              type="button"
+              className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+              onClick={() => { setOpen(false); onEdit() }}
+            >
+              Edit
+            </button>
+          )}
+          {onDuplicate && (
+            <button
+              type="button"
+              className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+              onClick={() => { setOpen(false); onDuplicate() }}
+            >
+              Duplicate
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover"
+              onClick={() => { setOpen(false); onDelete() }}
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export interface ProcedureListCardProps {
   title: string
   description?: string
@@ -34,8 +101,11 @@ export interface ProcedureListCardProps {
   onToggle?: () => void
   /** "View" text link shown on hover (picker mode) */
   onView?: () => void
-  /** Delete icon shown on hover (workflow RHS mode) */
+  /** Delete icon shown on hover (legacy — use onRemove in the three-dot menu via onDelete) */
   onRemove?: () => void
+  /** Three-dot menu actions */
+  onEdit?: () => void
+  onDuplicate?: () => void
   onClick?: () => void
 }
 
@@ -47,6 +117,8 @@ export function ProcedureListCard({
   onToggle,
   onView,
   onRemove,
+  onEdit,
+  onDuplicate,
   onClick,
 }: ProcedureListCardProps) {
   const [hovered, setHovered] = useState(false)
@@ -55,6 +127,8 @@ export function ProcedureListCard({
     onToggle?.()
     onClick?.()
   }
+
+  const showMenu = !!(onEdit || onDuplicate || onRemove)
 
   return (
     <div
@@ -93,7 +167,7 @@ export function ProcedureListCard({
         )}
       </div>
 
-      {/* Hover actions */}
+      {/* View link (picker mode) */}
       {hovered && onView && (
         <Link
           as="button"
@@ -103,15 +177,14 @@ export function ProcedureListCard({
           View
         </Link>
       )}
-      {hovered && onRemove && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onRemove() }}
-          title="Remove"
-          className="flex size-6 shrink-0 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-danger/10 hover:text-danger"
-        >
-          <Icon name="delete" size={16} />
-        </button>
+
+      {/* Three-dot menu — always visible when actions are provided */}
+      {showMenu && (
+        <ThreeDotMenu
+          onEdit={onEdit}
+          onDuplicate={onDuplicate}
+          onDelete={onRemove}
+        />
       )}
     </div>
   )
