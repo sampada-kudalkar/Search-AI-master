@@ -333,13 +333,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
   ]
 
-  const libraryCards = [
-    {
-      title: `${agentName} routing and triage`,
-      description:
-        'Handles inbound calls, texts, and web chats to identify patient needs, answer questions from the knowledge base, manage appointments & verify insurance',
-    },
-  ]
+  const libraryCards = LIBRARY_TEMPLATES.map((tpl) => ({
+    title: tpl.title,
+    description: tpl.description,
+  }))
 
   if (showSetupWizard && isFrontdesk) {
     return (
@@ -494,7 +491,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
               </div>
             </>
           ) : libraryView === 'grid' ? (
-            <div className="grid grid-cols-1 gap-lg px-2xl py-lg md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-lg px-2xl py-lg md:grid-cols-2 xl:grid-cols-4">
               {libraryCards.map((card) => (
                 <InfoCard key={card.title} {...card} />
               ))}
