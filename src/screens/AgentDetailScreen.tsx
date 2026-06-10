@@ -108,12 +108,96 @@ const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l })
 
 type LibraryView = 'grid' | 'list'
 
+// ── Illustration for the create-agent empty state ──────────────────────────
+function CreateAgentEmptyState({
+  onCreateFromScratch,
+  onSelectFromLibrary,
+}: {
+  onCreateFromScratch: () => void
+  onSelectFromLibrary: () => void
+}) {
+  return (
+    <div className="flex flex-col items-center gap-[24px]">
+      {/* Mini workflow illustration */}
+      <div className="relative shrink-0">
+        <div
+          style={{
+            width: 168,
+            background: '#fff',
+            borderRadius: 6,
+            padding: '20px 10px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            boxShadow: '0 2px 12px rgba(33,33,33,0.08)',
+          }}
+        >
+          <div style={{ background: '#ebeff6', borderRadius: 4, height: 23, width: 76, display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+            <div style={{ background: '#afbcdf', height: 4, borderRadius: 100, width: 51 }} />
+          </div>
+          <div style={{ display: 'flex', gap: 4, marginTop: 1 }}>
+            {[0, 1].map((i) => (
+              <div key={i} style={{ width: 36, height: 31, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                <svg width="36" height="31" viewBox="0 0 36 31" fill="none" style={{ position: 'absolute' }}>
+                  <path d="M18 0 L18 12 M18 12 L6 24 M18 12 L30 24" stroke="#afbcdf" strokeWidth="1" fill="none" />
+                </svg>
+                <div style={{ background: '#f4f6f7', borderRadius: 40, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#555', lineHeight: 1 }}>add</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 4, marginTop: 1, width: '100%' }}>
+            <div style={{ background: '#ebeff6', border: '1px dashed #2b3650', borderRadius: 4, height: 23, width: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#555', lineHeight: 1 }}>add</span>
+            </div>
+            <div style={{ background: '#ebeff6', borderRadius: 4, height: 23, flex: 1, display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+              <div style={{ background: '#afbcdf', height: 4, borderRadius: 100, width: '80%' }} />
+            </div>
+          </div>
+        </div>
+        {/* AI overlay chip */}
+        <div style={{ position: 'absolute', top: -23, right: -62, background: '#ecf5fd', border: '1px solid #6834b7', borderRadius: 4, padding: '11px 7px', display: 'flex', alignItems: 'flex-end', gap: 5, width: 116 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#6834b7', lineHeight: 1 }}>auto_awesome</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ background: '#3790e7', height: 4, borderRadius: 100, width: '100%' }} />
+            <div style={{ background: '#9aceff', height: 4, borderRadius: 100, width: '60%' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Copy + CTAs */}
+      <div className="flex flex-col items-center gap-sm text-center">
+        <p style={{ fontSize: 14, lineHeight: '20px', letterSpacing: '-0.28px', color: '#212121', margin: 0 }}>
+          Build your agent.{' '}
+          <button
+            type="button"
+            onClick={onCreateFromScratch}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#1976d2', fontSize: 14, fontFamily: 'inherit', letterSpacing: '-0.28px', lineHeight: '20px' }}
+          >
+            Set up the agent
+          </button>
+        </p>
+        <p style={{ fontSize: 14, color: '#212121', margin: 0, letterSpacing: '-0.28px', lineHeight: '20px' }}>or</p>
+        <button
+          type="button"
+          onClick={onSelectFromLibrary}
+          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', letterSpacing: '-0.28px', lineHeight: '20px', color: '#212121' }}
+        >
+          Select from <span style={{ color: '#1976d2' }}>library</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSettings, product }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
   const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
+  const [showCreateFlow, setShowCreateFlow] = useState(false)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
     'Front desk agent': [
@@ -222,6 +306,36 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     },
   ]
 
+  if (showCreateFlow && isFrontdesk) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopNav initials="S" />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Header */}
+          <div className="flex h-16 items-center justify-between bg-surface px-2xl">
+            <div className="flex items-center gap-sm">
+              <button
+                type="button"
+                onClick={() => setShowCreateFlow(false)}
+                className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+                aria-label="Back"
+              >
+                <Icon name="arrow_back" size={20} />
+              </button>
+              <h1 className="text-h3 text-text-primary">Create agent</h1>
+            </div>
+          </div>
+          <div className="flex flex-1 items-center justify-center overflow-auto p-lg">
+            <CreateAgentEmptyState
+              onCreateFromScratch={() => { setShowCreateFlow(false); onEditAgent?.('') }}
+              onSelectFromLibrary={() => { setShowCreateFlow(false); onEditAgent?.('') }}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (selectedInstance) {
     return (
       <AgentInstanceScreen
@@ -249,7 +363,11 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
               </button>
               {activeTab === 'agents' ? (
                 <>
-                  <button type="button" onClick={() => onEditAgent?.('')} className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+                  <button
+                    type="button"
+                    onClick={() => isFrontdesk ? setShowCreateFlow(true) : onEditAgent?.('')}
+                    className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                  >
                     Create agent
                   </button>
                   <button type="button" aria-label="Customize columns" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
