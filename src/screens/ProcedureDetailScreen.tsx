@@ -151,19 +151,22 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
               <div className="relative">
                 <button
                   type="button"
+                  aria-label="More actions"
+                  aria-expanded={actionsOpen}
                   onClick={() => setActionsOpen((o) => !o)}
-                  className="flex h-9 items-center rounded-sm border border-[#ccc] bg-surface px-lg text-body text-text-primary transition-colors hover:bg-surface-l2"
+                  className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon transition-colors hover:bg-surface-l2"
                 >
-                  Actions
+                  <Icon name="more_vert" size={20} />
                 </button>
                 {actionsOpen && (
                   <>
-                    <div className="fixed inset-0 z-[105]" onClick={() => setActionsOpen(false)} />
-                    <div className="absolute right-0 top-11 z-[110] min-w-[168px] rounded-sm bg-surface py-xs shadow-dropdown">
-                      <button className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover" onClick={() => setActionsOpen(false)}>
-                        Duplicate
-                      </button>
-                      <button className="block w-full px-md py-md text-left text-body text-chip-danger-text hover:bg-surface-hover" onClick={handleDelete}>
+                    <div className="fixed inset-0 z-[105]" onClick={() => setActionsOpen(false)} aria-hidden />
+                    <div className="absolute right-0 top-full z-[110] mt-xs min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+                      <button
+                        type="button"
+                        className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover"
+                        onClick={handleDelete}
+                      >
                         Delete
                       </button>
                     </div>
