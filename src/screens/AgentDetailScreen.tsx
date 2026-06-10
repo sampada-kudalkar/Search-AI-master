@@ -108,16 +108,42 @@ const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l })
 
 type LibraryView = 'grid' | 'list'
 
+// ── Library template cards for the create-agent empty state ───────────────
+const LIBRARY_TEMPLATES = [
+  {
+    id: 'routing',
+    title: 'Routing and triage',
+    description: 'Handles inbound calls, identifies intent, routes urgent symptoms, and transfers to the right team with context',
+  },
+  {
+    id: 'new-patient',
+    title: 'New patient intake',
+    description: 'Guides new patients through intake, verifies their insurance, and books the right appointment',
+  },
+  {
+    id: 'established',
+    title: 'Established patient scheduling',
+    description: 'Validates existing records, checks coverage, and books or reschedules follow-up visits with preferred providers',
+  },
+  {
+    id: 'urgent',
+    title: 'Urgent escalations',
+    description: 'Detects high-risk symptoms, follows escalation policy, and hands off immediately to clinical staff or emergency guidance',
+  },
+]
+
 // ── Illustration for the create-agent empty state ──────────────────────────
 function CreateAgentEmptyState({
   onCreateFromScratch,
   onSelectFromLibrary,
 }: {
   onCreateFromScratch: () => void
-  onSelectFromLibrary: () => void
+  onSelectFromLibrary: (templateId: string) => void
 }) {
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+
   return (
-    <div className="flex flex-col items-center gap-[24px]">
+    <div className="flex w-full max-w-[980px] flex-col items-center gap-[24px] py-lg">
       {/* Mini workflow illustration */}
       <div className="relative shrink-0">
         <div
@@ -175,17 +201,64 @@ function CreateAgentEmptyState({
             onClick={onCreateFromScratch}
             style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#1976d2', fontSize: 14, fontFamily: 'inherit', letterSpacing: '-0.28px', lineHeight: '20px' }}
           >
-            Set up the agent
+            Set up a new agent
           </button>
         </p>
         <p style={{ fontSize: 14, color: '#212121', margin: 0, letterSpacing: '-0.28px', lineHeight: '20px' }}>or</p>
-        <button
-          type="button"
-          onClick={onSelectFromLibrary}
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 14, fontFamily: 'inherit', letterSpacing: '-0.28px', lineHeight: '20px', color: '#212121' }}
-        >
+        <p style={{ fontSize: 14, color: '#212121', margin: 0, letterSpacing: '-0.28px', lineHeight: '20px' }}>
           Select from <span style={{ color: '#1976d2' }}>library</span>
-        </button>
+        </p>
+      </div>
+
+      {/* Library template cards */}
+      <div className="grid w-full grid-cols-4 gap-md">
+        {LIBRARY_TEMPLATES.map((tpl) => (
+          <div
+            key={tpl.id}
+            onMouseEnter={() => setHoveredCard(tpl.id)}
+            onMouseLeave={() => setHoveredCard(null)}
+            style={{
+              background: hoveredCard === tpl.id ? '#f0f4ff' : '#fff',
+              border: `1px solid ${hoveredCard === tpl.id ? '#c7d4f8' : '#e5e9f0'}`,
+              borderRadius: 8,
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              cursor: 'pointer',
+              transition: 'background 0.15s, border-color 0.15s',
+              minHeight: 192,
+            }}
+          >
+            <p style={{ fontSize: 14, lineHeight: '20px', letterSpacing: '-0.28px', color: '#212121', margin: 0, fontFamily: '"Roboto", sans-serif' }}>
+              {tpl.title}
+            </p>
+            <p style={{ fontSize: 13, lineHeight: '18px', color: '#757575', margin: 0, fontFamily: '"Roboto", sans-serif', flex: 1 }}>
+              {tpl.description}
+            </p>
+            {hoveredCard === tpl.id && (
+              <button
+                type="button"
+                onClick={() => onSelectFromLibrary(tpl.id)}
+                style={{
+                  marginTop: 8,
+                  alignSelf: 'flex-start',
+                  background: '#1976d2',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 4,
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontFamily: '"Roboto", sans-serif',
+                  cursor: 'pointer',
+                  lineHeight: '18px',
+                }}
+              >
+                Use agent
+              </button>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -328,7 +401,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
           <div className="flex flex-1 items-center justify-center overflow-auto p-lg">
             <CreateAgentEmptyState
               onCreateFromScratch={() => { setShowCreateFlow(false); onEditAgent?.('') }}
-              onSelectFromLibrary={() => { setShowCreateFlow(false); onEditAgent?.('') }}
+              onSelectFromLibrary={(_templateId) => { setShowCreateFlow(false); onEditAgent?.('') }}
             />
           </div>
         </div>
