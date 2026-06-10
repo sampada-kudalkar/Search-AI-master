@@ -78,9 +78,6 @@ export function IntegrationsPickerDrawer({
         </div>
 
         <div className="flex flex-1 flex-col gap-md overflow-hidden px-2xl pb-2xl">
-          <p className="shrink-0 text-body text-text-secondary">
-            Connected integrations show a green dot. Select one for this front desk agent.
-          </p>
           <div className="flex h-9 shrink-0 items-center gap-sm rounded-sm border border-border-input bg-surface px-md">
             <Icon name="search" size={20} className="shrink-0 text-text-icon" />
             <input
@@ -91,13 +88,14 @@ export function IntegrationsPickerDrawer({
             />
           </div>
 
-          <div className="flex flex-1 flex-col gap-[16px] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {filtered.length === 0 ? (
               <div className="flex h-32 items-center justify-center text-body text-text-tertiary">
                 No integrations match your search.
               </div>
             ) : (
-              filtered.map((integration) => (
+              <div className="grid grid-cols-2 gap-md">
+              {filtered.map((integration) => (
                 <IntegrationListCard
                   key={integration.id}
                   name={integration.name}
@@ -121,7 +119,8 @@ export function IntegrationsPickerDrawer({
                       : undefined
                   }
                 />
-              ))
+              ))}
+              </div>
             )}
           </div>
         </div>
