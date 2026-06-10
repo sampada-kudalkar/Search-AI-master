@@ -154,7 +154,7 @@ export function ProcedureDetailScreen({ procedure, onBack, product = 'automotive
                   aria-label="More actions"
                   aria-expanded={actionsOpen}
                   onClick={() => setActionsOpen((o) => !o)}
-                  className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon transition-colors hover:bg-surface-l2"
+                  className="flex size-9 items-center justify-center rounded-sm border border-border bg-surface text-text-icon transition-colors hover:bg-surface-l2"
                 >
                   <Icon name="more_vert" size={20} />
                 </button>
