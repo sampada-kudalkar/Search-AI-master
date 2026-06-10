@@ -117,7 +117,7 @@ export function deserializeIntoTyped(el, value, onDelete, resolveType) {
   });
 }
 
-export function insertChipAt(el, range, onFinalize, type = 'variable') {
+export function insertChipAt(el, range, onFinalize, type = 'variable', initialValue = null) {
   const cfg = CHIP_TYPE_MAP[type] || CHIP_TYPE_MAP.variable;
 
   const chip = document.createElement('span');
@@ -128,6 +128,25 @@ export function insertChipAt(el, range, onFinalize, type = 'variable') {
   swatch.className = ['prompt-chip-swatch', cfg.swatchMod].filter(Boolean).join(' ');
   swatch.innerHTML = cfg.iconHtml ?? DATA_TYPE_ICON_SVG;
   chip.appendChild(swatch);
+
+  // If a value was provided upfront (e.g. from FieldPickerModal), skip the inline input
+  if (initialValue) {
+    buildViewChipContents(chip, initialValue, onFinalize, type);
+    if (range && el.contains(range.commonAncestorContainer)) {
+      range.deleteContents();
+      range.insertNode(chip);
+      const newRange = document.createRange();
+      newRange.setStartAfter(chip);
+      newRange.collapse(true);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+    } else {
+      el.appendChild(chip);
+    }
+    onFinalize();
+    return;
+  }
 
   const input = document.createElement('input');
   input.className = 'prompt-chip-input';

@@ -506,7 +506,7 @@ const AI_OPTIONS = [
 
 export default function LHSDrawer({
   defaultTab = 'Create manually',
-  defaultOpenSection = 'Trigger',
+  defaultOpenSection = 'Tasks',
   viewOnly = false,
   product = 'automotive',
   procedures = null,

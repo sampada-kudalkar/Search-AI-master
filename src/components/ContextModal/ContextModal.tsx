@@ -436,7 +436,7 @@ function IndustryTab({
   )
 }
 
-export function ContextModal({ open, onClose, onSave }: ContextModalProps) {
+export function ContextModal({ open, onClose, onSave, overlayZIndex = 110 }: ContextModalProps) {
   const [activeTab, setActiveTab] = useState<ContextModalTab>('Fields')
   const [fields, setFields] = useState<ContextField[]>(DEFAULT_CONTEXT_FIELDS)
   const [knowledge, setKnowledge] = useState(DEFAULT_CONTEXT_KNOWLEDGE)
@@ -464,7 +464,8 @@ export function ContextModal({ open, onClose, onSave }: ContextModalProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-[110] flex items-center justify-center ${open ? '' : 'pointer-events-none'}`}
+      className={`fixed inset-0 flex items-center justify-center ${open ? '' : 'pointer-events-none'}`}
+      style={{ zIndex: overlayZIndex }}
       aria-hidden={!open}
     >
       <div

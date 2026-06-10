@@ -3,6 +3,7 @@ import '../prompt-chip.css';
 import { serializeFrom, deserializeInto, deserializeIntoTyped, insertChipAt } from '../promptChipHelpers.js';
 import { VariableIcon, BuildIcon, ExpandIcon } from '../PromptToolbarIcons.jsx';
 import { CHIP_TYPES, DataTypeIcon } from '../VariableChip/VariableChip.jsx';
+import FieldPickerModal from '../../../Organisms/Modals/FieldPickerModal/FieldPickerModal.jsx';
 import styles from './UserPromptInput.module.css';
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -16,6 +17,7 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
   const savedRangeRef = useRef(null);
   const pickerContainerRef = useRef(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [fieldModalOpen, setFieldModalOpen] = useState(false);
   const [isEmpty, setIsEmpty] = useState(!(value ?? '').trim());
 
   const syncEmpty = useCallback(() => {
@@ -55,7 +57,7 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
     return () => document.removeEventListener('mousedown', handler);
   }, [pickerOpen]);
 
-  const handleOpenPicker = useCallback(() => {
+  const saveRange = useCallback(() => {
     const el = editorRef.current;
     if (el) {
       const sel = window.getSelection();
@@ -63,8 +65,17 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
         savedRangeRef.current = sel.getRangeAt(0).cloneRange();
       }
     }
-    setPickerOpen((p) => !p);
   }, []);
+
+  const handleOpenPicker = useCallback(() => {
+    saveRange();
+    setPickerOpen((p) => !p);
+  }, [saveRange]);
+
+  const handleOpenFieldModal = useCallback(() => {
+    saveRange();
+    setFieldModalOpen(true);
+  }, [saveRange]);
 
   const handleTypeSelect = useCallback((type) => {
     setPickerOpen(false);
@@ -72,79 +83,82 @@ export default function UserPromptInput({ value, onChange, required, hideLabel =
     savedRangeRef.current = null;
   }, [emitChange]);
 
+  const handleFieldSelect = useCallback((fieldValue) => {
+    setFieldModalOpen(false);
+    insertChipAt(editorRef.current, savedRangeRef.current, emitChange, 'variable', fieldValue);
+    savedRangeRef.current = null;
+  }, [emitChange]);
+
+  // @ mention: open field picker
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === '@') {
+      saveRange();
+      // Let the character type, then open the picker on next tick
+      setTimeout(() => setFieldModalOpen(true), 0);
+    }
+  }, [saveRange]);
+
   return (
-    <div className={styles.wrap}>
-      {!hideLabel && (
-        <div className={styles.labelRow}>
-          <span className={styles.label}>User prompt</span>
-          {required && <span className={styles.required}>*</span>}
-        </div>
-      )}
-      <div className={`${styles.inputBox}${!readOnly && isEmpty ? ` ${styles.inputBoxWithHint}` : ''}`}>
-        {!readOnly && isEmpty && (
-          <div className={styles.placeholderOverlay} aria-hidden>
-            {placeholder}
+    <>
+      <div className={styles.wrap}>
+        {!hideLabel && (
+          <div className={styles.labelRow}>
+            <span className={styles.label}>User prompt</span>
+            {required && <span className={styles.required}>*</span>}
           </div>
         )}
-        <div
-          ref={editorRef}
-          className={`${styles.editor}${autoHeight ? ` ${styles.editorAutoHeight}` : ''}`}
-          contentEditable={!readOnly}
-          suppressContentEditableWarning
-          onInput={readOnly ? undefined : emitChange}
-          style={minEditorHeight ? { minHeight: minEditorHeight } : undefined}
-        />
-        {!readOnly && (
-        <div className={styles.toolbar} ref={pickerContainerRef}>
-          <button
-            type="button"
-            className={`${styles.toolbarBtn} ${pickerOpen ? styles.toolbarBtnActive : ''}`}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={handleOpenPicker}
-            title="Insert variable"
-          >
-            <VariableIcon />
-          </button>
-          <button
-            type="button"
-            className={styles.toolbarBtn}
-            onMouseDown={(e) => e.preventDefault()}
-            title="Tools"
-          >
-            <BuildIcon />
-          </button>
-          <button
-            type="button"
-            className={styles.toolbarBtn}
-            onMouseDown={(e) => e.preventDefault()}
-            title="Expand"
-          >
-            <ExpandIcon />
-          </button>
-          {pickerOpen && (
-            <div className={styles.typePicker}>
-              {CHIP_TYPES.map((ct) => (
-                <button
-                  key={ct.type}
-                  className={styles.typePickerItem}
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => handleTypeSelect(ct.type)}
-                >
-                  <span className={`${styles.typePickerSwatch} ${styles[`tpSwatch${cap(ct.type)}`] || ''}`}>
-                    {ct.icon
-                      ? <span className={`material-symbols-outlined ${styles[`tpIcon${cap(ct.type)}`] || ''}`}>{ct.icon}</span>
-                      : <DataTypeIcon />
-                    }
-                  </span>
-                  <span className={styles.typePickerLabel}>{ct.label}</span>
-                </button>
-              ))}
+        <div className={`${styles.inputBox}${!readOnly && isEmpty ? ` ${styles.inputBoxWithHint}` : ''}`}>
+          {!readOnly && isEmpty && (
+            <div className={styles.placeholderOverlay} aria-hidden>
+              {placeholder}
             </div>
           )}
+          <div
+            ref={editorRef}
+            className={`${styles.editor}${autoHeight ? ` ${styles.editorAutoHeight}` : ''}`}
+            contentEditable={!readOnly}
+            suppressContentEditableWarning
+            onInput={readOnly ? undefined : emitChange}
+            onKeyDown={readOnly ? undefined : handleKeyDown}
+            style={minEditorHeight ? { minHeight: minEditorHeight } : undefined}
+          />
+          {!readOnly && (
+          <div className={styles.toolbar} ref={pickerContainerRef}>
+            <button
+              type="button"
+              className={`${styles.toolbarBtn} ${fieldModalOpen ? styles.toolbarBtnActive : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleOpenFieldModal}
+              title="Insert variable"
+            >
+              <VariableIcon />
+            </button>
+            <button
+              type="button"
+              className={styles.toolbarBtn}
+              onMouseDown={(e) => e.preventDefault()}
+              title="Tools"
+            >
+              <BuildIcon />
+            </button>
+            <button
+              type="button"
+              className={styles.toolbarBtn}
+              onMouseDown={(e) => e.preventDefault()}
+              title="Expand"
+            >
+              <ExpandIcon />
+            </button>
+          </div>
+          )}
         </div>
-        )}
       </div>
-    </div>
+      {fieldModalOpen && (
+        <FieldPickerModal
+          onClose={() => setFieldModalOpen(false)}
+          onSelectField={handleFieldSelect}
+        />
+      )}
+    </>
   );
 }
