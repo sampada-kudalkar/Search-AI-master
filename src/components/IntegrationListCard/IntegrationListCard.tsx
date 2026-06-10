@@ -46,7 +46,7 @@ export function IntegrationListCard({
       <div className="mb-md flex items-start justify-between">
         {/* Logo tile */}
         <div
-          className="flex size-[48px] shrink-0 items-center justify-center rounded-md text-[15px] leading-none text-white"
+          className="flex size-[48px] shrink-0 items-center justify-center rounded-full text-[15px] leading-none text-white"
           style={{ backgroundColor: iconBg }}
         >
           {iconLabel}
@@ -57,14 +57,12 @@ export function IntegrationListCard({
           <div
             className={`flex items-center gap-xs rounded-full px-sm py-[3px] text-small transition-colors ${
               selected
-                ? 'bg-primary/10 text-primary'
+                ? 'bg-surface-subtle text-text-secondary'
                 : 'bg-surface-subtle text-text-secondary'
             }`}
           >
-            <span
-              className={`size-[6px] shrink-0 rounded-full ${selected ? 'bg-primary' : 'bg-accent-positive'}`}
-            />
-            {selected ? 'Active' : 'Connected'}
+            <span className="size-[6px] shrink-0 rounded-full bg-accent-positive" />
+            {selected ? 'Selected' : 'Connected'}
           </div>
         ) : (
           <button
