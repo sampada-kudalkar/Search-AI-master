@@ -1,9 +1,16 @@
 import { useState, useRef, type MouseEvent } from 'react'
-import { Icon, ProceduresPickerDrawer, RefChip, SelectMenu } from '../components'
+import { Icon, IntegrationsPickerDrawer, ProceduresPickerDrawer, RefChip } from '../components'
+import {
+  DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+  DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
+  getHealthcareIntegration,
+  HEALTHCARE_INTEGRATION_CATALOG,
+} from '../data/healthcareIntegrations'
 
 interface AgentSettingsTabProps {
   product?: string
   agentName?: string
+  onOpenIntegrationSettings?: (integrationId: string) => void
 }
 
 // ── Procedure book icon (shared with ProceduresScreen) ──────────
@@ -540,39 +547,6 @@ function SettingsSectionHeader({
   )
 }
 
-// ── Add-item menu (SelectMenu picker for catalog items) ───────────
-interface AddItemMenuProps {
-  open: boolean
-  anchor: { top: number; left: number; width: number } | null
-  options: { value: string; label: string }[]
-  onClose: () => void
-  onSelect: (id: string) => void
-}
-
-function AddItemMenu({ open, anchor, options, onClose, onSelect }: AddItemMenuProps) {
-  if (!open || !anchor) return null
-
-  return (
-    <>
-      <div className="fixed inset-0 z-[105]" onClick={onClose} aria-hidden />
-      <div
-        className="fixed z-[110]"
-        style={{ top: anchor.top, left: anchor.left, width: Math.max(anchor.width, 280) }}
-      >
-        <SelectMenu
-          options={options}
-          value={[]}
-          searchable={options.length > 6}
-          onChange={(selected) => {
-            if (selected[0]) onSelect(selected[0])
-            onClose()
-          }}
-        />
-      </div>
-    </>
-  )
-}
-
 // ── Card 3-dot menu (edit / delete on hover) ────────────────────
 interface CardMenuProps {
   itemLabel: string
@@ -673,7 +647,6 @@ interface IntegrationCardProps {
   name: string
   description: string
   connected?: boolean
-  onClick?: () => void
   onEdit?: () => void
   onRemove?: () => void
 }
@@ -684,43 +657,30 @@ function IntegrationCard({
   name,
   description,
   connected,
-  onClick,
   onEdit,
   onRemove,
 }: IntegrationCardProps) {
   return (
-    <div className="group relative">
+    <div className="group relative flex min-h-[148px] flex-col rounded-sm border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected">
       <CardMenu itemLabel={name} onEdit={onEdit} onDelete={onRemove} />
-      <button
-        type="button"
-        onClick={onClick}
-        className="flex min-h-[148px] w-full cursor-pointer flex-col rounded-sm border border-border-selected bg-surface p-xl text-left transition-colors hover:bg-surface-selected"
-      >
-        <div className="mb-md flex items-center justify-between gap-md">
-          <div className="flex min-w-0 items-center gap-sm">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
-              <div
-                className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
-                style={{ backgroundColor: iconBg }}
-              >
-                {iconLabel}
-              </div>
-            </div>
-            <h3 className="truncate text-body text-text-primary">{name}</h3>
+      <div className="mb-md">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
+          <div
+            className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
+            style={{ backgroundColor: iconBg }}
+          >
+            {iconLabel}
           </div>
-          {connected !== undefined && (
-            <div className="flex shrink-0 items-center gap-xs">
-              <span
-                className={`size-2 rounded-full ${connected ? 'bg-accent-positive' : 'bg-surface-selected'}`}
-              />
-              <span className="text-small text-text-secondary">
-                {connected ? 'Connected' : 'Not connected'}
-              </span>
-            </div>
-          )}
         </div>
-        <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
-      </button>
+      </div>
+      <h3 className="mb-xs text-body text-text-primary">{name}</h3>
+      <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
+      {connected && (
+        <div className="mt-auto flex items-center justify-end gap-xs pt-lg text-small text-text-secondary">
+          <span className="size-2 rounded-full bg-accent-positive" />
+          Connected
+        </div>
+      )}
     </div>
   )
 }
@@ -731,14 +691,6 @@ interface ProcedureCatalogItem {
   title: string
   description: string
   lastEdited: string
-}
-
-interface IntegrationCatalogItem {
-  id: string
-  iconBg: string
-  iconLabel: string
-  name: string
-  description: string
 }
 
 const PROCEDURE_CATALOG: ProcedureCatalogItem[] = [
@@ -792,36 +744,11 @@ const PROCEDURE_CATALOG: ProcedureCatalogItem[] = [
   },
 ]
 
-const INTEGRATION_CATALOG: IntegrationCatalogItem[] = [
-  {
-    id: 'epic',
-    iconBg: '#C8102E',
-    iconLabel: 'Epic',
-    name: 'Epic',
-    description: 'Connect to Epic EHR to sync patient records and appointments.',
-  },
-  {
-    id: 'athena',
-    iconBg: '#0B7A75',
-    iconLabel: 'A',
-    name: 'Athenahealth',
-    description: 'Sync appointments and patient demographics from Athenahealth.',
-  },
-  {
-    id: 'salesforce',
-    iconBg: '#00A1E0',
-    iconLabel: 'S',
-    name: 'Salesforce',
-    description: 'Push leads and conversation outcomes into Salesforce CRM.',
-  },
-]
-
 const DEFAULT_PROCEDURE_IDS = ['greet', 'general', 'emergency', 'unclear']
-const DEFAULT_INTEGRATION_IDS = ['epic']
 
 type RecordingMode = 'off' | 'announced'
 
-export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
+export function AgentSettingsTab({ product, onOpenIntegrationSettings }: AgentSettingsTabProps) {
   const [voice, setVoice] = useState('Andrea (warm, clear, reassuring)')
   const [greeting, setGreeting] = useState(
     'Thank you for calling Rock Dental Brands — my name is Myna, your virtual assistant. How can I help you today?'
@@ -830,47 +757,38 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
   const [consent, setConsent] = useState(
     'This call may be recorded for quality and training purposes.'
   )
-  const [connectedIntegrationId, setConnectedIntegrationId] = useState<string | null>('epic')
+  const [accountConnectedIntegrationIds, setAccountConnectedIntegrationIds] = useState<string[]>(
+    DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+  )
+  const [agentSelectedIntegrationId, setAgentSelectedIntegrationId] = useState<string | null>(
+    DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
+  )
   const [voiceCallEnabled, setVoiceCallEnabled] = useState(true)
   const [webChatEnabled, setWebChatEnabled] = useState(true)
   const [textEnabled, setTextEnabled] = useState(true)
+  const [procedureCatalog, setProcedureCatalog] = useState<ProcedureCatalogItem[]>(PROCEDURE_CATALOG)
   const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>(DEFAULT_PROCEDURE_IDS)
-  const [selectedIntegrationIds, setSelectedIntegrationIds] = useState<string[]>(DEFAULT_INTEGRATION_IDS)
   const [procedureDrawerOpen, setProcedureDrawerOpen] = useState(false)
-  const [integrationAddOpen, setIntegrationAddOpen] = useState(false)
-  const [integrationAddAnchor, setIntegrationAddAnchor] = useState<{
-    top: number
-    left: number
-    width: number
-  } | null>(null)
+  const [integrationDrawerOpen, setIntegrationDrawerOpen] = useState(false)
 
   const isHealthcare = product === 'healthcare'
 
-  const selectedProcedures = PROCEDURE_CATALOG.filter((p) => selectedProcedureIds.includes(p.id))
-  const selectedIntegrations = INTEGRATION_CATALOG.filter((i) => selectedIntegrationIds.includes(i.id))
-  const availableIntegrations = INTEGRATION_CATALOG.filter((i) => !selectedIntegrationIds.includes(i.id))
-
-  const openIntegrationAdd = (e: MouseEvent<HTMLButtonElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    setIntegrationAddAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
-    setIntegrationAddOpen(true)
-  }
+  const selectedProcedures = procedureCatalog.filter((p) => selectedProcedureIds.includes(p.id))
+  const agentIntegration = agentSelectedIntegrationId
+    ? getHealthcareIntegration(agentSelectedIntegrationId)
+    : undefined
 
   const removeProcedure = (id: string) => {
     setSelectedProcedureIds((current) => current.filter((item) => item !== id))
   }
 
-  const addIntegration = (id: string) => {
-    setSelectedIntegrationIds((current) => [...current, id])
+  const removeAgentIntegration = () => {
+    setAgentSelectedIntegrationId(null)
   }
 
-  const removeIntegration = (id: string) => {
-    setSelectedIntegrationIds((current) => current.filter((item) => item !== id))
-    setConnectedIntegrationId((current) => (current === id ? null : current))
-  }
-
-  const handleIntegrationClick = (id: string) => {
-    setConnectedIntegrationId((current) => (current === id ? null : id))
+  const navigateToIntegrationSettings = (integrationId: string) => {
+    setIntegrationDrawerOpen(false)
+    onOpenIntegrationSettings?.(integrationId)
   }
 
   const VOICES: VoiceOption[] = [
@@ -1013,12 +931,18 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
             )}
             <ProceduresPickerDrawer
               open={procedureDrawerOpen}
-              procedures={PROCEDURE_CATALOG}
+              procedures={procedureCatalog}
               selectedIds={selectedProcedureIds}
               onClose={() => setProcedureDrawerOpen(false)}
               onSave={(ids) => {
                 setSelectedProcedureIds(ids)
                 setProcedureDrawerOpen(false)
+              }}
+              onCreateProcedure={(procedure) => {
+                setProcedureCatalog((current) => [
+                  ...current,
+                  { ...procedure, lastEdited: 'Just now' },
+                ])
               }}
             />
           </section>
@@ -1028,37 +952,41 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
         <section>
           <SettingsSectionHeader
             title="Integrations"
-            addAriaLabel="Add integration"
-            onAdd={openIntegrationAdd}
-            addDisabled={availableIntegrations.length === 0}
+            addAriaLabel="Edit integrations"
+            onAdd={() => setIntegrationDrawerOpen(true)}
           />
-          {selectedIntegrations.length === 0 ? (
+          <p className="mb-lg text-body text-text-secondary">
+            Integration connected to this front desk agent.
+          </p>
+          {!agentIntegration ? (
             <div className="flex h-32 items-center justify-center rounded-sm border border-border-selected bg-surface text-body text-text-tertiary">
-              No integrations added. Use Add integration to get started.
+              No integration selected. Use Edit integrations to connect one.
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-lg">
-              {selectedIntegrations.map((intg) => (
-                <IntegrationCard
-                  key={intg.id}
-                  iconBg={intg.iconBg}
-                  iconLabel={intg.iconLabel}
-                  name={intg.name}
-                  description={intg.description}
-                  connected={connectedIntegrationId === intg.id}
-                  onClick={() => handleIntegrationClick(intg.id)}
-                  onEdit={() => {}}
-                  onRemove={() => removeIntegration(intg.id)}
-                />
-              ))}
+              <IntegrationCard
+                iconBg={agentIntegration.iconBg}
+                iconLabel={agentIntegration.iconLabel}
+                name={agentIntegration.name}
+                description={agentIntegration.description}
+                connected
+                onEdit={() => navigateToIntegrationSettings(agentIntegration.id)}
+                onRemove={removeAgentIntegration}
+              />
             </div>
           )}
-          <AddItemMenu
-            open={integrationAddOpen}
-            anchor={integrationAddAnchor}
-            options={availableIntegrations.map((i) => ({ value: i.id, label: i.name }))}
-            onClose={() => setIntegrationAddOpen(false)}
-            onSelect={addIntegration}
+          <IntegrationsPickerDrawer
+            open={integrationDrawerOpen}
+            integrations={HEALTHCARE_INTEGRATION_CATALOG}
+            connectedIds={accountConnectedIntegrationIds}
+            selectedId={agentSelectedIntegrationId}
+            onClose={() => setIntegrationDrawerOpen(false)}
+            onSave={({ selectedId, connectedIds }) => {
+              setAccountConnectedIntegrationIds(connectedIds)
+              setAgentSelectedIntegrationId(selectedId)
+              setIntegrationDrawerOpen(false)
+            }}
+            onOpenIntegrationSettings={navigateToIntegrationSettings}
           />
         </section>
 

@@ -22,6 +22,7 @@ import { AgentInstanceScreen } from './AgentInstanceScreen'
 interface AgentDetailScreenProps {
   agentName: string
   onEditAgent?: (agentName: string) => void
+  onOpenIntegrationSettings?: (integrationId: string) => void
   product?: string
 }
 
@@ -74,7 +75,7 @@ interface RegionRow {
 }
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
-  'Frontdesk agent': [
+  'Front desk agent': [
     { region: 'North region', status: 'Running', interactions: '8,200', fcr: '7,380', aht: '90%', escalation: '18h', locations: '358' },
     { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '4,928', aht: '88%', escalation: '12h', locations: '212' },
     { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '2,494', aht: '86%', escalation: '6h',  locations: '180' },
@@ -101,13 +102,13 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
   ],
 }
 
-const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Frontdesk agent']
+const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Front desk agent']
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
 type LibraryView = 'grid' | 'list'
 
-export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDetailScreenProps) {
+export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSettings, product }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
   const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
@@ -115,7 +116,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
-    'Frontdesk agent': [
+    'Front desk agent': [
       { id: 'responded', value: '18,420', label: 'Conversations responded', delta: '1.3%', trend: 'up', info: true },
       { id: 'resolved', value: '16,230', label: 'Conversations resolved', delta: '2.1%', trend: 'up', info: true },
       { id: 'resolutionRate', value: '88%', label: 'Resolution rate', delta: '1.8%', trend: 'up', info: true },
@@ -164,6 +165,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
   }))
 
   const isReminder = agentName === 'Reminder agent'
+  const isFrontdesk = agentName === 'Front desk agent'
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
     {
@@ -178,11 +180,16 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
       { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
       { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
-    ] : [
+    ] : isFrontdesk ? [
       { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 200, sortable: true },
       { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },
       { key: 'aht' as keyof AgentInstance, label: 'Resolution rate', width: 150, sortable: true },
       { key: 'escalation' as keyof AgentInstance, label: 'Time saved', width: 130, sortable: true },
+    ] : [
+      { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 200, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution rate', width: 220, sortable: true },
+      { key: 'aht' as keyof AgentInstance, label: 'Average handle time', width: 180, sortable: true },
+      { key: 'escalation' as keyof AgentInstance, label: 'Escalation rate', width: 150, sortable: true },
     ]),
     { key: 'locations', label: 'Locations', width: 130, sortable: true },
   ]
@@ -221,6 +228,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
         instanceName={selectedInstance}
         onBack={() => setSelectedInstance(null)}
         onEditAgent={onEditAgent}
+        onOpenIntegrationSettings={onOpenIntegrationSettings}
         product={product}
       />
     )

@@ -6,6 +6,7 @@ import {
   resolveProcedurePanelText,
   isCustomProcedureId,
 } from '../../../services/procedureService';
+import { ProcedureListCard } from '../../../../components/ProcedureListCard/ProcedureListCard';
 import styles from './ProcedureTaskBody.module.css';
 
 export default function ProcedureTaskBody({
@@ -64,29 +65,13 @@ export default function ProcedureTaskBody({
         {procedures.map((p) => {
           const { name, whenToUse } = resolveProcedurePanelText(p, overrides, product);
           return (
-            <div
+            <ProcedureListCard
               key={p.id}
-              className={styles.row}
+              title={name}
+              description={whenToUse}
               onClick={() => onSelectProcedure?.(p.id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && onSelectProcedure?.(p.id)}
-            >
-              <div className={styles.rowText}>
-                <span className={styles.rowName}>{name}</span>
-                <span className={styles.rowDesc}>{whenToUse}</span>
-              </div>
-              {!viewOnly && (
-                <button
-                  type="button"
-                  className={styles.removeBtn}
-                  onClick={(e) => { e.stopPropagation(); handleRemove(p.id); }}
-                  title="Remove"
-                >
-                  <span className={`material-symbols-outlined ${styles.removeBtnIcon}`}>delete</span>
-                </button>
-              )}
-            </div>
+              onRemove={!viewOnly ? () => handleRemove(p.id) : undefined}
+            />
           );
         })}
       </div>

@@ -22,6 +22,7 @@ import { ProceduresScreen } from './screens/ProceduresScreen'
 import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
 import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
+import { IntegrationDetailScreen } from './screens/IntegrationDetailScreen'
 import { WebWidgetsScreen } from './screens/WebWidgetsScreen'
 import { AppointmentWidgetsScreen } from './screens/AppointmentWidgetsScreen'
 import { InboxScreen } from './screens/InboxScreen'
@@ -271,6 +272,12 @@ export function App() {
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
   const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
 
+  function openIntegrationSettings(integrationId: string) {
+    setRailActive('settings')
+    setSettingsTab('Integrations')
+    setSettingsSubScreen(`integration-${integrationId}`)
+  }
+
   function handleProductChange(id: string) {
     setActiveProduct(id)
     setNavActive(DEFAULT_NAV_BY_PRODUCT[id] ?? 'manage-appointments')
@@ -315,7 +322,15 @@ export function App() {
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
         {railActive === 'settings' ? (
-          settingsSubScreen === 'web-widgets' ? (
+          settingsSubScreen?.startsWith('integration-') ? (
+            <IntegrationDetailScreen
+              integrationId={settingsSubScreen.replace('integration-', '')}
+              onBack={() => {
+                setSettingsSubScreen(null)
+                setSettingsTab('Integrations')
+              }}
+            />
+          ) : settingsSubScreen === 'web-widgets' ? (
             <WebWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
           ) : settingsSubScreen === 'appointment-widgets' ? (
             <AppointmentWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
@@ -411,6 +426,7 @@ export function App() {
             key={navActive}
             agentName={AGENT_NAMES[navActive]}
             onEditAgent={setEditingAgentName}
+            onOpenIntegrationSettings={openIntegrationSettings}
             product={activeProduct}
           />
         ) : (

@@ -21,6 +21,7 @@ interface AgentInstanceScreenProps {
   status?: string
   onBack: () => void
   onEditAgent?: (agentName: string) => void
+  onOpenIntegrationSettings?: (integrationId: string) => void
   product?: string
 }
 
@@ -47,7 +48,7 @@ const TABS: Tab[] = [
 ]
 
 const METRICS_BY_AGENT: Record<string, Metric[]> = {
-  'Frontdesk agent': [
+  'Front desk agent': [
     { id: 'responded', value: '8,200', label: 'Conversations responded', delta: '1.3%', trend: 'up', info: true },
     { id: 'resolved', value: '7,380', label: 'Conversations resolved', delta: '2.1%', trend: 'up', info: true },
     { id: 'resolutionRate', value: '90%', label: 'Resolution rate', delta: '1.8%', trend: 'up', info: true },
@@ -75,7 +76,7 @@ const DEFAULT_METRICS: Metric[] = [
 ]
 
 const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {
-  'Frontdesk agent': [
+  'Front desk agent': [
     { location: 'Atlanta, GA',      interactions: '2,850', fcr: '2,565', aht: '90%', escalation: '6h', count: '124' },
     { location: 'Chicago, IL',      interactions: '2,140', fcr: '1,926', aht: '90%', escalation: '5h', count: '98'  },
     { location: 'Boston, MA',       interactions: '1,620', fcr: '1,458', aht: '90%', escalation: '4h', count: '76'  },
@@ -155,19 +156,26 @@ const REMINDER_COLUMNS: Column<LocationRow>[] = [
   { key: 'noshowRate',       label: 'No-show rate',           width: 160, sortable: true },
 ]
 
-export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, onEditAgent, product }: AgentInstanceScreenProps) {
+export function AgentInstanceScreen({
+  instanceName,
+  status = 'Running',
+  onBack,
+  onEditAgent,
+  onOpenIntegrationSettings,
+  product,
+}: AgentInstanceScreenProps) {
   const [activeTab, setActiveTab] = useState('outcomes')
   const [actionsOpen, setActionsOpen] = useState(false)
   const [instanceStatus, setInstanceStatus] = useState(status)
 
-  // Derive agent name from instance name (e.g. "Frontdesk agent - North region" → "Frontdesk agent")
+  // Derive agent name from instance name (e.g. "Front desk agent - North region" → "Front desk agent")
   const agentName = instanceName.replace(/ - .+$/, '')
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
   const COLUMNS =
     agentName === 'Reminder agent' ? REMINDER_COLUMNS
-    : agentName === 'Frontdesk agent' ? FRONTDESK_COLUMNS
+    : agentName === 'Front desk agent' ? FRONTDESK_COLUMNS
     : DEFAULT_COLUMNS
-  const locations = LOCATIONS_BY_AGENT[agentName] ?? LOCATIONS_BY_AGENT['Frontdesk agent']
+  const locations = LOCATIONS_BY_AGENT[agentName] ?? LOCATIONS_BY_AGENT['Front desk agent']
 
   const isWorkflowTab = activeTab === 'workflow'
   const showHealthcareLogs =
@@ -281,7 +289,11 @@ export function AgentInstanceScreen({ instanceName, status = 'Running', onBack, 
           ) : showHealthcareLogs ? (
             <AgentLogsTab />
           ) : activeTab === 'settings' ? (
-            <AgentSettingsTab product={product} agentName={instanceName} />
+            <AgentSettingsTab
+              product={product}
+              agentName={instanceName}
+              onOpenIntegrationSettings={onOpenIntegrationSettings}
+            />
           ) : (
             <div className="flex h-64 items-center justify-center text-body text-text-secondary">
               No {TABS.find((t) => t.id === activeTab)?.label.toLowerCase()} data yet.

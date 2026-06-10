@@ -10,4 +10,5 @@ export interface ProceduresPickerDrawerProps {
   selectedIds: string[]
   onClose: () => void
   onSave: (selectedIds: string[]) => void
+  onCreateProcedure?: (procedure: ProcedurePickerItem) => void
 }

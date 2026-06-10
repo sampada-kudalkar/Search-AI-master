@@ -14,6 +14,19 @@ export interface ProcedureDetailDraft {
   stepsText: string
 }
 
+export const NEW_PROCEDURE_ID = '__new__'
+
+export function createNewProcedureDraft(): ProcedureDetailDraft {
+  return {
+    id: NEW_PROCEDURE_ID,
+    name: '',
+    whenToUse: '',
+    contextChips: [],
+    moreContextCount: 0,
+    stepsText: '',
+  }
+}
+
 const CATALOG_DETAIL_KEY: Record<string, string> = {
   greet: 'Greeting & Intent Detection',
   general: 'Handle general inquiry',

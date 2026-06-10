@@ -5,11 +5,22 @@ import { ProcedureListCard } from '../ProcedureListCard/ProcedureListCard'
 import { ProcedurePickerDetailView } from './ProcedurePickerDetailView'
 import {
   buildProcedureDetailDraft,
+  createNewProcedureDraft,
+  NEW_PROCEDURE_ID,
   type ProcedureDetailDraft,
 } from './procedurePickerDetailData'
-import type { ProceduresPickerDrawerProps } from './ProceduresPickerDrawer.types'
+import type { ProcedurePickerItem, ProceduresPickerDrawerProps } from './ProceduresPickerDrawer.types'
 
-type DrawerView = 'list' | 'detail'
+type DrawerView = 'list' | 'detail' | 'create'
+
+function slugifyId(title: string): string {
+  const base = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  return base || `procedure-${Date.now()}`
+}
 
 export function ProceduresPickerDrawer({
   open,
@@ -17,12 +28,14 @@ export function ProceduresPickerDrawer({
   selectedIds,
   onClose,
   onSave,
+  onCreateProcedure,
 }: ProceduresPickerDrawerProps) {
   const [query, setQuery] = useState('')
   const [draftIds, setDraftIds] = useState<string[]>(selectedIds)
   const [view, setView] = useState<DrawerView>('list')
   const [viewingId, setViewingId] = useState<string | null>(null)
   const [detailDrafts, setDetailDrafts] = useState<Record<string, ProcedureDetailDraft>>({})
+  const [createDraft, setCreateDraft] = useState<ProcedureDetailDraft>(createNewProcedureDraft)
 
   useEffect(() => {
     if (open) {
@@ -31,6 +44,7 @@ export function ProceduresPickerDrawer({
       setView('list')
       setViewingId(null)
       setDetailDrafts({})
+      setCreateDraft(createNewProcedureDraft())
     }
   }, [open, selectedIds])
 
@@ -70,27 +84,56 @@ export function ProceduresPickerDrawer({
     setView('detail')
   }
 
-  const closeDetail = () => {
+  const openCreate = () => {
+    setCreateDraft(createNewProcedureDraft())
+    setView('create')
+    setViewingId(null)
+  }
+
+  const closeSubView = () => {
     setView('list')
     setViewingId(null)
+    setCreateDraft(createNewProcedureDraft())
   }
 
   const saveDetail = (draft: ProcedureDetailDraft) => {
     setDetailDrafts((current) => ({ ...current, [draft.id]: draft }))
-    closeDetail()
+    closeSubView()
+  }
+
+  const saveCreate = (draft: ProcedureDetailDraft) => {
+    const title = draft.name.trim()
+    const description =
+      draft.whenToUse.trim().split(/[.!?]/)[0].trim() || title
+    const existingIds = new Set(procedures.map((p) => p.id))
+    let id = slugifyId(title)
+    if (existingIds.has(id)) {
+      id = `${id}-${Date.now()}`
+    }
+
+    const procedure: ProcedurePickerItem = { id, title, description }
+    onCreateProcedure?.(procedure)
+    setDraftIds((current) =>
+      current.includes(id) ? current : [...current, id],
+    )
+    setDetailDrafts((current) => ({
+      ...current,
+      [id]: { ...draft, id, name: title },
+    }))
+    closeSubView()
   }
 
   const handleOverlayClick = () => {
-    if (view === 'detail') {
-      closeDetail()
+    if (view === 'detail' || view === 'create') {
+      closeSubView()
       return
     }
     onClose()
   }
 
   const handleBack = () => {
-    if (view === 'detail') {
-      closeDetail()
+    if (view === 'detail' || view === 'create') {
+      closeSubView()
       return
     }
     onClose()
@@ -108,11 +151,19 @@ export function ProceduresPickerDrawer({
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {view === 'detail' && activeDetailDraft ? (
+        {view === 'create' ? (
+          <ProcedurePickerDetailView
+            key={NEW_PROCEDURE_ID}
+            draft={createDraft}
+            isNew
+            onBack={closeSubView}
+            onSave={saveCreate}
+          />
+        ) : view === 'detail' && activeDetailDraft ? (
           <ProcedurePickerDetailView
             key={viewingId}
             draft={activeDetailDraft}
-            onBack={closeDetail}
+            onBack={closeSubView}
             onSave={saveDetail}
           />
         ) : (
@@ -129,13 +180,23 @@ export function ProceduresPickerDrawer({
                 </button>
                 <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">Procedures</h2>
               </div>
-              <button
-                type="button"
-                onClick={() => onSave(draftIds)}
-                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-              >
-                Save
-              </button>
+              <div className="flex items-center gap-sm">
+                <button
+                  type="button"
+                  onClick={openCreate}
+                  className="flex items-center gap-xs rounded-sm px-md py-xs text-body text-text-action transition-colors hover:text-primary-hover"
+                >
+                  <Icon name="add_circle" size={16} />
+                  New
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onSave(draftIds)}
+                  className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                >
+                  Save
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-1 flex-col gap-md overflow-hidden px-2xl pb-2xl">
