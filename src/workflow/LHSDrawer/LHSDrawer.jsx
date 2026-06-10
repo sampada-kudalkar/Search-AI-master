@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FormInput } from '../elemental-stubs';
 import NodeType from '../Organisms/Accordion/NodeType/NodeType';
 import AIChatBubble from '../Molecules/AIChatBubble/AIChatBubble';
@@ -19,13 +19,16 @@ const AiSparkleIcon = () => (
   </svg>
 );
 import LHSEntityGroup from '../Molecules/LHS/LHSEntityGroup/LHSEntityGroup';
+import LHSExternalAppsGroup from '../Molecules/LHS/LHSExternalAppsGroup/LHSExternalAppsGroup';
 import './LHSDrawer.css';
+
+const EXTERNAL_APPS_TASK_KEY = 'External apps-task';
 
 /* ─── Trigger data ─── */
 const TRIGGER_SUB_ITEMS = {
   // Healthcare / Dental + shared
   'Appointment-trigger': {
-    title: 'Appointment triggers',
+    title: 'Appointment events',
     items: [
       'Appointment is booked',
       'Appointment is confirmed',
@@ -116,12 +119,27 @@ export const AUTOMOTIVE_TRIGGER_CARDS = [
   { label: 'External apps',       icon: 'grid_view',           action: 'chevron' },
 ];
 
-// Healthcare / Dental trigger cards
+// Healthcare / Dental — event-based triggers nested under "Event-based"
+export const HEALTHCARE_EVENT_BASED_TRIGGER_CARDS = [
+  { label: 'Conversation', dragLabel: 'Conversation trigger', icon: 'forum', action: 'drag' },
+  { label: 'Appointment', icon: 'calendar_month', action: 'chevron', subKey: 'Appointment-trigger' },
+  { label: 'Contact', icon: 'group', action: 'chevron', subKey: 'Contact-trigger' },
+];
+
+export const HEALTHCARE_TRIGGER_STANDALONE_CARDS = [
+  { label: 'Schedule-based', icon: 'schedule', action: 'drag' },
+];
+
+export const HEALTHCARE_TRIGGER_GROUP = {
+  label: 'Event-based',
+  icon: 'graph_2',
+  cards: HEALTHCARE_EVENT_BASED_TRIGGER_CARDS,
+};
+
+/** Flat list kept for backward-compat exports / search helpers */
 export const HEALTHCARE_TRIGGER_CARDS = [
-  { label: 'Schedule-based',      icon: 'schedule',       action: 'drag'    },
-  { label: 'Conversation trigger',icon: 'forum',          action: 'drag'    },
-  { label: 'Appointment',         icon: 'calendar_month', action: 'chevron', subKey: 'Appointment-trigger' },
-  { label: 'Contact',             icon: 'group',          action: 'chevron', subKey: 'Contact-trigger' },
+  ...HEALTHCARE_EVENT_BASED_TRIGGER_CARDS,
+  ...HEALTHCARE_TRIGGER_STANDALONE_CARDS,
 ];
 
 // Default export for backward compat (automotive)
@@ -133,6 +151,7 @@ const AUTOMOTIVE_TASK_SUB_ITEMS = {
     title: 'Conversation tasks',
     items: [
       'Initiate voice call',
+      'In call text',
     ],
   },
   Appointment: {
@@ -167,6 +186,7 @@ const HEALTHCARE_TASK_SUB_ITEMS = {
     title: 'Conversation tasks',
     items: [
       'Initiate voice call',
+      'In call text',
     ],
   },
   Appointment: {
@@ -199,6 +219,7 @@ const HEALTHCARE_TASK_SUB_ITEMS = {
 
 const READONLY_TRIGGER_SUBMENUS = new Set(['Contact-trigger', 'Appointment-trigger']);
 const READONLY_TASK_SUBMENUS = new Set(['Conversation', 'Contact', 'Appointment']);
+const DISABLED_TASK_SUB_ITEMS = new Set(['In call text']);
 const PROCEDURE_COLLAPSE_LIMIT = 7;
 
 export const AUTOMOTIVE_TASK_CARDS = [
@@ -358,10 +379,17 @@ function buildHCProcedureCards(procedures) {
 /* ─── Controls data ─── */
 export const CONTROL_CARDS = [
   { label: 'Branch', icon: 'account_tree', action: 'drag', nodeType: 'branch' },
-  { label: 'Sub-agent', icon: 'smart_toy', action: 'drag', nodeType: 'subagent' },
   { label: 'Delay', icon: 'schedule', action: 'drag', nodeType: 'delay' },
   { label: 'Parallel tasks', icon: 'splitscreen_add', action: 'drag', nodeType: 'parallel' },
   { label: 'Loop', icon: 'repeat', action: 'drag', nodeType: 'loop' },
+  {
+    label: 'Sub-agent (TBD)',
+    dragLabel: 'Sub-agent',
+    icon: 'smart_toy',
+    action: 'drag',
+    nodeType: 'subagent',
+    disabled: true,
+  },
 ];
 
 /* ─── Trigger + task sub-items (mutable state; procedures are derived dynamically) ─── */
@@ -371,25 +399,40 @@ function buildInitialSubItems(isHC) {
 }
 
 /* ─── Card Row ─── */
-export function CardRow({ label, icon, svgIcon, action, isActive, onClick, onHover, cardRef, nodeType, viewOnly, procedureId }) {
+export function CardRow({
+  label,
+  icon,
+  svgIcon,
+  action,
+  isActive,
+  onClick,
+  onHover,
+  cardRef,
+  nodeType,
+  viewOnly,
+  procedureId,
+  dragLabel,
+  disabled = false,
+}) {
   const handleDragStart = (e) => {
     e.dataTransfer.setData('application/reactflow-type', nodeType);
     // For procedure cards, use the procedureId as the label so AgentBuilder
     // can seed the first procedureIds entry correctly
-    e.dataTransfer.setData('application/reactflow-label', procedureId || label);
+    e.dataTransfer.setData('application/reactflow-label', procedureId || dragLabel || label);
     e.dataTransfer.setData('application/reactflow-description', label);
     e.dataTransfer.effectAllowed = 'copy';
   };
 
-  const isDraggable = action === 'drag' && !viewOnly;
+  const isDraggable = action === 'drag' && !viewOnly && !disabled;
 
   return (
     <div
       ref={cardRef}
-      className={`lhs-drawer__card ${action === 'drag' ? 'lhs-drawer__card--drag' : ''} ${isActive ? 'lhs-drawer__card--active' : ''} ${viewOnly ? 'lhs-drawer__card--view-only' : ''}`}
-      onClick={onClick}
-      onMouseEnter={onHover}
+      className={`lhs-drawer__card ${action === 'drag' && !disabled ? 'lhs-drawer__card--drag' : ''} ${isActive ? 'lhs-drawer__card--active' : ''} ${viewOnly ? 'lhs-drawer__card--view-only' : ''} ${disabled ? 'lhs-drawer__card--disabled' : ''}`}
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={disabled ? undefined : onHover}
       draggable={isDraggable}
+      aria-disabled={disabled || undefined}
       onDragStart={isDraggable ? handleDragStart : undefined}
     >
       {svgIcon ? (
@@ -415,6 +458,43 @@ export function CardRow({ label, icon, svgIcon, action, isActive, onClick, onHov
   );
 }
 
+function TriggerGroup({
+  group,
+  section,
+  isOpen,
+  onToggle,
+  renderCardRow,
+  search,
+}) {
+  const filteredCards = group.cards.filter(
+    (card) => !search || card.label.toLowerCase().includes(search.toLowerCase()),
+  );
+  const showGroup = filteredCards.length > 0 || !search;
+  if (!showGroup) return null;
+
+  const isExpanded = isOpen || (search.length > 0 && filteredCards.length > 0);
+
+  return (
+    <div className={`lhs-drawer__trigger-group${isExpanded ? ' lhs-drawer__trigger-group--open' : ''}`}>
+      <button
+        type="button"
+        className="lhs-drawer__trigger-group-header"
+        onClick={onToggle}
+        aria-expanded={isExpanded}
+      >
+        <span className="lhs-drawer__trigger-group-icon material-symbols-outlined">{group.icon}</span>
+        <span className="lhs-drawer__trigger-group-label">{group.label}</span>
+        <span className="material-symbols-outlined lhs-drawer__trigger-group-chevron">expand_more</span>
+      </button>
+      {isExpanded && (
+        <div className="lhs-drawer__trigger-group-items">
+          {filteredCards.map((card) => renderCardRow(card, section, 'trigger'))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const TABS = ['Create with AI', 'Create manually'];
 
 const AI_OPTIONS = [
@@ -426,7 +506,7 @@ const AI_OPTIONS = [
 
 export default function LHSDrawer({
   defaultTab = 'Create manually',
-  defaultOpenSection = 'Trigger',
+  defaultOpenSection = 'Tasks',
   viewOnly = false,
   product = 'automotive',
   procedures = null,
@@ -434,6 +514,8 @@ export default function LHSDrawer({
   const isHC = product === 'healthcare' || product === 'dental';
 
   const activeTriggerCards = isHC ? HEALTHCARE_TRIGGER_CARDS : AUTOMOTIVE_TRIGGER_CARDS;
+  const activeTriggerGroup = isHC ? HEALTHCARE_TRIGGER_GROUP : null;
+  const activeTriggerStandaloneCards = isHC ? HEALTHCARE_TRIGGER_STANDALONE_CARDS : [];
   const activeTaskCards = isHC ? HEALTHCARE_TASK_CARDS : AUTOMOTIVE_TASK_CARDS;
 
   // Derive procedure cards + sub-items from the live library when the prop is provided;
@@ -455,12 +537,17 @@ export default function LHSDrawer({
     setOpenSection((prev) => (prev === section ? null : section));
   const [search, setSearch] = useState('');
   const [proceduresExpanded, setProceduresExpanded] = useState(false);
+  const [eventBasedOpen, setEventBasedOpen] = useState(true);
   const [expandedCard, setExpandedCard] = useState(null);
   const [expandedSection, setExpandedSection] = useState(null);
   const [dropdownTop, setDropdownTop] = useState(0);
   const [subItems, setSubItems] = useState(() => buildInitialSubItems(isHC));
   const panelRef = useRef(null);
   const cardRefs = useRef({});
+  const closeDropdownTimerRef = useRef(null);
+  const hoverDropdownRef = useRef(false);
+
+  useEffect(() => () => cancelCloseDropdown(), []);
 
   const handleSubItemsChange = (key, newItems) => {
     setSubItems((prev) => ({
@@ -470,6 +557,7 @@ export default function LHSDrawer({
   };
 
   const openCardDropdown = (card, section, subKey) => {
+    cancelCloseDropdown();
     const key = subKey || card.label;
     const cardEl = cardRefs.current[`${section}-${card.label}`];
     const panelEl = panelRef.current;
@@ -518,6 +606,8 @@ export default function LHSDrawer({
           cardRef={(el) => { cardRefs.current[`${section}-${card.label}`] = el; }}
           viewOnly={viewOnly}
           procedureId={card.procedureId}
+          dragLabel={card.dragLabel}
+          disabled={card.disabled}
         />
       </div>
     );
@@ -557,21 +647,75 @@ export default function LHSDrawer({
     );
   };
 
-  const triggerContent = renderCards(activeTriggerCards, 'trigger', 'trigger');
+  const renderTriggerContent = () => {
+    if (!activeTriggerGroup) {
+      return renderCards(activeTriggerCards, 'trigger', 'trigger');
+    }
+
+    const standaloneCards = activeTriggerStandaloneCards.filter(
+      (card) => !search || card.label.toLowerCase().includes(search.toLowerCase()),
+    );
+
+    return (
+      <div className="lhs-drawer__cards lhs-drawer__cards--trigger">
+        <TriggerGroup
+          group={activeTriggerGroup}
+          section="trigger"
+          isOpen={eventBasedOpen}
+          onToggle={() => setEventBasedOpen((open) => !open)}
+          renderCardRow={renderCardRow}
+          search={search}
+        />
+        {standaloneCards.map((card) => renderCardRow(card, 'trigger', 'trigger'))}
+      </div>
+    );
+  };
+
+  const triggerContent = renderTriggerContent();
   const tasksContent = renderCards(activeTaskCards, 'task', 'task');
   const proceduresContent = renderCards(activeProcedureCards, 'procedures', 'procedures');
   const controlsContent = renderCards(CONTROL_CARDS, 'control', 'branch');
 
   const allSubItems = { ...subItems, ...procedureSubItems };
-  const activeSubItems = expandedCard ? allSubItems[expandedCard] : null;
+  const showExternalAppsDropdown = expandedCard === EXTERNAL_APPS_TASK_KEY;
+  const activeSubItems = expandedCard && !showExternalAppsDropdown
+    ? allSubItems[expandedCard]
+    : null;
+
+  const cancelCloseDropdown = () => {
+    if (closeDropdownTimerRef.current) {
+      clearTimeout(closeDropdownTimerRef.current);
+      closeDropdownTimerRef.current = null;
+    }
+  };
 
   const closeDropdown = () => {
+    cancelCloseDropdown();
     setExpandedCard(null);
     setExpandedSection(null);
   };
 
+  const scheduleCloseDropdown = () => {
+    cancelCloseDropdown();
+    closeDropdownTimerRef.current = setTimeout(() => {
+      if (!hoverDropdownRef.current) {
+        closeDropdown();
+      }
+    }, 120);
+  };
+
+  const handleDropdownMouseEnter = () => {
+    hoverDropdownRef.current = true;
+    cancelCloseDropdown();
+  };
+
+  const handleDropdownMouseLeave = () => {
+    hoverDropdownRef.current = false;
+    scheduleCloseDropdown();
+  };
+
   return (
-    <div className="lhs-drawer" ref={panelRef} onMouseLeave={closeDropdown}>
+    <div className="lhs-drawer" ref={panelRef} onMouseLeave={scheduleCloseDropdown}>
       <div className="lhs-drawer__tabs">
         {TABS.map((tab) => (
           <button
@@ -630,28 +774,39 @@ export default function LHSDrawer({
         </div>
       )}
 
-      {activeSubItems && (
+      {(activeSubItems || showExternalAppsDropdown) && (
         <div
           className="lhs-drawer__dropdown-zone"
           style={{ top: dropdownTop }}
+          onMouseEnter={handleDropdownMouseEnter}
+          onMouseLeave={handleDropdownMouseLeave}
         >
           <div className="lhs-drawer__dropdown-bridge" />
-          <LHSEntityGroup
-            title={activeSubItems.title}
-            items={activeSubItems.items}
-            nodeType={expandedSection === 'trigger' ? 'trigger' : expandedSection === 'procedures' ? 'procedures' : 'task'}
-            parentLabel={expandedCard}
-            onItemsChange={(newItems) => handleSubItemsChange(expandedCard, newItems)}
-            viewOnly={viewOnly}
-            readOnly={
-              (expandedSection === 'trigger' && READONLY_TRIGGER_SUBMENUS.has(expandedCard))
-              || (expandedSection === 'task' && READONLY_TASK_SUBMENUS.has(expandedCard))
-            }
-            dragAlwaysVisible={
-              (expandedSection === 'trigger' && READONLY_TRIGGER_SUBMENUS.has(expandedCard))
-              || (expandedSection === 'task' && READONLY_TASK_SUBMENUS.has(expandedCard))
-            }
-          />
+          {showExternalAppsDropdown ? (
+            <LHSExternalAppsGroup
+              nodeType={expandedSection === 'trigger' ? 'trigger' : 'task'}
+              parentLabel="External apps"
+              viewOnly={viewOnly}
+            />
+          ) : (
+            <LHSEntityGroup
+              title={activeSubItems.title}
+              items={activeSubItems.items}
+              nodeType={expandedSection === 'trigger' ? 'trigger' : expandedSection === 'procedures' ? 'procedures' : 'task'}
+              parentLabel={expandedCard}
+              onItemsChange={(newItems) => handleSubItemsChange(expandedCard, newItems)}
+              viewOnly={viewOnly}
+              readOnly={
+                (expandedSection === 'trigger' && READONLY_TRIGGER_SUBMENUS.has(expandedCard))
+                || (expandedSection === 'task' && READONLY_TASK_SUBMENUS.has(expandedCard))
+              }
+              dragAlwaysVisible={
+                (expandedSection === 'trigger' && READONLY_TRIGGER_SUBMENUS.has(expandedCard))
+                || (expandedSection === 'task' && READONLY_TASK_SUBMENUS.has(expandedCard))
+              }
+              disabledItems={DISABLED_TASK_SUB_ITEMS}
+            />
+          )}
         </div>
       )}
     </div>

@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { EmptyHintField } from '../../../../components/EmptyHintField/EmptyHintField';
+import { Icon } from '../../../../components/Icon/Icon';
 import { serializeFrom, deserializeIntoTyped } from '../../../Molecules/Inputs/promptChipHelpers.js';
+import '../../../Molecules/Inputs/prompt-chip.css';
+import StepsEditorToolbar from '../../../Molecules/Inputs/StepsEditorToolbar/StepsEditorToolbar.jsx';
 import VariableChip, { CHIP_TYPES, DataTypeIcon, ProcedureBookIcon } from '../../../Molecules/Inputs/VariableChip/VariableChip';
 import chipStyles from '../../../Molecules/Inputs/VariableChip/VariableChip.module.css';
 import etStyles from './EntityTaskBody.module.css';
 import llmStyles from './LLMTaskBody.module.css';
 import styles from './ProcedureDetailBody.module.css';
+
+const FIELD_SHELL = 'rounded-sm border border-border-input bg-surface transition-colors hover:border-border focus-within:border-primary';
+const TITLE_SHELL = `h-10 ${FIELD_SHELL}`;
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -80,7 +87,7 @@ function parseStepsText(text) {
     const line = raw.trim();
     if (!line) continue;
 
-    const numbered = line.match(/^(\d+)\.\s+(.+)/);
+    const numbered = line.match(/^(\d+)\.\s*(.+)/);
     if (numbered) {
       current = { number: parseInt(numbered[1], 10), title: numbered[2], bullets: [] };
       steps.push(current);
@@ -96,7 +103,7 @@ function parseStepsText(text) {
 }
 
 /* ── Single contenteditable line with inline {{chip}} rendering ── */
-function EditableLine({ text, className, onInput }) {
+function EditableLine({ text, className, onInput, onFocusLine }) {
   const ref = useRef(null);
   const lastSynced = useRef(null);
 
@@ -118,6 +125,7 @@ function EditableLine({ text, className, onInput }) {
       className={className}
       contentEditable
       suppressContentEditableWarning
+      onFocus={() => onFocusLine?.(ref.current)}
       onInput={() => {
         const s = serializeFrom(ref.current);
         lastSynced.current = s;
@@ -138,7 +146,7 @@ function serializeStepsList(rootEl) {
     const titleEl = titleWrapper
       ? titleWrapper.querySelector('[contenteditable]:not([contenteditable="false"])')
       : Array.from(stepEl.querySelectorAll('[contenteditable]:not([contenteditable="false"])'))[0];
-    if (titleEl) lines.push(`${num}. ${serializeFrom(titleEl)}`);
+    if (titleEl) lines.push(`${num}.${serializeFrom(titleEl)}`);
 
     const bulletWrappers = stepEl.querySelectorAll('[data-step-bullet]');
     if (bulletWrappers.length) {
@@ -156,47 +164,84 @@ function serializeStepsList(rootEl) {
 }
 
 /* ── Editable steps — identical layout to StepsRenderer ── */
-function EditableStepsRenderer({ text, onChange }) {
+function EditableStepsRenderer({ text, onChange, createMode = false }) {
   const rootRef = useRef(null);
+  const shellRef = useRef(null);
+  const activeEditableRef = useRef(null);
   const lastEmitted = useRef(text);
+  const [isFocused, setIsFocused] = useState(false);
   const steps = parseStepsText(text);
 
   useEffect(() => {
     lastEmitted.current = text;
   }, [text]);
 
+  const getActiveEditable = useCallback(() => {
+    const active = document.activeElement;
+    if (
+      active
+      && rootRef.current?.contains(active)
+      && active.getAttribute('contenteditable') === 'true'
+    ) {
+      return active;
+    }
+    return activeEditableRef.current;
+  }, []);
+
   const emitChange = useCallback(() => {
-    const next = rootRef.current ? serializeStepsList(rootRef.current) : text;
+    let next = text;
+    if (rootRef.current?.querySelector('[data-step-block]')) {
+      next = serializeStepsList(rootRef.current);
+    } else {
+      const active = getActiveEditable();
+      if (active) next = serializeFrom(active);
+    }
     if (next !== lastEmitted.current) {
       lastEmitted.current = next;
       onChange(next);
     }
-  }, [onChange, text]);
+  }, [onChange, text, getActiveEditable]);
+
+  const handleFocusLine = useCallback((el) => {
+    if (el) activeEditableRef.current = el;
+    setIsFocused(true);
+  }, []);
+
+  const handleShellBlur = useCallback((e) => {
+    if (!shellRef.current?.contains(e.relatedTarget)) {
+      setIsFocused(false);
+    }
+  }, []);
 
   const STEPS_EMPTY_HINT = 'Start writing instructions…\nType "/" to insert a tool, field, or procedure.';
 
-  if (!steps.length) {
-    return (
-      <div className={`${styles.stepsList} ${styles.stepsListWithHint}`} ref={rootRef}>
-        {!text.trim() && (
-          <div className={styles.stepsEmptyHint} aria-hidden>
-            {STEPS_EMPTY_HINT}
-          </div>
-        )}
-        <EditableLine
-          text={text}
-          className={styles.stepsEmptyEditable}
-          onInput={(lineText) => {
-            lastEmitted.current = lineText;
-            onChange(lineText);
-          }}
-        />
-      </div>
-    );
-  }
+  const nestedListClass = [
+    styles.stepsList,
+    styles.stepsListNested,
+    createMode && styles.stepsListNestedCreate,
+    !steps.length && styles.stepsListNestedEmpty,
+    !steps.length && styles.stepsListWithHint,
+  ].filter(Boolean).join(' ');
 
-  return (
-    <div className={styles.stepsList} ref={rootRef}>
+  const stepsInner = !steps.length ? (
+    <div className={nestedListClass}>
+      {!text.trim() && (
+        <div className={styles.stepsEmptyHint} aria-hidden>
+          {STEPS_EMPTY_HINT}
+        </div>
+      )}
+      <EditableLine
+        text={text}
+        className={styles.stepsEmptyEditable}
+        onFocusLine={handleFocusLine}
+        onInput={(lineText) => {
+          lastEmitted.current = lineText;
+          onChange(lineText);
+        }}
+      />
+    </div>
+  ) : (
+    <div className={nestedListClass}>
       {steps.map((step, i) => (
         <div
           key={i}
@@ -206,30 +251,50 @@ function EditableStepsRenderer({ text, onChange }) {
         >
           <div className={styles.stepTitleRow} data-step-title>
             {step.number !== null && (
-              <span className={styles.stepBadge}>{step.number}</span>
+              <span className={styles.stepNumberPrefix}>{step.number}.</span>
             )}
             <EditableLine
               text={step.title}
               className={styles.stepTitleText}
+              onFocusLine={handleFocusLine}
               onInput={emitChange}
             />
           </div>
           {step.bullets.length > 0 && (
-            <div className={styles.stepBullets}>
+            <ul className={styles.stepBullets}>
               {step.bullets.map((b, j) => (
-                <div key={j} className={styles.stepBulletRow} data-step-bullet>
-                  <span className={styles.stepBulletDot}>•</span>
+                <li key={j} className={styles.stepBulletRow} data-step-bullet>
                   <EditableLine
                     text={b}
                     className={styles.stepBulletText}
+                    onFocusLine={handleFocusLine}
                     onInput={emitChange}
                   />
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
       ))}
+    </div>
+  );
+
+  return (
+    <div
+      ref={shellRef}
+      className={`${styles.stepsEditorShell} ${createMode ? styles.stepsEditorShellCreate : ''} ${isFocused ? styles.stepsEditorShellFocused : ''}`}
+      onBlurCapture={handleShellBlur}
+    >
+      <div
+        className={`${styles.stepsEditorBody} ${createMode ? styles.stepsEditorBodyCreate : ''}`}
+        ref={rootRef}
+      >
+        {stepsInner}
+      </div>
+      <StepsEditorToolbar
+        getActiveEditable={getActiveEditable}
+        onAfterInsert={emitChange}
+      />
     </div>
   );
 }
@@ -246,19 +311,18 @@ function StepsRenderer({ text }) {
         <div key={i} className={styles.step}>
           <div className={styles.stepTitleRow}>
             {step.number !== null && (
-              <span className={styles.stepBadge}>{step.number}</span>
+              <span className={styles.stepNumberPrefix}>{step.number}.</span>
             )}
             <span className={styles.stepTitleText}>{renderInlineText(step.title)}</span>
           </div>
           {step.bullets.length > 0 && (
-            <div className={styles.stepBullets}>
+            <ul className={styles.stepBullets}>
               {step.bullets.map((b, j) => (
-                <div key={j} className={styles.stepBulletRow}>
-                  <span className={styles.stepBulletDot}>•</span>
-                  <span>{renderInlineText(b)}</span>
-                </div>
+                <li key={j} className={styles.stepBulletRow}>
+                  <span className={styles.stepBulletText}>{renderInlineText(b)}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
       ))}
@@ -273,10 +337,27 @@ const normalizeChips = (arr) => {
   );
 };
 
-function ChipContainer({ chips, onChipChange, onChipDelete, addingNew, onStartAdd, onCancelAdd, onCommitAdd, onChangeChipType, defaultType = 'variable', viewOnly, moreCount = 0, matchViewLayout = false, chipsReadOnly = false }) {
+function ChipContainer({
+  chips,
+  onChipChange,
+  onChipDelete,
+  addingNew,
+  onCancelAdd,
+  onCommitAdd,
+  onChangeChipType,
+  pendingAddType = 'variable',
+  viewOnly,
+  moreCount = 0,
+  chipsReadOnly = false,
+  showContainerAdd = false,
+  libraryContextStyle = false,
+  addPickerOpen = false,
+  onToggleAddPicker,
+  onSelectAddType,
+  addPickerRef,
+}) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerFor, setPickerFor] = useState(null);
-  const [pendingType, setPendingType] = useState(defaultType);
   const pickerRef = useRef(null);
 
   useEffect(() => {
@@ -288,21 +369,24 @@ function ChipContainer({ chips, onChipChange, onChipDelete, addingNew, onStartAd
     return () => document.removeEventListener('mousedown', handler);
   }, [pickerOpen]);
 
-  const openForAdd = () => { setPickerFor('add'); setPickerOpen(true); };
   const openForChip = (i) => { setPickerFor(i); setPickerOpen(true); };
   const selectType = (type) => {
     setPickerOpen(false);
-    if (pickerFor === 'add') { setPendingType(type); onStartAdd(); }
-    else if (typeof pickerFor === 'number') { onChangeChipType(pickerFor, type); }
+    if (typeof pickerFor === 'number') { onChangeChipType(pickerFor, type); }
     setPickerFor(null);
   };
 
   const hasChips = chips.length > 0 || addingNew;
+  const containerClass = libraryContextStyle ? styles.libraryContextBox : llmStyles.chipContainer;
+  const chipWrapClass = libraryContextStyle ? styles.libraryContextChips : llmStyles.chipWrap;
 
   return (
-    <div className={llmStyles.chipContainer}>
+    <div className={containerClass}>
+      {libraryContextStyle && !hasChips && (
+        <p className={styles.libraryContextEmpty}>No context added</p>
+      )}
       {hasChips && (
-        <div className={llmStyles.chipWrap}>
+        <div className={chipWrapClass}>
           {chips.map((chip, i) => (
             <VariableChip
               key={i}
@@ -317,9 +401,9 @@ function ChipContainer({ chips, onChipChange, onChipDelete, addingNew, onStartAd
           {addingNew && (
             <VariableChip
               value=""
-              type={pendingType}
+              type={pendingAddType}
               autoFocus
-              onChange={(v) => onCommitAdd(v, pendingType)}
+              onChange={(v) => onCommitAdd(v, pendingAddType)}
               onDelete={onCancelAdd}
             />
           )}
@@ -328,13 +412,43 @@ function ChipContainer({ chips, onChipChange, onChipDelete, addingNew, onStartAd
       {moreCount > 0 && (
         <span className={styles.moreContext}>+ {moreCount} more</span>
       )}
-      {!viewOnly && !matchViewLayout && (
-        <div className={llmStyles.addRow} ref={pickerRef}>
-          <button className={llmStyles.addBtn} type="button" onClick={openForAdd}>
-            <span className="material-symbols-outlined">add_circle</span>
-            <span className={llmStyles.addBtnLabel}>Add</span>
+      {showContainerAdd && (
+        <div
+          className={libraryContextStyle ? styles.libraryContextFooter : styles.contextAddRowInContainer}
+          ref={addPickerRef}
+        >
+          <button
+            className={libraryContextStyle ? styles.libraryContextAddBtn : styles.contextAddBtn}
+            type="button"
+            onClick={onToggleAddPicker}
+          >
+            {libraryContextStyle && <Icon name="add_circle" size={16} />}
+            Add
           </button>
-          {pickerOpen && (
+          {addPickerOpen && (
+            <div className={llmStyles.typePicker}>
+              {CHIP_TYPES.map((ct) => (
+                <button
+                  key={ct.type}
+                  className={llmStyles.typePickerItem}
+                  type="button"
+                  onClick={() => onSelectAddType(ct.type)}
+                >
+                  <span className={`${llmStyles.typePickerSwatch} ${llmStyles[`tpSwatch${cap(ct.type)}`] || ''}`}>
+                    {ct.icon
+                      ? <span className={`material-symbols-outlined ${llmStyles[`tpIcon${cap(ct.type)}`] || ''}`}>{ct.icon}</span>
+                      : <DataTypeIcon />}
+                  </span>
+                  <span className={llmStyles.typePickerLabel}>{ct.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      {!viewOnly && !chipsReadOnly && (
+        <div className={styles.chipTypePickerAnchor} ref={pickerRef}>
+          {pickerOpen && typeof pickerFor === 'number' && (
             <div className={llmStyles.typePicker}>
               {CHIP_TYPES.map((ct) => (
                 <button
@@ -359,46 +473,110 @@ function ChipContainer({ chips, onChipChange, onChipDelete, addingNew, onStartAd
   );
 }
 
-function ChipSection({ label, chips, onChange, defaultType = 'variable', viewOnly, moreCount = 0, matchViewLayout = false, chipsReadOnly = false }) {
+function ChipSection({
+  label,
+  chips,
+  onChange,
+  defaultType = 'variable',
+  viewOnly,
+  moreCount = 0,
+  chipsReadOnly = false,
+  showContextAdd = false,
+  libraryContextStyle = false,
+}) {
   const [adding, setAdding] = useState(false);
+  const [addPickerOpen, setAddPickerOpen] = useState(false);
+  const [pendingAddType, setPendingAddType] = useState(defaultType);
+  const addPickerRef = useRef(null);
+
+  useEffect(() => {
+    if (!addPickerOpen) return;
+    const handler = (e) => {
+      if (addPickerRef.current && !addPickerRef.current.contains(e.target)) setAddPickerOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [addPickerOpen]);
 
   const commitAdd = (v, type) => { onChange([...chips, { value: v, type }]); setAdding(false); };
   const changeChip = (i, v) => { const n = [...chips]; n[i] = { ...n[i], value: v }; onChange(n); };
   const deleteChip = (i) => onChange(chips.filter((_, idx) => idx !== i));
   const changeType = (i, type) => { const n = [...chips]; n[i] = { ...n[i], type }; onChange(n); };
 
+  const selectAddType = (type) => {
+    setPendingAddType(type);
+    setAddPickerOpen(false);
+    setAdding(true);
+  };
+
   return (
     <div className={styles.section}>
-      <div className={etStyles.sectionLabelWrapper}>
-        <span className={etStyles.sectionLabelText}>{label}</span>
-        <span className={`material-symbols-outlined ${etStyles.sectionLabelIcon}`}>info</span>
+      <div className={styles.sectionLabelRow}>
+        <div className={etStyles.sectionLabelWrapper}>
+          <span className={etStyles.sectionLabelText}>{label}</span>
+          <span className={`material-symbols-outlined ${etStyles.sectionLabelIcon}`}>info</span>
+        </div>
+        {!viewOnly && showContextAdd && (
+          <div className={styles.contextAddRow} ref={addPickerRef}>
+            <button
+              className={styles.contextAddBtn}
+              type="button"
+              onClick={() => setAddPickerOpen((open) => !open)}
+            >
+              + Add
+            </button>
+            {addPickerOpen && (
+              <div className={llmStyles.typePicker}>
+                {CHIP_TYPES.map((ct) => (
+                  <button
+                    key={ct.type}
+                    className={llmStyles.typePickerItem}
+                    type="button"
+                    onClick={() => selectAddType(ct.type)}
+                  >
+                    <span className={`${llmStyles.typePickerSwatch} ${llmStyles[`tpSwatch${cap(ct.type)}`] || ''}`}>
+                      {ct.icon
+                        ? <span className={`material-symbols-outlined ${llmStyles[`tpIcon${cap(ct.type)}`] || ''}`}>{ct.icon}</span>
+                        : <DataTypeIcon />}
+                    </span>
+                    <span className={llmStyles.typePickerLabel}>{ct.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <ChipContainer
         chips={chips}
         onChipChange={changeChip}
         onChipDelete={deleteChip}
         addingNew={adding}
-        onStartAdd={() => setAdding(true)}
         onCancelAdd={() => setAdding(false)}
         onCommitAdd={commitAdd}
         onChangeChipType={changeType}
-        defaultType={defaultType}
+        pendingAddType={pendingAddType}
         viewOnly={viewOnly}
         moreCount={moreCount}
-        matchViewLayout={matchViewLayout}
         chipsReadOnly={chipsReadOnly}
+        showContainerAdd={!viewOnly && (libraryContextStyle || !showContextAdd)}
+        libraryContextStyle={libraryContextStyle}
+        addPickerOpen={addPickerOpen}
+        onToggleAddPicker={() => setAddPickerOpen((open) => !open)}
+        onSelectAddType={selectAddType}
+        addPickerRef={addPickerRef}
       />
     </div>
   );
 }
 
-const TITLE_PLACEHOLDER = 'Enter';
+const TITLE_PLACEHOLDER = 'Enter procedure title';
 const WHEN_CREATE_PLACEHOLDER = `Describe the trigger that should activate this procedure.
 
 Examples:
 • Customer wants to reschedule an appointment
-• User reports a payment issue
-• Patient asks about medication instructions`;
+• User reports a payment issue`;
+const WHEN_EDIT_PLACEHOLDER = 'Describe when this procedure should be triggered...';
 
 export default function ProcedureDetailBody({
   initialValues = {},
@@ -433,44 +611,67 @@ export default function ProcedureDetailBody({
           <div className={etStyles.sectionLabelWrapper}>
             <span className={etStyles.sectionLabelText}>Procedure title</span>
           </div>
-          <div className={styles.fieldWithHint}>
-            {!viewOnly && !title.trim() && (
-              <div className={styles.fieldHint} aria-hidden>
-                {TITLE_PLACEHOLDER}
-              </div>
-            )}
+          {viewOnly ? (
             <input
               type="text"
-              className={styles.whenToUseInput}
+              className={styles.readOnlyField}
               value={title}
-              readOnly={viewOnly}
-              onChange={(e) => {
-                const val = e.target.value;
-                setTitle(val);
-                onFieldChange?.('name', val);
-              }}
+              readOnly
             />
-          </div>
+          ) : (
+            <EmptyHintField
+              hint={TITLE_PLACEHOLDER}
+              isEmpty={!title.trim()}
+              className={TITLE_SHELL}
+              hintClassName="flex items-center px-md"
+            >
+              <input
+                type="text"
+                className="h-10 w-full bg-transparent px-md text-body text-text-primary outline-none"
+                value={title}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setTitle(val);
+                  onFieldChange?.('name', val);
+                }}
+              />
+            </EmptyHintField>
+          )}
         </div>
       )}
 
       <div className={styles.section}>
         <div className={etStyles.sectionLabelWrapper}>
           <span className={etStyles.sectionLabelText}>
-            When to use this procedure?<span className={styles.required}> *</span>
+            When should this procedure be used?<span className={styles.required}> *</span>
           </span>
         </div>
-        <div className={styles.fieldWithHint}>
-          {!viewOnly && !whenToUse.trim() && (
-            <div className={`${styles.fieldHint} ${showTitle ? styles.fieldHintMultiline : ''}`} aria-hidden>
-              {showTitle ? WHEN_CREATE_PLACEHOLDER : 'Describe when this procedure should be triggered...'}
-            </div>
-          )}
-          {showTitle ? (
+        {viewOnly ? (
+          showTitle ? (
             <textarea
-              className={`${styles.whenToUseInput} ${styles.whenToUseTextarea}`}
+              className={`${styles.readOnlyField} ${styles.readOnlyTextarea}`}
               value={whenToUse}
-              readOnly={viewOnly}
+              readOnly
+              rows={5}
+            />
+          ) : (
+            <input
+              type="text"
+              className={styles.readOnlyField}
+              value={whenToUse}
+              readOnly
+            />
+          )
+        ) : showTitle ? (
+          <EmptyHintField
+            hint={WHEN_CREATE_PLACEHOLDER}
+            isEmpty={!whenToUse.trim()}
+            className={FIELD_SHELL}
+            hintClassName="p-md"
+          >
+            <textarea
+              className="w-full resize-y bg-transparent p-md text-body leading-relaxed text-text-primary outline-none"
+              value={whenToUse}
               rows={5}
               onChange={(e) => {
                 const val = e.target.value;
@@ -478,20 +679,26 @@ export default function ProcedureDetailBody({
                 onFieldChange?.('whenToUse', val);
               }}
             />
-          ) : (
+          </EmptyHintField>
+        ) : (
+          <EmptyHintField
+            hint={WHEN_EDIT_PLACEHOLDER}
+            isEmpty={!whenToUse.trim()}
+            className={TITLE_SHELL}
+            hintClassName="flex items-center px-md"
+          >
             <input
               type="text"
-              className={styles.whenToUseInput}
+              className="h-10 w-full bg-transparent px-md text-body text-text-primary outline-none"
               value={whenToUse}
-              readOnly={viewOnly}
               onChange={(e) => {
                 const val = e.target.value;
                 setWhenToUse(val);
                 onFieldChange?.('whenToUse', val);
               }}
             />
-          )}
-        </div>
+          </EmptyHintField>
+        )}
       </div>
 
       <ChipSection
@@ -501,8 +708,9 @@ export default function ProcedureDetailBody({
         defaultType="variable"
         viewOnly={viewOnly}
         moreCount={moreContextCount}
-        matchViewLayout={contextEditable || !viewOnly}
         chipsReadOnly={!contextEditable}
+        showContextAdd={false}
+        libraryContextStyle={contextEditable}
       />
 
       <div className={styles.section}>
@@ -515,6 +723,7 @@ export default function ProcedureDetailBody({
         ) : (
           <EditableStepsRenderer
             text={stepsText}
+            createMode={showTitle}
             onChange={(val) => { setStepsText(val); onFieldChange?.('stepsText', val); }}
           />
         )}

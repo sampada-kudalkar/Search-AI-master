@@ -75,6 +75,7 @@ export function WorkflowViewerTab({ instanceName, onEdit, product }: WorkflowVie
             initialNodes={workflow.nodes}
             initialNodeDetails={workflow.nodeDetails}
             procedures={filteredProcedures}
+            defaultOpenSection="Tasks"
           />
         </Suspense>
       </div>

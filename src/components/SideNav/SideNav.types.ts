@@ -3,6 +3,10 @@ export interface NavLeaf {
   label: string
   /** Renders an open_in_new icon (external link) after the label. */
   external?: boolean
+  /** Renders the label with a strikethrough style. */
+  strikethrough?: boolean
+  /** Renders the item indented one level, for sub-items. */
+  indent?: boolean
 }
 
 export interface NavSection {

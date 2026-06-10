@@ -239,6 +239,7 @@ export function PreviewSidePanelHeader({
   onToggle,
   showClose = false,
   onClose = () => {},
+  showViewLogs = true,
   logsLinkDisabled = false,
 }) {
   const showLogs = panel === 'logs';
@@ -247,14 +248,16 @@ export function PreviewSidePanelHeader({
     <div className="preview-panel__header">
       <span className="preview-panel__title">{showLogs ? 'Logs' : 'Preview'}</span>
       <div className="preview-panel__header-actions">
-        <button
-          type="button"
-          className={`preview-panel__logs-link${logsLinkDisabled ? ' preview-panel__logs-link--disabled' : ''}`}
-          onClick={onToggle}
-          disabled={logsLinkDisabled}
-        >
-          {showLogs ? 'View preview' : 'View logs'}
-        </button>
+        {showViewLogs && (
+          <button
+            type="button"
+            className={`preview-panel__logs-link${logsLinkDisabled ? ' preview-panel__logs-link--disabled' : ''}`}
+            onClick={onToggle}
+            disabled={logsLinkDisabled}
+          >
+            {showLogs ? 'View preview' : 'View logs'}
+          </button>
+        )}
         {showClose && (
           <button
             type="button"

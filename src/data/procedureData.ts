@@ -108,7 +108,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Handle general inquiry',
     category: 'Inbound General',
     description: 'Answers informational questions like hours, location, financing, and services.',
-    lastEdited: 'May 18',
+    lastEdited: 'May 12',
     whenToUse: 'Caller has a question that does not match a specific procedure.',
     steps: [
       {
@@ -153,7 +153,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Department transfer',
     category: 'Inbound General',
     description: 'Routes the caller to the right department with a warm, context-rich handoff.',
-    lastEdited: 'May 18',
+    lastEdited: 'May 6',
     whenToUse: 'Caller requests a specific department or intent maps to another department.',
     steps: [
       {
@@ -197,7 +197,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Handle unclear message',
     category: 'Inbound General',
     description: "Clarifies vague or out-of-scope messages to recover the caller's intent.",
-    lastEdited: 'May 18',
+    lastEdited: 'Apr 29',
     whenToUse: 'Speech-to-text confidence is low or caller intent is ambiguous.',
     steps: [
       {
@@ -235,7 +235,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Talk to human',
     category: 'Inbound General',
     description: 'Hands off to a live agent when the caller asks for a person or shows frustration.',
-    lastEdited: 'May 18',
+    lastEdited: 'Apr 22',
     whenToUse: 'Caller explicitly requests a human agent.',
     steps: [
       {
@@ -279,7 +279,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Identify caller',
     category: 'Inbound General',
     description: 'Confirms caller identity before any account or appointment action is taken.',
-    lastEdited: 'May 18',
+    lastEdited: 'Apr 15',
     whenToUse: 'Before performing any account-specific or appointment action.',
     steps: [
       {
@@ -325,7 +325,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Schedule service appointment',
     category: 'Service',
     description: 'Finds availability and schedules a new service visit for the customer.',
-    lastEdited: 'May 18',
+    lastEdited: 'Apr 8',
     whenToUse: 'Caller wants to book a service appointment.',
     steps: [
       {
@@ -371,7 +371,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Reschedule appointment',
     category: 'Service',
     description: 'Moves an existing upcoming appointment to a new time.',
-    lastEdited: 'May 18',
+    lastEdited: 'Apr 2',
     whenToUse: 'Caller wants to change an existing appointment.',
     steps: [
       {
@@ -415,7 +415,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Cancel appointment',
     category: 'Service',
     description: 'Cancels an existing appointment and releases the slot.',
-    lastEdited: 'May 18',
+    lastEdited: 'Mar 28',
     whenToUse: 'Caller wants to cancel an existing appointment.',
     steps: [
       {
@@ -459,7 +459,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Book new appointment',
     category: 'Service',
     description: 'Finds availability and schedules a new visit for the customer.',
-    lastEdited: 'May 18',
+    lastEdited: 'Mar 20',
     whenToUse: 'Caller has no existing appointment and wants to book a visit.',
     steps: [
       {
@@ -503,7 +503,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Handle slot conflict',
     category: 'Service',
     description: 'Re-offers availability when the chosen slot was already taken.',
-    lastEdited: 'May 18',
+    lastEdited: 'Mar 14',
     whenToUse: 'The slot the caller picked is no longer available.',
     steps: [
       {
@@ -547,7 +547,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Repair / diagnostic triage',
     category: 'Service',
     description: 'Triages a described vehicle problem and books the right level of service.',
-    lastEdited: 'May 18',
+    lastEdited: 'Mar 7',
     whenToUse: 'Caller describes a vehicle problem or warning light.',
     steps: [
       {
@@ -593,7 +593,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Recall inquiry',
     category: 'Service',
     description: 'Checks for open recalls on a vehicle and books recall service.',
-    lastEdited: 'May 18',
+    lastEdited: 'Feb 26',
     whenToUse: 'Caller asks about recalls on their vehicle.',
     steps: [
       {
@@ -638,7 +638,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Service status check',
     category: 'Service',
     description: 'Reports the status and estimated completion of an in-progress repair.',
-    lastEdited: 'May 18',
+    lastEdited: 'Feb 18',
     whenToUse: 'Caller inquires about an in-progress repair.',
     steps: [
       {
@@ -682,7 +682,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Warranty inquiry',
     category: 'Service',
     description: 'Explains warranty coverage and books work under warranty when eligible.',
-    lastEdited: 'May 18',
+    lastEdited: 'Feb 11',
     whenToUse: 'Caller asks about warranty coverage.',
     steps: [
       {
@@ -726,7 +726,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'New vehicle inquiry',
     category: 'Sales',
     description: 'Matches interest to inventory and captures a sales lead.',
-    lastEdited: 'May 18',
+    lastEdited: 'Feb 3',
     whenToUse: 'Caller is interested in purchasing a new vehicle.',
     steps: [
       {
@@ -771,7 +771,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Used / CPO vehicle inquiry',
     category: 'Sales',
     description: 'Matches pre-owned interest to inventory and shares vehicle history.',
-    lastEdited: 'May 18',
+    lastEdited: 'Jan 27',
     whenToUse: 'Caller is interested in pre-owned or certified vehicles.',
     steps: [
       {
@@ -816,7 +816,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Trade-in valuation',
     category: 'Sales',
     description: 'Provides an estimated trade-in range and offers an in-person appraisal.',
-    lastEdited: 'May 18',
+    lastEdited: 'Jan 19',
     whenToUse: 'Caller wants to know the trade-in value of their current vehicle.',
     steps: [
       {
@@ -860,7 +860,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Finance pre-qualification',
     category: 'Sales',
     description: 'Explains financing options and routes to F&I for detailed review.',
-    lastEdited: 'May 18',
+    lastEdited: 'Jan 12',
     whenToUse: 'Caller asks about financing options or payment estimates.',
     steps: [
       {
@@ -905,7 +905,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Test drive scheduling',
     category: 'Sales',
     description: 'Confirms availability and books a test drive for the vehicles of interest.',
-    lastEdited: 'May 18',
+    lastEdited: 'Jan 5',
     whenToUse: 'Caller wants to schedule a test drive.',
     steps: [
       {
@@ -948,7 +948,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Internet lead qualification',
     category: 'Sales',
     description: 'Follows up on an online inquiry and qualifies the lead.',
-    lastEdited: 'May 18',
+    lastEdited: 'Dec 28',
     whenToUse: 'Following up on an online form submission or website inquiry.',
     steps: [
       {
@@ -994,7 +994,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Parts availability & pricing',
     category: 'Parts',
     description: 'Checks parts availability and pricing and offers to place an order.',
-    lastEdited: 'May 18',
+    lastEdited: 'Dec 19',
     whenToUse: 'Caller inquires about parts availability or pricing.',
     steps: [
       {
@@ -1039,7 +1039,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'After-hours lead capture',
     category: 'After-Hours',
     description: 'Captures a sales inquiry received outside business hours for next-day follow-up.',
-    lastEdited: 'May 18',
+    lastEdited: 'Dec 11',
     whenToUse: 'A sales inquiry is received outside business hours.',
     steps: [
       {
@@ -1084,7 +1084,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'After-hours service request',
     category: 'After-Hours',
     description: 'Triages a service inquiry received outside business hours.',
-    lastEdited: 'May 18',
+    lastEdited: 'Dec 4',
     whenToUse: 'A service inquiry is received outside business hours.',
     steps: [
       {
@@ -1128,7 +1128,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Lead follow-up call',
     category: 'Outbound',
     description: 'Calls an internet lead within minutes to confirm interest and book a visit.',
-    lastEdited: 'May 18',
+    lastEdited: 'Nov 26',
     whenToUse: 'An internet lead is received and an outbound call is initiated within 5 minutes.',
     steps: [
       {
@@ -1174,7 +1174,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Appointment confirmation',
     category: 'Outbound',
     description: 'Runs the reminder journey that confirms a scheduled appointment.',
-    lastEdited: 'May 18',
+    lastEdited: 'Nov 17',
     whenToUse: 'An appointment is scheduled and the confirmation journey begins.',
     steps: [
       {
@@ -1219,7 +1219,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'No-show re-engagement',
     category: 'Outbound',
     description: 'Re-engages a customer who missed an appointment and offers easy rebooking.',
-    lastEdited: 'May 18',
+    lastEdited: 'Nov 9',
     whenToUse: 'Customer missed a scheduled appointment without canceling.',
     steps: [
       {
@@ -1263,7 +1263,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Lease maturity outreach',
     category: 'Outbound',
     description: 'Proactively presents lease-end options before a lease matures.',
-    lastEdited: 'May 18',
+    lastEdited: 'Nov 2',
     whenToUse: 'A customer lease matures within 90 days.',
     steps: [
       {
@@ -1308,7 +1308,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'Service lapse re-engagement',
     category: 'Outbound',
     description: 'Re-engages customers who have not visited for service in a while.',
-    lastEdited: 'May 18',
+    lastEdited: 'Oct 24',
     whenToUse: 'A customer has not visited for service in 6 or more months.',
     steps: [
       {
@@ -1352,7 +1352,7 @@ const RICH_PROCEDURES: Procedure[] = [
     name: 'CSI follow-up',
     category: 'Outbound',
     description: 'Sends a satisfaction survey and escalates negative responses.',
-    lastEdited: 'May 18',
+    lastEdited: 'Oct 16',
     whenToUse: 'A customer completed a service or purchase within the last 48 hours.',
     steps: [
       {
@@ -1400,7 +1400,7 @@ const EMERGENCY: Procedure = {
   name: 'Handle emergency or urgent concern',
   category: 'Inbound General',
   description: 'Detects urgent symptoms or safety issues and routes the caller fast, for caller safety.',
-  lastEdited: 'May 18',
+  lastEdited: 'Oct 8',
   whenToUse:
     "Caller describes a worsening problem, a safety issue, a breakdown they feel can't wait, anxiety about a vehicle fault, or any time-sensitive issue (but not life-threatening).",
   steps: [
@@ -1531,7 +1531,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Handle general inquiry',
     category: 'Healthcare Frontdesk',
     description: 'Answers informational questions about hours, location, insurance, services, and directions. Includes emergency triage when patient mentions an urgent concern.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'Jun 9',
     whenToUse: 'Patient asks a general or informational question — hours, location, parking, insurance accepted, services offered, directions, telehealth availability, wait times.',
     steps: [
       {
@@ -1576,7 +1576,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Handle emergency or urgent concern',
     category: 'Healthcare Frontdesk',
     description: 'Triages urgent (non-life-threatening) patient concerns and routes to same-day care or nurse line.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'Jun 7',
     whenToUse: "Patient describes worsening symptoms, medication reaction, post-visit concern they feel can't wait, anxiety about results, or any time-sensitive medical issue (but not life-threatening).",
     steps: [
       {
@@ -1614,7 +1614,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Handle unclear message',
     category: 'Healthcare Frontdesk',
     description: 'Recovers unclear or ambiguous patient messages through two guided clarification attempts before escalating.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'Jun 5',
     whenToUse: "Patient's message is too vague, ambiguous, or out-of-scope to match any other procedure's trigger with confidence.",
     steps: [
       {
@@ -1647,7 +1647,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Talk to human',
     category: 'Healthcare Frontdesk',
     description: 'Immediately connects the patient to a live team member when requested, or captures a callback request if outside business hours.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'Jun 3',
     whenToUse: 'Patient explicitly asks to speak with a person, real agent, receptionist, or human — or expresses frustration with the AI.',
     steps: [
       {
@@ -1673,7 +1673,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Book new appointment',
     category: 'Healthcare Frontdesk',
     description: 'Identifies the patient, captures details for new patients, verifies insurance, offers available slots, and confirms the appointment.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'Jun 2',
     whenToUse: 'Patient wants to schedule a new appointment and mentions it explicitly ("I want to book an appointment").',
     steps: [
       {
@@ -1735,7 +1735,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Reschedule appointment',
     category: 'Healthcare Frontdesk',
     description: 'Looks up the patient\'s existing appointments, finds a new slot, and moves the appointment without re-triggering insurance verification.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'May 30',
     whenToUse: 'Patient has an existing appointment and wants to move it to a different date or time — "change my appointment," "can we move it," "something came up."',
     steps: [
       {
@@ -1784,7 +1784,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Cancel appointment',
     category: 'Healthcare Frontdesk',
     description: 'Locates the patient\'s appointment, confirms the cancellation intent, and releases the slot — with an optional offer to rebook.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'May 27',
     whenToUse: 'Patient wants to cancel an existing appointment without immediately rebooking — "I need to cancel," "I can\'t make it," "please remove my appointment."',
     steps: [
       {
@@ -1832,7 +1832,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Handle slot conflict',
     category: 'Healthcare Frontdesk',
     description: 'Re-offers availability when the chosen slot was taken between selection and write, with up to 2 automatic retries.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'May 24',
     whenToUse: 'The create_appointment or reschedule_appointment tool returned a slot_taken error — the selected slot was booked by someone else between selection and write.',
     steps: [
       {
@@ -1871,7 +1871,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Handle booking failure',
     category: 'Healthcare Frontdesk',
     description: 'Recovers gracefully from tool failures (connectivity errors, timeouts, patient creation failures) by logging a high-priority staff task and confirming callback details.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'May 21',
     whenToUse: 'A tool call (create_appointment, reschedule_appointment, cancel_appointment, lookup_patient) failed for a non-slot reason — connectivity error, API timeout, or patient creation failed.',
     steps: [
       {
@@ -1910,7 +1910,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Verify insurance',
     category: 'Healthcare Frontdesk',
     description: 'Runs a real-time eligibility check so the patient knows their copay and coverage status before picking a slot. Handles PA requirements, COB, self-pay, and pending verification paths.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'May 18',
     whenToUse: 'Runs eligibility check against the patient\'s insurance on file or newly collected, so the patient knows their copay and coverage status before they pick a time.',
     steps: [
       {
@@ -1969,7 +1969,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Appointment confirmation',
     category: 'Healthcare Frontdesk',
     description: 'Outbound flow that confirms a scheduled appointment via text then voice call, branching on patient response.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'May 15',
     whenToUse: 'Triggered outbound when an appointment is scheduled and the confirmation journey begins.',
     steps: [
       {
@@ -2009,7 +2009,7 @@ const HC_PROCEDURES_UNSORTED: Procedure[] = [
     name: 'Waitlist slot confirmation',
     category: 'Healthcare Frontdesk',
     description: 'Contacts waitlisted patients when a slot opens, confirms via text then outbound call, and loops back to the waitlist if unconfirmed.',
-    lastEdited: 'Jun 2026',
+    lastEdited: 'May 11',
     whenToUse: 'A slot opens on the waitlist and the system needs to offer it to the next eligible patient.',
     steps: [
       {

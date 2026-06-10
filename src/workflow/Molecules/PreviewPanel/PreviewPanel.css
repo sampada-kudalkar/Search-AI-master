@@ -69,7 +69,7 @@
   font-family: 'Roboto', sans-serif;
 }
 
-.preview-panel__logs-link:hover:not(:disabled) { text-decoration: underline; }
+.preview-panel__logs-link:hover:not(:disabled) { text-decoration: none; }
 
 .preview-panel__logs-link--disabled,
 .preview-panel__logs-link:disabled {

@@ -556,7 +556,7 @@
 }
 
 .rhs-drawer__advanced-link:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* ─── Add card (context / input / output fields) ─── */

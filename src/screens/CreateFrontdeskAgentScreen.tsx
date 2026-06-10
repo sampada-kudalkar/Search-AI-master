@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { BackArrowIcon } from '../assets/BackArrowIcon'
-import { Icon, InfoCard, TopNav } from '../components'
+import { Icon, InfoCard, Link, TopNav } from '../components'
 import { NewFrontdeskAgentSetupScreen } from './NewFrontdeskAgentSetupScreen'
 
 interface CreateFrontdeskAgentScreenProps {
@@ -89,7 +89,7 @@ export function CreateFrontdeskAgentScreen({
       <NewFrontdeskAgentSetupScreen
         onBack={() => setShowSetupWizard(false)}
         onCancel={onBack}
-        onComplete={(name) => onUseTemplate?.(name)}
+        onComplete={(draft) => onUseTemplate?.(draft.agentName)}
       />
     )
   }
@@ -117,13 +117,13 @@ export function CreateFrontdeskAgentScreen({
           <div className="flex flex-col items-center gap-sm text-center">
             <p className="text-body text-text-primary">
               Build your agent.{' '}
-              <button
-                type="button"
+              <Link
+                as="button"
                 onClick={() => setShowSetupWizard(true)}
-                className="text-body text-text-action hover:underline"
+                className="text-body"
               >
                 Set up a new agent
-              </button>
+              </Link>
             </p>
             <p className="text-body text-text-primary">or</p>
             <button

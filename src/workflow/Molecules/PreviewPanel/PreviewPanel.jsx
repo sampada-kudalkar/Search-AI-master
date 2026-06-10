@@ -247,7 +247,13 @@ function TranscriptMessages({ messages, interim }) {
   );
 }
 
-export default function PreviewPanel({ onClose, onPreviewActiveChange }) {
+export default function PreviewPanel({
+  onClose,
+  onPreviewActiveChange,
+  showClose = true,
+  showViewDetails = true,
+  showViewLogs = true,
+}) {
   const [panelView, setPanelView]   = useState('preview'); // preview | logs | details
   const [phase, setPhase]         = useState('idle');   // idle | dialing | active | ended
   const [mode, setMode]           = useState('none');   // none | voice | chat
@@ -486,8 +492,9 @@ export default function PreviewPanel({ onClose, onPreviewActiveChange }) {
       <PreviewSidePanelHeader
         panel={showLogs ? 'logs' : 'preview'}
         onToggle={handleToggleView}
-        showClose
+        showClose={showClose}
         onClose={handleClose}
+        showViewLogs={showViewLogs}
         logsLinkDisabled={logsLinkDisabled}
       />
 
@@ -588,13 +595,15 @@ export default function PreviewPanel({ onClose, onPreviewActiveChange }) {
               <button
                 className="preview-panel__restart-btn"
                 type="button"
-                onClick={mode === 'chat' ? handleReset : handleStartCall}
+                onClick={!showViewDetails ? handleReset : mode === 'chat' ? handleReset : handleStartCall}
               >
-                {mode === 'chat' ? 'Start a chat' : 'Start a call'}
+                {!showViewDetails ? 'Preview again' : mode === 'chat' ? 'Start a chat' : 'Start a call'}
               </button>
-              <button className="preview-panel__details-btn" type="button" onClick={() => setPanelView('details')}>
-                View details
-              </button>
+              {showViewDetails && (
+                <button className="preview-panel__details-btn" type="button" onClick={() => setPanelView('details')}>
+                  View details
+                </button>
+              )}
             </div>
           </div>
         )}

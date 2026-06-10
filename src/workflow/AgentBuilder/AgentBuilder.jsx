@@ -275,7 +275,11 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
     id: START_NODE_ID,
     type: 'start',
     position: { x: 0, y },
-    data: { title: startData.title, subtitle: startData.subtitle },
+    data: {
+      title: startData.title,
+      subtitle: startData.subtitle,
+      subtitleIsLink: startData.subtitleIsLink,
+    },
   });
   y += FLOW_START_GAP;
 
@@ -540,6 +544,8 @@ export default function AgentBuilder({
   product = 'automotive',
   procedures = null,
   onAddProcedure,
+  publishDisabled = false,
+  defaultOpenSection = 'Tasks',
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -1074,7 +1080,12 @@ export default function AgentBuilder({
   }, [selectedNodeId]);
 
   const startAgentName = nodeDetails[START_NODE_ID]?.agentName || pageTitle;
-  const startData = { title: startAgentName, subtitle: 'All locations' };
+  const startLocations = nodeDetails[START_NODE_ID]?.locations || [];
+  const startData = {
+    title: startAgentName,
+    subtitle: startLocations.length > 0 ? 'All locations' : 'Add locations',
+    subtitleIsLink: startLocations.length === 0,
+  };
   const { nodes: rawNodes, edges } = buildFlow(nodeList, startData, nodeDetails, product);
 
   const nodes = rawNodes.map((n) => {
@@ -1273,24 +1284,27 @@ export default function AgentBuilder({
     }
 
     if (effectiveType === 'voiceCall') {
-      const acceptedId = `${id}-vc-accepted`;
-      const rejectedId = `${id}-vc-rejected`;
-      const missedId  = `${id}-vc-missed`;
+      const completedId = `${id}-vc-completed`;
+      const rejectedId  = `${id}-vc-rejected`;
+      const missedId    = `${id}-vc-missed`;
+      const voicemailId = `${id}-vc-voicemail`;
       details = {
         taskName: 'Initiate voice call',
         description: 'Call the customer',
         toolId: 'initiate-voice-call',
         selectedTools: ['initiate-voice-call'],
         branches: [
-          { id: acceptedId, name: 'Call accepted', isVoiceCallBranch: true },
-          { id: rejectedId, name: 'Call rejected', isVoiceCallBranch: true },
-          { id: missedId,   name: 'Call missed',   isVoiceCallBranch: true },
+          { id: completedId, name: 'Call completed', isVoiceCallBranch: true },
+          { id: rejectedId,  name: 'Call rejected',  isVoiceCallBranch: true },
+          { id: missedId,    name: 'Call missed',     isVoiceCallBranch: true },
+          { id: voicemailId, name: 'Voicemail',       isVoiceCallBranch: true },
         ],
       };
       extraDetails = {
-        [acceptedId]: { branchName: 'Call accepted', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [rejectedId]: { branchName: 'Call rejected', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [missedId]:   { branchName: 'Call missed',   parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [completedId]: { branchName: 'Call completed', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [rejectedId]:  { branchName: 'Call rejected',  parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [missedId]:    { branchName: 'Call missed',     parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [voicemailId]: { branchName: 'Voicemail',       parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
       };
     }
 
@@ -1739,10 +1753,11 @@ export default function AgentBuilder({
       >
         <span className="material-symbols-outlined" style={{ fontSize: 20, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20" }}>cloud_upload</span>
       </button>
-      <Button
+<Button
         theme="primary"
         label={isTemplateMode ? 'Save template' : 'Publish'}
         onClick={isTemplateMode ? handleSaveTemplate : handlePublish}
+        disabled={!isTemplateMode && publishDisabled}
       />
     </div>
   );
@@ -1825,9 +1840,7 @@ export default function AgentBuilder({
           <div className="agent-builder__lhs">
             <LHSDrawer
               defaultTab="Create manually"
-              triggerOpen
-              tasksOpen={false}
-              controlsOpen={false}
+              defaultOpenSection={defaultOpenSection}
               viewOnly={viewOnly}
               product={product}
               procedures={procedures}
@@ -1845,6 +1858,7 @@ export default function AgentBuilder({
               orientation="vertical"
               viewOnly={viewOnly}
               onEdit={viewOnly ? onEdit : undefined}
+              onRun={() => setPreviewOpen(true)}
             />
           </div>
 

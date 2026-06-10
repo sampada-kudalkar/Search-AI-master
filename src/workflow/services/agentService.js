@@ -49,7 +49,7 @@ const _SEED_TOOLS = [
     id: 'initiate-voice-call',
     name: 'Initiate voice call',
     icon: 'call',
-    description: 'Places an outbound voice call to the customer and routes the outcome to Call accepted, Call rejected, or Call missed.',
+    description: 'Places an outbound voice call to the customer and routes the outcome to Call completed, Call rejected, Call missed, or Voicemail.',
     category: 'Communication',
     fields: [
       {

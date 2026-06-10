@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 
 interface CalendarEvent {
   id: string
@@ -93,9 +94,9 @@ function EventTooltip({ event, pos, onClose }: { event: CalendarEvent; pos: Tool
           ))}
         </div>
         <div className="h-px w-full bg-border" />
-        <button type="button" onClick={onClose} className="text-left text-body text-primary hover:underline">
+        <Link as="button" onClick={onClose} className="text-left text-body">
           View details
-        </button>
+        </Link>
       </div>
     </div>
   )

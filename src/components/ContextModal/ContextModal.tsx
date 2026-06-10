@@ -209,7 +209,7 @@ function FieldsTab({
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <div className="shrink-0 px-2xl py-sm">
-        <div className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">
+        <div className="flex h-9 items-center gap-sm rounded-sm border border-border-input bg-surface px-md">
           <Icon name="search" size={20} className="text-text-icon" />
           <input
             type="text"
@@ -356,7 +356,7 @@ function KnowledgeTab({
                   }
                 }}
                 onBlur={confirmLink}
-                className="min-w-0 flex-1 rounded-sm border border-border-selected bg-surface px-md py-xs text-body text-text-primary focus:border-primary focus:outline-none"
+                className="min-w-0 flex-1 rounded-sm border border-border-input bg-surface px-md py-xs text-body text-text-primary focus:border-primary focus:outline-none"
               />
             </div>
           )}
@@ -436,7 +436,7 @@ function IndustryTab({
   )
 }
 
-export function ContextModal({ open, onClose, onSave }: ContextModalProps) {
+export function ContextModal({ open, onClose, onSave, overlayZIndex = 110 }: ContextModalProps) {
   const [activeTab, setActiveTab] = useState<ContextModalTab>('Fields')
   const [fields, setFields] = useState<ContextField[]>(DEFAULT_CONTEXT_FIELDS)
   const [knowledge, setKnowledge] = useState(DEFAULT_CONTEXT_KNOWLEDGE)
@@ -464,7 +464,8 @@ export function ContextModal({ open, onClose, onSave }: ContextModalProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-[110] flex items-center justify-center ${open ? '' : 'pointer-events-none'}`}
+      className={`fixed inset-0 flex items-center justify-center ${open ? '' : 'pointer-events-none'}`}
+      style={{ zIndex: overlayZIndex }}
       aria-hidden={!open}
     >
       <div

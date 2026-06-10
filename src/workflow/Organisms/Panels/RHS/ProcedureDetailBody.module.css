@@ -1,7 +1,7 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 32px;
 }
 
 .section {
@@ -10,42 +10,22 @@
   gap: 4px;
 }
 
+.sectionLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 18px;
+}
+
 .required {
   color: #de1b0c;
 }
 
-.fieldWithHint {
-  position: relative;
-}
-
-.fieldHint {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  font-size: 14px;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  letter-spacing: -0.28px;
-  color: #9e9e9e;
-  pointer-events: none;
-  white-space: pre-wrap;
-}
-
-.fieldHintMultiline {
-  align-items: flex-start;
-  padding: 8px 12px;
-}
-
-.whenToUseInput {
-  position: relative;
-  z-index: 1;
+.readOnlyField {
   width: 100%;
   height: 40px;
-  padding: 0 12px;
+  padding: 0 16px;
   font-size: 14px;
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
@@ -57,23 +37,80 @@
   outline: none;
   background: #fff;
   box-sizing: border-box;
-}
-
-.whenToUseInput:focus {
-  border-color: #1976d2;
-}
-
-.whenToUseInput:read-only {
-  background: #fff;
   cursor: default;
 }
 
-.whenToUseTextarea {
+.readOnlyTextarea {
   height: auto;
   min-height: 120px;
-  padding: 8px 12px;
+  padding: 16px;
   resize: vertical;
   line-height: 20px;
+}
+
+/* ── Library-style context box (matches ProcedureDetailScreen) ── */
+
+.libraryContextBox {
+  border: 1px solid #e5e9f0;
+  border-radius: 4px;
+  background: #fff;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.libraryContextEmpty {
+  margin: 0;
+  padding: 12px;
+  font-size: 14px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  color: #9e9e9e;
+}
+
+.libraryContextChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 12px 12px 8px;
+}
+
+.libraryContextFooter {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 8px 12px;
+}
+
+.libraryContextAddBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  color: #1976d2;
+  font-family: 'Roboto', sans-serif;
+  transition: color 0.15s;
+}
+
+.libraryContextAddBtn:hover {
+  color: #1565c0;
+}
+
+.libraryContextFooter [class*='typePicker'] {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 12px;
+  right: auto;
+  z-index: 50;
 }
 
 .libraryCheckbox {
@@ -116,6 +153,58 @@
   cursor: default;
 }
 
+.contextAddRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+}
+
+.contextAddBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.24px;
+  color: #1976d2;
+  font-family: 'Roboto', sans-serif;
+}
+
+.contextAddBtn:hover {
+  color: #1565c0;
+}
+
+.contextAddRow [class*='typePicker'] {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: auto;
+  z-index: 50;
+}
+
+.contextAddRowInContainer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  position: relative;
+  align-self: flex-start;
+}
+
+.contextAddRowInContainer [class*='typePicker'] {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: auto;
+  z-index: 50;
+}
+
+.chipTypePickerAnchor {
+  position: relative;
+}
+
 /* ── Editable step lines — match read-only typography ── */
 .stepTitleText[contenteditable]:focus,
 .stepBulletText[contenteditable]:focus,
@@ -124,10 +213,11 @@
 }
 
 .stepBulletText {
-  font-size: 12.5px;
+  font-size: 14px;
   font-family: 'Roboto', sans-serif;
-  color: #555;
-  line-height: 19px;
+  color: #212121;
+  line-height: 20px;
+  letter-spacing: -0.28px;
   flex: 1;
   min-width: 0;
 }
@@ -142,25 +232,79 @@
   right: 0;
   left: 0;
   z-index: 0;
-  font-size: 12.5px;
+  padding: 12px;
+  font-size: 14px;
   font-family: 'Roboto', sans-serif;
   color: #9e9e9e;
-  line-height: 19px;
+  line-height: 20px;
+  letter-spacing: -0.28px;
   white-space: pre-wrap;
   pointer-events: none;
+  box-sizing: border-box;
 }
 
 .stepsEmptyEditable {
   position: relative;
   z-index: 1;
-  font-size: 13px;
+  padding: 12px;
+  font-size: 14px;
   font-family: 'Roboto', sans-serif;
   color: #212121;
   line-height: 20px;
-  min-height: 20px;
+  letter-spacing: -0.28px;
+  min-height: 64px;
   display: block;
   width: 100%;
   background: transparent;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* ── Steps editor shell (edit mode + toolbar) ── */
+.stepsEditorShell {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e5e9f0;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical;
+  overflow: hidden;
+  min-height: 160px;
+  max-height: 70vh;
+}
+
+.stepsEditorShellFocused {
+  border-color: #1976d2;
+}
+
+.stepsEditorShellCreate {
+  /* Default create height — grows with content, no inner scroll */
+  min-height: 300px;
+  max-height: none;
+  overflow: visible;
+  resize: none;
+}
+
+.stepsEditorBody {
+  flex: 1;
+  overflow: auto;
+  min-height: 100px;
+}
+
+.stepsEditorBodyCreate {
+  flex: 1 1 auto;
+  overflow: visible;
+  min-height: calc(300px - 36px);
+}
+
+.stepsEditorBodyCreate .stepsListNestedEmpty {
+  min-height: 100%;
+}
+
+.stepsEditorBodyCreate .stepsEmptyEditable {
+  min-height: 100%;
 }
 
 /* ── Steps panel (view + edit) ── */
@@ -168,11 +312,27 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 14px;
+  padding: 24px;
   background: #fff;
   border: 1px solid #e5e9f0;
   border-radius: 4px;
   box-sizing: border-box;
+}
+
+.stepsListNested {
+  border: none;
+  border-radius: 0;
+  padding: 24px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.stepsListNestedEmpty {
+  padding: 0;
+}
+
+.stepsListNestedCreate {
+  min-height: auto;
 }
 
 .step {
@@ -184,49 +344,54 @@
 .stepTitleRow {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 0;
 }
 
-.stepBadge {
-  font-size: 13px;
+.stepNumberPrefix {
+  font-size: 14px;
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
   color: #212121;
   line-height: 20px;
+  letter-spacing: -0.28px;
   flex-shrink: 0;
-  min-width: 20px;
 }
 
 .stepTitleText {
-  font-size: 13px;
+  font-size: 14px;
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
   color: #212121;
   line-height: 20px;
+  letter-spacing: -0.28px;
+  flex: 1;
+  min-width: 0;
 }
 
 .stepBullets {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-left: 20px;
+  list-style-type: disc;
+  list-style-position: outside;
+  margin: 2px 0 0;
+  padding-left: 24px;
 }
 
 .stepBulletRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 12.5px;
+  display: list-item;
+  font-size: 14px;
   font-family: 'Roboto', sans-serif;
-  color: #555;
-  line-height: 19px;
+  color: #212121;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  margin-bottom: 6px;
 }
 
-.stepBulletDot {
-  color: #9e9e9e;
-  flex-shrink: 0;
-  line-height: 19px;
-  font-size: 13px;
+.stepBulletRow:last-child {
+  margin-bottom: 0;
+}
+
+.stepBulletRow::marker {
+  font-size: 1.15em;
+  color: #212121;
 }
 
 .stepsEmpty {

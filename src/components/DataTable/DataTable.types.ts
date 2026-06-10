@@ -17,7 +17,9 @@ export type SortDir = 'asc' | 'desc'
 
 export interface RowAction<T> {
   /** Material Symbols icon name for the page-specific primary CTA. */
-  icon: string
+  icon?: string
+  /** Custom React element to render instead of an Icon (takes priority over icon). */
+  iconElement?: ReactNode
   label: string | ((row: T) => string)
   onClick: (row: T) => void
   /** When provided, the button is only rendered for rows where this returns true. */
@@ -48,4 +50,6 @@ export interface DataTableProps<T = Record<string, unknown>> {
   scrollOnHover?: boolean
   /** Returns extra className(s) for the <tr> — use for row-level styling like disabled/dimmed. */
   rowClassName?: (row: T, index: number) => string
+  /** Row height in px. Defaults to 48 (h-12). */
+  rowHeight?: number
 }

@@ -15,6 +15,7 @@ export function DataTable<T extends Record<string, unknown>>({
   rowMenuItems,
   scrollOnHover = false,
   rowClassName,
+  rowHeight = 48,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -103,7 +104,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   <button
                     type="button"
                     onClick={() => toggleSort(col)}
-                    className={`flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
+                    className={`group/hdr flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
                   >
                     <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
                       {col.label}
@@ -112,7 +113,7 @@ export function DataTable<T extends Record<string, unknown>>({
                       <Icon
                         name={sorted && sort.dir === 'asc' ? 'expand_less' : 'expand_more'}
                         size={16}
-                        className={`shrink-0 ${sorted ? 'text-text-primary' : 'text-text-icon'}`}
+                        className={`shrink-0 transition-opacity ${sorted ? 'text-text-primary opacity-100' : 'text-text-icon opacity-0 group-hover/hdr:opacity-100'}`}
                       />
                     )}
                   </button>
@@ -152,7 +153,8 @@ export function DataTable<T extends Record<string, unknown>>({
                 return (
                   <td
                     key={String(col.key)}
-                    className={`h-12 px-[10px] align-middle text-body text-text-primary ${
+                    style={{ height: rowHeight }}
+                  className={`px-[10px] align-middle text-body text-text-primary ${
                       isLast ? 'relative' : 'truncate'
                     }`}
                   >
@@ -174,7 +176,7 @@ export function DataTable<T extends Record<string, unknown>>({
                                 }}
                                 className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                               >
-                                <Icon name={rowAction.icon} size={20} />
+                                {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
                               </button>
                               <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
                                 {tooltipText}
@@ -193,7 +195,7 @@ export function DataTable<T extends Record<string, unknown>>({
                                 onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
                                 className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
                               >
-                                <Icon name={action.icon} size={20} />
+                                {action.iconElement ?? <Icon name={action.icon!} size={20} />}
                               </button>
                               <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
                                 {tip}

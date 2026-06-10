@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
-import { IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
+import type { WizardAgentDraft } from './data/wizardAgentConfig.types'
+import { Icon, IconRail, Link, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
-import { ManageIntakeScreen } from './screens/ManageIntakeScreen'
+import { IntakeScreen, type IntakeDetailArgs } from './screens/IntakeScreen'
+import { IntakePatientDetailScreen } from './screens/IntakePatientDetailScreen'
 import { AppointmentOverviewScreen } from './screens/AppointmentOverviewScreen'
 import { SalesScreen } from './screens/SalesScreen'
 import { ServiceScreen } from './screens/ServiceScreen'
@@ -24,6 +26,7 @@ import { ReviewWaitlistScreen } from './screens/ReviewWaitlistScreen'
 // import { PhoneNumberScreen } from './screens/PhoneNumberScreen'
 import { PhoneNumber2Screen } from './screens/PhoneNumberScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
+import { IntegrationDetailScreen } from './screens/IntegrationDetailScreen'
 import { WebWidgetsScreen } from './screens/WebWidgetsScreen'
 import { AppointmentWidgetsScreen } from './screens/AppointmentWidgetsScreen'
 import { InboxScreen } from './screens/InboxScreen'
@@ -93,7 +96,6 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
-    defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
       { id: 'sales-pipeline',      label: 'Sales pipeline'      },
@@ -103,7 +105,6 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'agent',
     label: 'Agents',
-    defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent', label: 'Front desk agent' },
       { id: 'reminder-agent',  label: 'Reminder agent'  },
@@ -113,17 +114,17 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: true,
     items: [
-      { id: 'conversations', label: 'Appointment overview' },
-      { id: 'sales',         label: 'Sales'                },
-      { id: 'service',       label: 'Service'              },
+      { id: 'auto-frontdesk-overview',   label: 'Frontdesk overview'   },
+      { id: 'auto-no-shows',             label: 'No shows prevented'   },
+      { id: 'conversations',             label: 'Appointment overview', strikethrough: true },
+      { id: 'sales',                     label: 'Sales',                strikethrough: true },
+      { id: 'service',                   label: 'Service',              strikethrough: true },
     ],
   },
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: true,
     items: [
       { id: 'knowledge-base',     label: 'Knowledge base',     external: true },
       { id: 'procedure-library',  label: 'Procedures'          },
@@ -140,7 +141,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
-    defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
       { id: 'review-waitlist',     label: 'Review waitlist'     },
@@ -150,7 +150,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'agent',
     label: 'Agents',
-    defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent',  label: 'Front desk agent'  },
       { id: 'waitlist-agent',   label: 'Waitlist agent'   },
@@ -161,7 +160,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: true,
     items: [
       { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
       { id: 'hc-no-shows',           label: 'No shows prevented' },
@@ -172,7 +170,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: true,
     items: [
       { id: 'providers',         label: 'Providers'          },
       { id: 'appointment-type',  label: 'Appointment type'   },
@@ -189,7 +186,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
-    defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
       { id: 'review-waitlist',     label: 'Review waitlist'     },
@@ -199,7 +195,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'agent',
     label: 'Agents',
-    defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent',             label: 'Front desk agent'             },
       { id: 'waitlist-agent',              label: 'Waitlist agent'              },
@@ -213,7 +208,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: true,
     items: [
       { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
       { id: 'dental-no-shows',           label: 'No shows prevented'   },
@@ -224,7 +218,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: true,
     items: [
       { id: 'providers',         label: 'Providers'  },
       { id: 'procedure-library', label: 'Procedures' },
@@ -269,17 +262,33 @@ export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+  const [wizardAgentDraft, setWizardAgentDraft] = useState<WizardAgentDraft | null>(null)
   const [activeProduct, setActiveProduct] = useState('healthcare')
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
   const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
+
+  function openIntegrationSettings(integrationId: string) {
+    setRailActive('settings')
+    setSettingsTab('Integrations')
+    setSettingsSubScreen(`integration-${integrationId}`)
+  }
 
   function handleProductChange(id: string) {
     setActiveProduct(id)
     setNavActive(DEFAULT_NAV_BY_PRODUCT[id] ?? 'manage-appointments')
     setEditingAgentName(null)
+    setWizardAgentDraft(null)
   }
 
+  function handleEditAgent(name: string, draft?: WizardAgentDraft) {
+    setWizardAgentDraft(draft ?? null)
+    setEditingAgentName(name)
+  }
+
+  const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
+
   const isEditingWorkflow = editingAgentName !== null
+  const isViewingDetail = intakeDetail !== null
 
   return (
     <ProcedureStoreProvider>
@@ -294,7 +303,7 @@ export function App() {
         activeProduct={activeProduct}
         onProductChange={handleProductChange}
       />
-      {!isEditingWorkflow && railActive !== 'settings' && railActive !== 'inbox' && (
+      {!isEditingWorkflow && !isViewingDetail && railActive !== 'settings' && railActive !== 'inbox' && (
         <SideNav
           title="Front desk"
           sections={NAV_SECTIONS_BY_PRODUCT[activeProduct] ?? AUTOMOTIVE_NAV_SECTIONS}
@@ -314,7 +323,15 @@ export function App() {
       )}
       <main className="flex flex-1 flex-col overflow-hidden">
         {railActive === 'settings' ? (
-          settingsSubScreen === 'web-widgets' ? (
+          settingsSubScreen?.startsWith('integration-') ? (
+            <IntegrationDetailScreen
+              integrationId={settingsSubScreen.replace('integration-', '')}
+              onBack={() => {
+                setSettingsSubScreen(null)
+                setSettingsTab('Integrations')
+              }}
+            />
+          ) : settingsSubScreen === 'web-widgets' ? (
             <WebWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
           ) : settingsSubScreen === 'appointment-widgets' ? (
             <AppointmentWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
@@ -329,8 +346,12 @@ export function App() {
             <div className="flex-1 overflow-hidden">
               <WorkflowEditorScreen
                 agentName={editingAgentName}
-                onClose={() => setEditingAgentName(null)}
+                onClose={() => {
+                  setEditingAgentName(null)
+                  setWizardAgentDraft(null)
+                }}
                 product={activeProduct}
+                wizardDraft={wizardAgentDraft}
               />
             </div>
           </>
@@ -338,8 +359,36 @@ export function App() {
           <ReviewWaitlistScreen />
         ) : navActive === 'sales-pipeline' ? (
           <SalesPipelineScreen />
+        ) : navActive === 'manage-intake' && isViewingDetail ? (
+          <>
+            <TopNav title="Front desk" initials="S" />
+            <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
+              <Link
+                as="button"
+                onClick={() => setIntakeDetail(null)}
+                className="text-body"
+              >
+                Manage intake
+              </Link>
+              <Icon name="chevron_right" size={16} className="text-text-icon" />
+              <span className="text-body text-text-primary">{intakeDetail!.detail.patient}</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <IntakePatientDetailScreen
+                patient={intakeDetail!.detail}
+                appointmentTime={intakeDetail!.appointmentTime}
+                appointmentType={intakeDetail!.appointmentType}
+                formType={intakeDetail!.row.formType}
+                status={intakeDetail!.detail.status}
+                bookedOn={intakeDetail!.row.bookedOn}
+                insuranceProvider={intakeDetail!.insuranceProvider}
+                sentVia={intakeDetail!.row.sentVia}
+                onBack={() => setIntakeDetail(null)}
+              />
+            </div>
+          </>
         ) : navActive === 'manage-intake' ? (
-          <ManageIntakeScreen />
+          <IntakeScreen onViewDetail={setIntakeDetail} />
         ) : navActive === 'service-requests' ? (
           <ServiceRequestsScreen />
         ) : navActive === 'conversations' ? (
@@ -372,9 +421,9 @@ export function App() {
           <AppointmentTypeScreen />
         ) : navActive === 'hc-availability' || navActive === 'availability' ? (
           <AvailabilityScreen />
-        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' ? (
+        ) : navActive === 'hc-frontdesk-overview' || navActive === 'dental-frontdesk-overview' || navActive === 'auto-frontdesk-overview' ? (
           <HCFrontdeskOverviewScreen />
-        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' ? (
+        ) : navActive === 'hc-no-shows' || navActive === 'dental-no-shows' || navActive === 'auto-no-shows' ? (
           <HCNoShowsScreen />
         ) : navActive === 'hc-waitlist' || navActive === 'dental-waitlist' ? (
           <HCWaitlistFilledScreen />
@@ -384,7 +433,8 @@ export function App() {
           <AgentDetailScreen
             key={navActive}
             agentName={AGENT_NAMES[navActive]}
-            onEditAgent={setEditingAgentName}
+            onEditAgent={handleEditAgent}
+            onOpenIntegrationSettings={openIntegrationSettings}
             product={activeProduct}
           />
         ) : (

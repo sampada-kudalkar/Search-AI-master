@@ -1,18 +1,16 @@
-import { useState } from 'react'
-import { Icon } from '../components'
+import { useState, useRef, type MouseEvent } from 'react'
+import { Icon, IntegrationsPickerDrawer, RefChip } from '../components'
+import {
+  DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+  DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
+  getHealthcareIntegration,
+  HEALTHCARE_INTEGRATION_CATALOG,
+} from '../data/healthcareIntegrations'
 
 interface AgentSettingsTabProps {
   product?: string
   agentName?: string
-}
-
-// ── Procedure book icon (shared with ProceduresScreen) ──────────
-function ProcedureBookIcon({ size = 20, className = '' }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M19.7996 6.30078H14.3996C13.9339 6.30078 13.4745 6.40922 13.058 6.6175C12.6414 6.82578 12.279 7.12819 11.9996 7.50078C11.7202 7.12819 11.3578 6.82578 10.9412 6.6175C10.5247 6.40922 10.0653 6.30078 9.59961 6.30078H4.19961C4.04048 6.30078 3.88787 6.364 3.77535 6.47652C3.66282 6.58904 3.59961 6.74165 3.59961 6.90078V17.7008C3.59961 17.8599 3.66282 18.0125 3.77535 18.125C3.88787 18.2376 4.04048 18.3008 4.19961 18.3008H9.59961C10.077 18.3008 10.5348 18.4904 10.8724 18.828C11.21 19.1656 11.3996 19.6234 11.3996 20.1008C11.3996 20.2599 11.4628 20.4125 11.5753 20.525C11.6879 20.6376 11.8405 20.7008 11.9996 20.7008C12.1587 20.7008 12.3114 20.6376 12.4239 20.525C12.5364 20.4125 12.5996 20.2599 12.5996 20.1008C12.5996 19.6234 12.7893 19.1656 13.1268 18.828C13.4644 18.4904 13.9222 18.3008 14.3996 18.3008H19.7996C19.9587 18.3008 20.1114 18.2376 20.2239 18.125C20.3364 18.0125 20.3996 17.8599 20.3996 17.7008V6.90078C20.3996 6.74165 20.3364 6.58904 20.2239 6.47652C20.1114 6.364 19.9587 6.30078 19.7996 6.30078ZM9.59961 17.1008H4.79961V7.50078H9.59961C10.077 7.50078 10.5348 7.69042 10.8724 8.02799C11.21 8.36555 11.3996 8.82339 11.3996 9.30078V17.7008C10.8808 17.3104 10.2489 17.0997 9.59961 17.1008ZM19.1996 17.1008H14.3996C13.7503 17.0997 13.1184 17.3104 12.5996 17.7008V9.30078C12.5996 8.82339 12.7893 8.36555 13.1268 8.02799C13.4644 7.69042 13.9222 7.50078 14.3996 7.50078H19.1996V17.1008Z" fill="currentColor"/>
-    </svg>
-  )
+  onOpenIntegrationSettings?: (integrationId: string) => void
 }
 
 // ── Toggle ──────────────────────────────────────────────────────
@@ -23,37 +21,24 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
-        checked ? 'bg-primary' : 'bg-border-strong'
+      className={`relative h-[16px] w-[32px] shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none ${
+        checked ? 'bg-primary' : 'bg-surface-selected'
       }`}
     >
       <span
-        className={`inline-block size-4 rounded-full bg-white shadow-sm transition-transform ${
-          checked ? 'translate-x-4' : 'translate-x-0'
+        className={`absolute top-[2px] size-3 rounded-full bg-white shadow-sm transition-[left] ${
+          checked ? 'left-[18px]' : 'left-[2px]'
         }`}
       />
     </button>
   )
 }
 
-// ── Variable chip (inline in message fields) ────────────────────
-function VarChip({ label, onRemove }: { label: string; onRemove?: () => void }) {
-  return (
-    <span className="inline-flex items-center gap-[3px] rounded border border-[#93C5FD] bg-[#EFF6FF] px-[6px] py-[1px] text-small align-middle leading-none">
-      <span className="text-[#2563EB] font-mono text-[11px]">{'{x}'}</span>
-      <span className="text-[#1D4ED8] text-[12px]">{label}</span>
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          className="ml-[2px] text-[#93C5FD] hover:text-[#2563EB] leading-none"
-        >
-          ×
-        </button>
-      )}
-    </span>
-  )
-}
+// ── Field borders (shared focus ring via primary border) ─────────
+const FIELD_BORDER_CLASS =
+  'rounded-sm border border-border-input transition-colors focus:border-primary focus:outline-none focus-visible:border-primary'
+
+const INPUT_CLASS = `w-full bg-surface px-md text-body text-text-primary ${FIELD_BORDER_CLASS}`
 
 // ── Fallback message field (textarea + variable chip + toolbar) ──
 interface FallbackFieldProps {
@@ -64,82 +49,261 @@ interface FallbackFieldProps {
 
 function FallbackField({ prefix, chipLabel, suffix }: FallbackFieldProps) {
   const [showChip, setShowChip] = useState(true)
+  const bodyRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div className="rounded-sm border border-border-selected bg-surface">
-      {/* Text area body */}
-      <div className="min-h-[72px] px-md py-sm text-body text-text-primary leading-relaxed">
-        {prefix}
+    <div className={`overflow-hidden bg-surface ${FIELD_BORDER_CLASS} focus-within:border-primary`}>
+      {/* Rich text body */}
+      <div
+        ref={bodyRef}
+        tabIndex={0}
+        role="textbox"
+        aria-multiline="true"
+        onMouseDown={() => bodyRef.current?.focus()}
+        className="min-h-[80px] cursor-text px-md pt-sm pb-xs text-body text-text-primary leading-[1.7] outline-none"
+      >
+        <span>{prefix}</span>
         {showChip && (
           <>
             {' '}
-            <VarChip label={chipLabel} onRemove={() => setShowChip(false)} />
+            <RefChip kind="context" label={chipLabel} onRemove={() => setShowChip(false)} />
           </>
         )}
         {suffix && <span>{suffix}</span>}
       </div>
       {/* Toolbar */}
-      <div className="flex items-center justify-between border-t border-border px-sm py-xs">
-        <div className="flex items-center gap-xs">
-          {/* AI personalize icon */}
-          <button
-            type="button"
-            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-            title="AI"
-          >
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-              <text x="10" y="14" textAnchor="middle" fontSize="10" fill="currentColor" fontFamily="sans-serif">Ai</text>
-            </svg>
-          </button>
-          {/* Emoji */}
-          <button
-            type="button"
-            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-            title="Emoji"
-          >
-            <Icon name="sentiment_satisfied" size={18} />
-          </button>
-          {/* Personalize label */}
-          <button
-            type="button"
-            className="flex items-center gap-xs text-body text-primary hover:underline"
-          >
-            Personalize
-            <Icon name="expand_more" size={16} className="text-primary" />
-          </button>
-        </div>
-        <button type="button" className="text-body text-primary hover:underline">
-          Clear
+      <div className="flex items-center gap-[2px] bg-surface px-sm py-[6px]">
+        {/* AI icon */}
+        <button
+          type="button"
+          title="AI personalise"
+          className="flex h-7 items-center gap-[3px] rounded-sm px-[6px] text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.25"/>
+            <text x="8" y="11.5" textAnchor="middle" fontSize="7.5" fontWeight="500" fill="currentColor" fontFamily="sans-serif">Ai</text>
+            <path d="M12 1.5 L13 3 L14 1.5 L13 0 Z" fill="#7C3AED" />
+          </svg>
+          <span className="sr-only">AI</span>
+        </button>
+        {/* Emoji */}
+        <button
+          type="button"
+          title="Emoji"
+          className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        >
+          <Icon name="sentiment_satisfied" size={18} />
+        </button>
+        {/* Personalize */}
+        <button
+          type="button"
+          className="flex items-center gap-[3px] rounded-sm px-[6px] py-[3px] text-body text-primary hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        >
+          Personalize
+          <Icon name="expand_more" size={16} className="text-primary" />
         </button>
       </div>
     </div>
   )
 }
 
-// ── Toggle row (label + optional description + toggle) ──────────
-interface ToggleRowProps {
+// ── Title + description (tight 2px gap) ─────────────────────────
+function SettingSubtext({
+  children,
+  tone = 'secondary',
+}: {
+  children: React.ReactNode
+  tone?: 'secondary' | 'tertiary'
+}) {
+  return (
+    <p
+      className={`mt-[2px] text-small ${
+        tone === 'tertiary' ? 'text-text-tertiary' : 'text-text-secondary'
+      }`}
+    >
+      {children}
+    </p>
+  )
+}
+
+// ── Settings checkbox (matches SelectMenu / StatusFilterDropdown) ─
+function SettingsCheckboxBox({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={`flex size-4 shrink-0 items-center justify-center rounded-[2px] border transition-colors ${
+        checked ? 'border-primary bg-primary' : 'border-control-border bg-surface'
+      }`}
+    >
+      {checked && (
+        <Icon
+          name="check"
+          size={11}
+          fill
+          weight={600}
+          className="text-white"
+        />
+      )}
+    </span>
+  )
+}
+
+const CHECKBOX_ROW_GAP = 'gap-sm'
+const CHECKBOX_ROW_INDENT = (
+  <span className="size-4 shrink-0" aria-hidden />
+)
+
+// ── Checkbox row (checkbox before label + optional description) ─
+interface CheckboxRowProps {
   label: string
   description?: string
   checked: boolean
   onChange: (v: boolean) => void
 }
 
-function ToggleRow({ label, description, checked, onChange }: ToggleRowProps) {
+function CheckboxRow({ label, description, checked, onChange }: CheckboxRowProps) {
   return (
-    <div className="flex items-start justify-between gap-lg">
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex w-full items-start rounded-sm text-left ${CHECKBOX_ROW_GAP}`}
+    >
+      <span className="mt-[3px] shrink-0"><SettingsCheckboxBox checked={checked} /></span>
       <div className="flex-1">
         <p className="text-body text-text-primary">{label}</p>
-        {description && <p className="mt-[2px] text-small text-text-secondary">{description}</p>}
+        {description && <SettingSubtext>{description}</SettingSubtext>}
       </div>
-      <Toggle checked={checked} onChange={onChange} />
+    </button>
+  )
+}
+
+// ── Checkbox label row (checkbox before a single-line label) ────
+interface CheckboxLabelRowProps {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}
+
+function CheckboxLabelRow({ label, checked, onChange }: CheckboxLabelRowProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex w-full items-center rounded-sm text-left ${CHECKBOX_ROW_GAP}`}
+    >
+      <SettingsCheckboxBox checked={checked} />
+      <span className="text-small text-text-secondary">{label}</span>
+    </button>
+  )
+}
+
+// ── Indented field aligned with checkbox row label text ───────────
+function CheckboxRowField({ children }: { children: React.ReactNode }) {
+  return (
+    <div className={`flex items-start ${CHECKBOX_ROW_GAP}`}>
+      {CHECKBOX_ROW_INDENT}
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   )
 }
 
-// ── INPUT_CLASS ─────────────────────────────────────────────────
-const INPUT_CLASS =
-  'w-full rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary focus:border-primary focus:outline-none'
+// ── Voice option type ───────────────────────────────────────────
+interface VoiceOption {
+  label: string
+  preview: string
+}
+
+// ── VoiceSelect ─────────────────────────────────────────────────
+interface VoiceSelectProps {
+  value: string
+  options: VoiceOption[]
+  onChange: (value: string) => void
+}
+
+function VoiceSelect({ value, options, onChange }: VoiceSelectProps) {
+  const [open, setOpen] = useState(false)
+  const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [playing, setPlaying] = useState<string | null>(null)
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+
+  const openMenu = (e: MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setAnchor({ top: rect.bottom + 4, left: rect.left, width: rect.width })
+    setOpen(true)
+  }
+
+  const stopPlaying = () => {
+    window.speechSynthesis.cancel()
+    setPlaying(null)
+  }
+
+  const togglePreview = (opt: VoiceOption, e: MouseEvent) => {
+    e.stopPropagation()
+    if (playing === opt.label) {
+      stopPlaying()
+      return
+    }
+    stopPlaying()
+    const utter = new SpeechSynthesisUtterance(opt.preview)
+    utter.onend = () => setPlaying(null)
+    utteranceRef.current = utter
+    setPlaying(opt.label)
+    window.speechSynthesis.speak(utter)
+  }
+
+  const select = (label: string) => {
+    stopPlaying()
+    onChange(label)
+    setOpen(false)
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openMenu}
+        className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm transition-colors hover:bg-surface-l2 focus:border-primary focus:outline-none focus-visible:border-primary ${
+          open ? 'border-primary' : 'border-border-input'
+        }`}
+      >
+        <span className={`min-w-0 flex-1 truncate text-left text-body ${value ? 'text-text-primary' : 'text-text-tertiary'}`}>
+          {value || 'Select voice'}
+        </span>
+        <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+      </button>
+      {open && anchor && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => { stopPlaying(); setOpen(false) }} aria-hidden />
+          <div
+            className="fixed z-[110] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+            style={{ top: anchor.top, left: anchor.left, width: anchor.width }}
+          >
+            {options.map((opt) => {
+              const isSelected = opt.label === value
+              const isPlaying = playing === opt.label
+              return (
+                <div
+                  key={opt.label}
+                  onClick={() => select(opt.label)}
+                  className={`flex cursor-pointer items-center gap-sm px-md py-sm hover:bg-surface-hover ${isSelected ? 'bg-surface-hover' : ''}`}
+                >
+                  <span className="min-w-0 flex-1 truncate text-body text-text-primary">{opt.label}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => togglePreview(opt, e)}
+                    title={isPlaying ? 'Stop preview' : 'Preview voice'}
+                    className="flex size-7 shrink-0 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2 hover:text-primary"
+                  >
+                    <Icon name={isPlaying ? 'stop' : 'volume_up'} size={16} />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </>
+  )
+}
 
 // ── Web chat content ────────────────────────────────────────────
 function WebChatSettings() {
@@ -147,21 +311,21 @@ function WebChatSettings() {
   const [resolvedName, setResolvedName] = useState('👍 That helped')
   const [escalationEnabled, setEscalationEnabled] = useState(true)
   const [escalationName, setEscalationName] = useState('Talk to human')
-  const [beforeEnabled, setBeforeEnabled] = useState(true)
+  const [duringEnabled, setDuringEnabled] = useState(true)
   const [afterEnabled, setAfterEnabled] = useState(true)
 
   return (
-    <div className="flex flex-col gap-lg">
-      {/* Resolved button */}
+    <div className="flex flex-col gap-[40px]">
+      {/* Resolve button */}
       <div className="flex flex-col gap-sm">
-        <ToggleRow
-          label="Resolved button"
+        <CheckboxRow
+          label="Resolve button"
           description="A quick reply button patients can tap when their question is answered"
           checked={resolvedEnabled}
           onChange={setResolvedEnabled}
         />
         {resolvedEnabled && (
-          <div>
+          <CheckboxRowField>
             <label className="mb-xs block text-small text-text-secondary">Button name</label>
             <input
               type="text"
@@ -169,20 +333,20 @@ function WebChatSettings() {
               onChange={(e) => setResolvedName(e.target.value)}
               className={`${INPUT_CLASS} h-9`}
             />
-          </div>
+          </CheckboxRowField>
         )}
       </div>
 
       {/* Escalation button */}
       <div className="flex flex-col gap-sm">
-        <ToggleRow
+        <CheckboxRow
           label="Escalation button"
           description="A quick reply button patients can tap to reach a team member"
           checked={escalationEnabled}
           onChange={setEscalationEnabled}
         />
         {escalationEnabled && (
-          <div>
+          <CheckboxRowField>
             <label className="mb-xs block text-small text-text-secondary">Button name</label>
             <input
               type="text"
@@ -190,7 +354,7 @@ function WebChatSettings() {
               onChange={(e) => setEscalationName(e.target.value)}
               className={`${INPUT_CLASS} h-9`}
             />
-          </div>
+          </CheckboxRowField>
         )}
       </div>
 
@@ -198,31 +362,37 @@ function WebChatSettings() {
       <div className="flex flex-col gap-md">
         <p className="text-body text-text-primary">Fallback message</p>
 
-        {/* Before business hours */}
+        {/* During business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">Before business hours</span>
-            <Toggle checked={beforeEnabled} onChange={setBeforeEnabled} />
-          </div>
-          {beforeEnabled && (
-            <FallbackField
-              prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
-              chipLabel="business.phone"
-            />
+          <CheckboxLabelRow
+            label="During business hours"
+            checked={duringEnabled}
+            onChange={setDuringEnabled}
+          />
+          {duringEnabled && (
+            <CheckboxRowField>
+              <FallbackField
+                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
 
         {/* After business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">After business hours</span>
-            <Toggle checked={afterEnabled} onChange={setAfterEnabled} />
-          </div>
+          <CheckboxLabelRow
+            label="After business hours"
+            checked={afterEnabled}
+            onChange={setAfterEnabled}
+          />
           {afterEnabled && (
-            <FallbackField
-              prefix="Our team is offline right now. Leave a message and we'll follow up during business hours. You can also call us at"
-              chipLabel="business.phone"
-            />
+            <CheckboxRowField>
+              <FallbackField
+                prefix="Our team is offline right now. Leave a message and we'll follow up during business hours. You can also call us at"
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
       </div>
@@ -239,7 +409,7 @@ function TextSettings() {
   return (
     <div className="flex flex-col gap-lg">
       {/* Unsubscribe text */}
-      <ToggleRow
+      <CheckboxRow
         label="Unsubscribe text"
         description="Enabling this will allow customers to opt out of text communications"
         checked={unsubscribeEnabled}
@@ -247,34 +417,40 @@ function TextSettings() {
       />
 
       {/* Fallback message */}
-      <div className="flex flex-col gap-md">
+      <div className="flex flex-col gap-sm">
         <p className="text-body text-text-primary">Fallback message</p>
 
         {/* Before business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">Before business hours</span>
-            <Toggle checked={beforeEnabled} onChange={setBeforeEnabled} />
-          </div>
+          <CheckboxLabelRow
+            label="Before business hours"
+            checked={beforeEnabled}
+            onChange={setBeforeEnabled}
+          />
           {beforeEnabled && (
-            <FallbackField
-              prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
-              chipLabel="business.phone"
-            />
+            <CheckboxRowField>
+              <FallbackField
+                prefix="We're not available right now. Our team is back during business hours. You can also reach us at"
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
 
         {/* After business hours */}
         <div className="flex flex-col gap-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-small text-text-secondary">After business hours</span>
-            <Toggle checked={afterEnabled} onChange={setAfterEnabled} />
-          </div>
+          <CheckboxLabelRow
+            label="After business hours"
+            checked={afterEnabled}
+            onChange={setAfterEnabled}
+          />
           {afterEnabled && (
-            <FallbackField
-              prefix="Our team is offline right now. Leave a message and we'll follow up during business hours."
-              chipLabel="business.phone"
-            />
+            <CheckboxRowField>
+              <FallbackField
+                prefix="Our team is offline right now. Leave a message and we'll follow up during business hours."
+                chipLabel="business.phone"
+              />
+            </CheckboxRowField>
           )}
         </div>
       </div>
@@ -287,27 +463,46 @@ interface ChannelAccordionProps {
   title: string
   children: React.ReactNode
   defaultOpen?: boolean
+  enabled: boolean
+  onEnabledChange: (enabled: boolean) => void
 }
 
-function ChannelAccordion({ title, children, defaultOpen = false }: ChannelAccordionProps) {
+function ChannelAccordion({
+  title,
+  children,
+  defaultOpen = false,
+  enabled,
+  onEnabledChange,
+}: ChannelAccordionProps) {
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-14 w-full items-center justify-between px-lg text-left hover:bg-surface-l2"
-      >
-        <span className="text-body text-text-primary">{title}</span>
-        <Icon
-          name={open ? 'expand_less' : 'expand_more'}
-          size={20}
-          className="text-text-icon"
-        />
-      </button>
+    <div className="overflow-hidden rounded-md border border-border bg-surface">
+      <div className="flex h-14 items-center justify-between px-lg hover:bg-surface-l2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex flex-1 items-center text-left"
+        >
+          <span className="text-body font-medium text-text-primary">{title}</span>
+        </button>
+        <div className="flex items-center gap-md">
+          <Toggle checked={enabled} onChange={onEnabledChange} />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center justify-center text-text-icon"
+            aria-label={open ? 'Collapse' : 'Expand'}
+          >
+            <Icon
+              name={open ? 'expand_less' : 'expand_more'}
+              size={20}
+            />
+          </button>
+        </div>
+      </div>
       {open && (
-        <div className="border-t border-border px-lg pb-lg pt-lg">
+        <div className="px-lg pb-lg pt-md">
           {children}
         </div>
       )}
@@ -315,110 +510,149 @@ function ChannelAccordion({ title, children, defaultOpen = false }: ChannelAccor
   )
 }
 
-// ── Procedure card (matches ProceduresScreen grid card style) ────
-interface ProcedureCardProps {
+// ── Settings section header with add action ─────────────────────
+function SettingsSectionHeader({
+  title,
+  addAriaLabel,
+  onAdd,
+  addDisabled,
+}: {
   title: string
-  description: string
-  lastEdited: string
-}
-
-function ProcedureCard({ title, description, lastEdited }: ProcedureCardProps) {
+  addAriaLabel: string
+  onAdd: (e: MouseEvent<HTMLButtonElement>) => void
+  addDisabled?: boolean
+}) {
   return (
-    <div className="group flex min-h-[148px] cursor-pointer flex-col rounded-sm border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected">
-      <div className="mb-md">
-        <ProcedureBookIcon size={22} className="text-text-secondary" />
-      </div>
-      <h3 className="mb-xs text-body text-text-primary">{title}</h3>
-      <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
-      <div className="mt-auto flex items-center justify-end gap-xs pt-lg text-small text-text-tertiary">
-        <Icon name="schedule" size={14} />
-        {lastEdited}
-      </div>
+    <div className="mb-md flex items-center gap-xs">
+      <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">{title}</h2>
+      <button
+        type="button"
+        onClick={onAdd}
+        disabled={addDisabled}
+        aria-label={addAriaLabel}
+        className="flex size-6 shrink-0 items-center justify-center rounded-sm text-text-icon transition-colors hover:bg-surface-hover hover:text-primary focus:outline-none disabled:cursor-not-allowed disabled:text-text-tertiary"
+      >
+        <Icon name="edit" size={16} />
+      </button>
     </div>
   )
 }
 
-// ── Integration card (same style as procedure card) ──────────────
+// ── Card 3-dot menu (edit / delete) ───────────────────────────
+interface CardMenuProps {
+  itemLabel: string
+  onEdit?: () => void
+  onDelete?: () => void
+  /** When true, skip absolute positioning (for use inside a positioned parent). */
+  inline?: boolean
+}
+
+function CardMenu({ itemLabel, onEdit, onDelete, inline = false }: CardMenuProps) {
+  const [open, setOpen] = useState(false)
+
+  if (!onEdit && !onDelete) return null
+
+  return (
+    <div className={`z-10 ${inline ? 'relative' : 'absolute right-md top-md'}`}>
+      <button
+        type="button"
+        aria-label={`${itemLabel} actions`}
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation()
+          setOpen((v) => !v)
+        }}
+        className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+      >
+        <Icon name="more_vert" size={20} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[105]" onClick={() => setOpen(false)} aria-hidden />
+          <div className="absolute right-0 top-full z-[110] mt-xs min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+            {onEdit && (
+              <button
+                type="button"
+                className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit()
+                  setOpen(false)
+                }}
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete()
+                  setOpen(false)
+                }}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ── Integration card ─────────────────────────────────────────────
 interface IntegrationCardProps {
   iconBg: string
   iconLabel: string
   name: string
   description: string
   connected?: boolean
-  onClick?: () => void
+  onEdit?: () => void
+  onRemove?: () => void
 }
 
-function IntegrationCard({ iconBg, iconLabel, name, description, connected, onClick }: IntegrationCardProps) {
+function IntegrationCard({
+  iconBg,
+  iconLabel,
+  name,
+  description,
+  connected,
+  onEdit,
+  onRemove,
+}: IntegrationCardProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group flex min-h-[148px] w-full cursor-pointer flex-col rounded-sm border border-border-selected bg-surface p-xl text-left transition-colors hover:bg-surface-selected"
-    >
-      {/* Icon */}
+    <div className="group relative flex min-h-[148px] flex-col rounded-sm border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected">
+      <div className="absolute right-md top-md z-10 flex items-center gap-sm">
+        {connected && (
+          <div className="flex items-center gap-xs text-small text-text-secondary">
+            <span className="size-2 rounded-full bg-accent-positive" />
+            Connected
+          </div>
+        )}
+        <CardMenu itemLabel={name} onEdit={onEdit} onDelete={onRemove} inline />
+      </div>
       <div className="mb-md">
-        <div
-          className="flex size-9 items-center justify-center rounded-sm text-white text-body"
-          style={{ backgroundColor: iconBg }}
-        >
-          {iconLabel}
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
+          <div
+            className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
+            style={{ backgroundColor: iconBg }}
+          >
+            {iconLabel}
+          </div>
         </div>
       </div>
-      <h3 className="mb-xs text-body text-text-primary">{name}</h3>
+      <h3 className="mb-xs truncate text-body text-text-primary">{name}</h3>
       <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
-      <div className="mt-auto flex items-center gap-xs pt-lg">
-        {connected !== undefined && (
-          <>
-            <span className={`size-2 rounded-full ${connected ? 'bg-accent-positive' : 'bg-border-strong'}`} />
-            <span className="text-small text-text-secondary">{connected ? 'Connected' : 'Not connected'}</span>
-          </>
-        )}
-      </div>
-    </button>
+    </div>
   )
 }
 
-// ── Healthcare-specific data ─────────────────────────────────────
-const HEALTHCARE_PROCEDURES = [
-  {
-    id: 'greet',
-    title: 'Greet and open conversation',
-    description: 'Identifies the caller, screens for urgency, and routes them to the right procedure.',
-    lastEdited: '2 days ago',
-  },
-  {
-    id: 'general',
-    title: 'Handle general inquiry',
-    description: 'Answers informational questions like hours, location, insurance, and services.',
-    lastEdited: '5 days ago',
-  },
-  {
-    id: 'emergency',
-    title: 'Handle emergency or urgent concern',
-    description: 'Detects urgent symptoms or concerns and escalates for patient safety.',
-    lastEdited: '1 week ago',
-  },
-  {
-    id: 'unclear',
-    title: 'Handle unclear message',
-    description: "Clarifies vague or out-of-scope messages to recover the patient's intent.",
-    lastEdited: '1 week ago',
-  },
-]
+type RecordingMode = 'off' | 'announced'
 
-const INTEGRATIONS = [
-  {
-    id: 'epic',
-    iconBg: '#C8102E',
-    iconLabel: 'E',
-    name: 'Epic',
-    description: 'Connect to Epic EHR to sync patient records and appointments.',
-  },
-]
-
-type RecordingMode = 'off' | 'announced' | 'silent'
-
-export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
+export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTabProps) {
   const [voice, setVoice] = useState('Andrea (warm, clear, reassuring)')
   const [greeting, setGreeting] = useState(
     'Thank you for calling Rock Dental Brands — my name is Myna, your virtual assistant. How can I help you today?'
@@ -427,53 +661,58 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
   const [consent, setConsent] = useState(
     'This call may be recorded for quality and training purposes.'
   )
-  const [connectedIntegrationId, setConnectedIntegrationId] = useState<string | null>('epic')
+  const [accountConnectedIntegrationIds, setAccountConnectedIntegrationIds] = useState<string[]>(
+    DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+  )
+  const [agentSelectedIntegrationId, setAgentSelectedIntegrationId] = useState<string | null>(
+    DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
+  )
+  const [voiceCallEnabled, setVoiceCallEnabled] = useState(true)
+  const [webChatEnabled, setWebChatEnabled] = useState(true)
+  const [textEnabled, setTextEnabled] = useState(true)
+  const [integrationDrawerOpen, setIntegrationDrawerOpen] = useState(false)
 
-  const isHealthcare = product === 'healthcare'
+  const agentIntegration = agentSelectedIntegrationId
+    ? getHealthcareIntegration(agentSelectedIntegrationId)
+    : undefined
 
-  const handleIntegrationClick = (id: string) => {
-    setConnectedIntegrationId((current) => (current === id ? null : id))
+  const removeAgentIntegration = () => {
+    setAgentSelectedIntegrationId(null)
   }
 
-  const VOICES = [
-    'Andrea (warm, clear, reassuring)',
-    'Jordan (professional, calm)',
-    'Sam (friendly, upbeat)',
-    'Morgan (neutral, clear)',
+  const navigateToIntegrationSettings = (integrationId: string) => {
+    setIntegrationDrawerOpen(false)
+    onOpenIntegrationSettings?.(integrationId)
+  }
+
+  const VOICES: VoiceOption[] = [
+    { label: 'Andrea (warm, clear, reassuring)',    preview: "Hi, I'm Andrea — warm, clear, and reassuring. How can I help you today?" },
+    { label: 'Jordan (professional, calm)',          preview: "Hello, this is Jordan. I'm here to assist you professionally and calmly." },
+    { label: 'Sam (friendly, upbeat)',               preview: "Hey there! Sam here — friendly and upbeat. What can I do for you?" },
+    { label: 'Morgan (neutral, clear)',              preview: "Hi, I'm Morgan. Clear and neutral, ready to assist you." },
   ]
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="px-2xl pt-lg pb-2xl">
-        {/* constrain settings content to ~700px */}
-        <div className="w-full max-w-[700px] space-y-xl">
+    <div className="px-2xl pt-lg pb-2xl">
+      {/* constrain settings content to ~700px */}
+      <div className="w-full max-w-[700px] space-y-xl">
 
         {/* Channel settings */}
         <section>
-          <h2 className="mb-md text-h3 text-text-primary">Channel settings</h2>
-          <div className="space-y-md">
+          <h2 className="mb-md text-[16px] leading-6 tracking-[-0.32px] text-text-primary">Channel settings</h2>
+          <div className="space-y-8">
 
             {/* Voice call */}
-            <ChannelAccordion title="Voice call" defaultOpen>
+            <ChannelAccordion
+              title="Voice call"
+              defaultOpen
+              enabled={voiceCallEnabled}
+              onEnabledChange={setVoiceCallEnabled}
+            >
               <div className="flex flex-col gap-lg">
                 <div>
-                  <label className="mb-xs block text-small text-text-secondary">Voice</label>
-                  <div className="relative">
-                    <select
-                      value={voice}
-                      onChange={(e) => setVoice(e.target.value)}
-                      className={`${INPUT_CLASS} h-9 appearance-none pr-2xl`}
-                    >
-                      {VOICES.map((v) => (
-                        <option key={v} value={v}>{v}</option>
-                      ))}
-                    </select>
-                    <Icon
-                      name="expand_more"
-                      size={18}
-                      className="pointer-events-none absolute right-sm top-1/2 -translate-y-1/2 text-text-icon"
-                    />
-                  </div>
+                  <label className="block text-small text-text-secondary">Voice</label>
+                  <VoiceSelect value={voice} options={VOICES} onChange={setVoice} />
                 </div>
 
                 <div>
@@ -489,98 +728,116 @@ export function AgentSettingsTab({ product }: AgentSettingsTabProps) {
                 </div>
 
                 <div>
-                  <p className="mb-xs text-small text-text-secondary">Recording</p>
-                  <p className="mb-sm text-small text-text-tertiary">
+                  <p className="text-small text-text-secondary">Recording</p>
+                  <SettingSubtext tone="tertiary">
                     Configure consent wording in each channel settings below
-                  </p>
-                  <div className="flex flex-col gap-sm">
-                    {(
-                      [
-                        { value: 'off', label: 'Off' },
-                        { value: 'announced', label: 'Record with announced consent' },
-                        { value: 'silent', label: 'Record silently' },
-                      ] as { value: RecordingMode; label: string }[]
-                    ).map(({ value, label }) => (
-                      <label key={value} className="flex cursor-pointer items-center gap-sm">
+                  </SettingSubtext>
+                  <div className="mt-sm flex flex-col gap-sm">
+                    <label className="flex cursor-pointer items-center gap-sm">
+                      <input
+                        type="radio"
+                        name="recording"
+                        value="off"
+                        checked={recording === 'off'}
+                        onChange={() => setRecording('off')}
+                        className="accent-primary"
+                      />
+                      <span className="text-body text-text-primary">Off</span>
+                    </label>
+                    <div>
+                      <label className="flex cursor-pointer items-center gap-sm">
                         <input
                           type="radio"
                           name="recording"
-                          value={value}
-                          checked={recording === value}
-                          onChange={() => setRecording(value)}
+                          value="announced"
+                          checked={recording === 'announced'}
+                          onChange={() => setRecording('announced')}
                           className="accent-primary"
                         />
-                        <span className="text-body text-text-primary">{label}</span>
+                        <span className="text-body text-text-primary">Record with announced consent</span>
                       </label>
-                    ))}
+                      {recording === 'announced' && (
+                        <div className="mt-sm pl-2xl">
+                          <label className="mb-xs block text-small text-text-secondary">
+                            Consent message
+                          </label>
+                          <textarea
+                            value={consent}
+                            onChange={(e) => setConsent(e.target.value)}
+                            rows={3}
+                            className={`${INPUT_CLASS} resize-none py-sm`}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                {recording !== 'off' && (
-                  <div>
-                    <label className="mb-xs block text-small text-text-secondary">
-                      Consent message
-                    </label>
-                    <textarea
-                      value={consent}
-                      onChange={(e) => setConsent(e.target.value)}
-                      rows={3}
-                      className={`${INPUT_CLASS} resize-none py-sm`}
-                    />
-                  </div>
-                )}
               </div>
             </ChannelAccordion>
 
             {/* Web chat */}
-            <ChannelAccordion title="Web chat">
+            <ChannelAccordion
+              title="Web chat"
+              enabled={webChatEnabled}
+              onEnabledChange={setWebChatEnabled}
+            >
               <WebChatSettings />
             </ChannelAccordion>
 
             {/* Text */}
-            <ChannelAccordion title="Text">
+            <ChannelAccordion
+              title="Text"
+              enabled={textEnabled}
+              onEnabledChange={setTextEnabled}
+            >
               <TextSettings />
             </ChannelAccordion>
 
           </div>
         </section>
 
-        {/* Procedures */}
-        {isHealthcare && (
-          <section>
-            <h2 className="mb-md text-h3 text-text-primary">Procedures</h2>
-            <div className="grid grid-cols-2 gap-lg">
-              {HEALTHCARE_PROCEDURES.map((proc) => (
-                <ProcedureCard
-                  key={proc.id}
-                  title={proc.title}
-                  description={proc.description}
-                  lastEdited={proc.lastEdited}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* Integrations */}
         <section>
-          <h2 className="mb-md text-h3 text-text-primary">Integrations</h2>
-          <div className="grid grid-cols-2 gap-lg">
-            {INTEGRATIONS.map((intg) => (
+          <SettingsSectionHeader
+            title="Integrations"
+            addAriaLabel="Edit integrations"
+            onAdd={() => setIntegrationDrawerOpen(true)}
+          />
+          <p className="mb-lg text-body text-text-secondary">
+            Integration connected to this front desk agent.
+          </p>
+          {!agentIntegration ? (
+            <div className="flex h-32 items-center justify-center rounded-sm border border-border-selected bg-surface text-body text-text-tertiary">
+              No integration selected. Use Edit integrations to connect one.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-lg">
               <IntegrationCard
-                key={intg.id}
-                iconBg={intg.iconBg}
-                iconLabel={intg.iconLabel}
-                name={intg.name}
-                description={intg.description}
-                connected={connectedIntegrationId === intg.id}
-                onClick={() => handleIntegrationClick(intg.id)}
+                iconBg={agentIntegration.iconBg}
+                iconLabel={agentIntegration.iconLabel}
+                name={agentIntegration.name}
+                description={agentIntegration.description}
+                connected
+                onEdit={() => navigateToIntegrationSettings(agentIntegration.id)}
+                onRemove={removeAgentIntegration}
               />
-            ))}
-          </div>
+            </div>
+          )}
+          <IntegrationsPickerDrawer
+            open={integrationDrawerOpen}
+            integrations={HEALTHCARE_INTEGRATION_CATALOG}
+            connectedIds={accountConnectedIntegrationIds}
+            selectedId={agentSelectedIntegrationId}
+            onClose={() => setIntegrationDrawerOpen(false)}
+            onSave={({ selectedId, connectedIds }) => {
+              setAccountConnectedIntegrationIds(connectedIds)
+              setAgentSelectedIntegrationId(selectedId)
+              setIntegrationDrawerOpen(false)
+            }}
+            onOpenIntegrationSettings={navigateToIntegrationSettings}
+          />
         </section>
 
-        </div>
       </div>
     </div>
   )

@@ -23,7 +23,12 @@ function StartNodeWrapper({ id, data }) {
   const isSelected = id === data.selectedNodeId;
   return (
     <div className="flow-canvas__node-center">
-      <StartNode title={data.title} subtitle={data.subtitle} selected={isSelected} />
+      <StartNode
+        title={data.title}
+        subtitle={data.subtitle}
+        subtitleIsLink={data.subtitleIsLink}
+        selected={isSelected}
+      />
       <Handle type="source" position={Position.Bottom} />
     </div>
   );

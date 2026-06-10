@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DataTable, Icon, TopNav } from '../components'
+import { DataTable, Icon, Link, TopNav } from '../components'
 
 interface ApptWidgetRow {
   name: string
@@ -84,13 +84,13 @@ export function AppointmentWidgetsScreen({ onBack }: AppointmentWidgetsScreenPro
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-xs bg-surface px-2xl pt-lg pb-0">
-        <button type="button" onClick={onBack} className="text-body text-text-action hover:underline">
+        <Link as="button" onClick={onBack} className="text-body">
           Settings
-        </button>
+        </Link>
         <Icon name="chevron_right" size={16} className="text-text-tertiary" />
-        <button type="button" onClick={onBack} className="text-body text-text-action hover:underline">
+        <Link as="button" onClick={onBack} className="text-body">
           Widgets
-        </button>
+        </Link>
         <Icon name="chevron_right" size={16} className="text-text-tertiary" />
         <span className="text-body text-text-primary">Appointment widgets</span>
       </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Icon, TopNav } from '../components'
+import { Icon, Link, TopNav } from '../components'
 import iconQrCode from '../assets/icon-qr-code.svg'
 import iconSetupStatus from '../assets/icon-setup-status.svg'
 import iconMediaLibrary from '../assets/icon-media-library.svg'
@@ -281,7 +281,7 @@ export function SettingsScreen({ initialTab, onTabConsumed, onWebWidgets, onAppo
                   <p className="mt-xs text-body text-text-secondary">
                     {section.description}
                     {section.learnMore && (
-                      <>{' '}<button type="button" className="text-text-action hover:underline">Learn more</button></>
+                      <>{' '}<Link as="button">Learn more</Link></>
                     )}
                   </p>
                 </div>

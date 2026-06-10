@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon, DataTable, FormDrawer, SelectMenu, TopNav, type Column } from '../components'
 
 // --- Phone number 1 data & helpers (Abhishek's version — do not delete) ---
@@ -90,7 +90,7 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
                 setAgentMenuOpen(true)
               }}
               className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                agentMenuOpen ? 'border-primary' : 'border-border-selected'
+                agentMenuOpen ? 'border-primary' : 'border-border-input'
               }`}
             >
               <span className={`min-w-0 flex-1 truncate text-left text-body ${agent ? 'text-text-primary' : 'text-text-tertiary'}`}>
@@ -234,23 +234,9 @@ const DATA2: PhoneNumber2Row[] = [
 ]
 
 const COLUMNS2: Column<PhoneNumber2Row>[] = [
-  { key: 'name',           label: 'Name',            sortable: true },
-  { key: 'phoneNumber',    label: 'Phone number',    sortable: true },
-  { key: 'connection',     label: 'Connection',      sortable: true },
-  { key: 'routingMode',    label: 'Routing mode',    sortable: true },
-  { key: 'locations',      label: 'Locations',       sortable: true },
-  { key: 'provider',       label: 'Provider',        sortable: true },
-  {
-    key: 'status',
-    label: 'Status',
-    sortable: true,
-    render: (val) => (
-      <span className={`flex items-center gap-xs text-body ${val === 'Active' ? 'text-success' : 'text-text-secondary'}`}>
-        <span className={`size-2 rounded-full ${val === 'Active' ? 'bg-success' : 'bg-border-strong'}`} />
-        {String(val)}
-      </span>
-    ),
-  },
+  { key: 'name',        label: 'Name',         sortable: true },
+  { key: 'phoneNumber', label: 'Phone number', sortable: true },
+  { key: 'locations',   label: 'Locations',    sortable: true },
 ]
 
 interface ForwardingRow {
@@ -269,10 +255,10 @@ const FORWARDING_DATA: ForwardingRow[] = [
 ]
 
 const FORWARDING_COLUMNS: Column<ForwardingRow>[] = [
-  { key: 'yourNumber',           label: 'Your number',            sortable: true },
+  { key: 'yourNumber',           label: 'Number',         sortable: true },
   {
     key: 'birdeyeReceptionist',
-    label: 'Birdeye receptionist',
+    label: 'Birdeye number',
     render: (val) => (
       <span className="flex items-center gap-sm">
         <span className="text-body text-text-primary">{String(val)}</span>
@@ -297,19 +283,6 @@ const LOCATION_OPTIONS = [
   { value: 'All locations', label: 'All locations' },
 ]
 
-const ROUTING_OPTIONS = [
-  { value: 'AI-first', label: 'AI-first' },
-  { value: 'Overflow', label: 'Overflow' },
-  { value: 'IVR',      label: 'IVR'      },
-]
-
-const AGENT2_OPTIONS = [
-  { value: 'Frontdesk',               label: 'Frontdesk'               },
-  { value: 'Scheduling',              label: 'Scheduling'              },
-  { value: 'Pre-visit',               label: 'Pre-visit'               },
-  { value: 'Scheduling & Frontdesk',  label: 'Scheduling & Frontdesk'  },
-  { value: 'Frontdesk & Waitlist',    label: 'Frontdesk & Waitlist'    },
-]
 
 const TRANSPORT_OPTIONS = [
   { value: 'TCP', label: 'TCP' },
@@ -317,87 +290,47 @@ const TRANSPORT_OPTIONS = [
   { value: 'TLS', label: 'TLS' },
 ]
 
-type ImportStep = 1 | 2 | 3
-type ImportType = 'birdeye' | 'sip'
+const E164_FORMAT_OPTIONS = [
+  { value: 'E.164',    label: 'E.164 — e.g. 14155552671'      },
+  { value: '+E.164',   label: '+E.164 — e.g. +14155552671'    },
+  { value: 'National', label: 'National — e.g. (415) 555-2671' },
+]
 
 interface ImportState {
-  type: ImportType
-  // step 1 — sip fields
+  name: string
   phoneNumber: string
+  e164Format: string
   terminationUri: string
+  transport: string
   sipUsername: string
   sipPassword: string
-  nickname: string
-  transport: string
-  // step 2 — mapping
-  name: string
-  existingNumber: string
   location: string
-  routingMode: string
-  assignedAgent: string
-  // step 3
-  confirmed: boolean
 }
 
 const EMPTY_IMPORT: ImportState = {
-  type: 'birdeye',
-  phoneNumber: '', terminationUri: '', sipUsername: '', sipPassword: '',
-  nickname: '', transport: 'TCP',
-  name: '', existingNumber: '',
-  location: '', routingMode: '', assignedAgent: '',
-  confirmed: false,
-}
-
-function StepDots({ step }: { step: ImportStep }) {
-  const labels = ['Connect', 'Map', 'Verify']
-  return (
-    <div className="flex items-center gap-0 px-2xl py-lg">
-      {labels.map((label, i) => {
-        const n = (i + 1) as ImportStep
-        const done = step > n
-        const active = step === n
-        return (
-          <div key={label} className="flex items-center">
-            <div className="flex flex-col items-center gap-xs">
-              <div className={`flex size-6 items-center justify-center rounded-full border-2 text-small ${
-                done || active ? 'border-primary bg-primary text-white' : 'border-border bg-surface text-text-secondary'
-              }`}>
-                {done ? <Icon name="check" size={12} /> : n}
-              </div>
-              <span className={`whitespace-nowrap text-small ${active ? 'text-text-primary' : 'text-text-secondary'}`}>{label}</span>
-            </div>
-            {i < 2 && (
-              <div className={`mb-4 h-px w-16 ${step > n ? 'bg-primary' : 'bg-border'}`} />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
+  name: '',
+  phoneNumber: '', e164Format: 'E.164', terminationUri: '', transport: 'TCP', sipUsername: '', sipPassword: '',
+  location: '',
 }
 
 function ImportDrawer({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (row: PhoneNumber2Row) => void }) {
-  const [step, setStep] = useState<ImportStep>(1)
   const [form, setForm] = useState<ImportState>(EMPTY_IMPORT)
+  const [verified, setVerified]   = useState(false)
+  const [verifying, setVerifying] = useState(false)
+  const [locationOpen,  setLocationOpen]  = useState(false)
   const [transportOpen, setTransportOpen] = useState(false)
-  const [locationOpen, setLocationOpen]   = useState(false)
-  const [routingOpen,  setRoutingOpen]    = useState(false)
-  const [agentOpen,    setAgentOpen]      = useState(false)
-  const [locationAnchor, setLocationAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
-  const [routingAnchor,  setRoutingAnchor]  = useState<{ top: number; left: number; width: number } | null>(null)
-  const [agentAnchor,    setAgentAnchor]    = useState<{ top: number; left: number; width: number } | null>(null)
-  const transportRef = useRef<HTMLDivElement>(null)
+  const [e164Open,      setE164Open]      = useState(false)
+  const [locationAnchor,  setLocationAnchor]  = useState<{ top: number; left: number; width: number } | null>(null)
+  const [transportAnchor, setTransportAnchor] = useState<{ top: number; right: number } | null>(null)
+  const [e164Anchor,      setE164Anchor]      = useState<{ top: number; right: number } | null>(null)
 
   useEffect(() => {
-    if (!open) { setStep(1); setForm(EMPTY_IMPORT) }
+    if (!open) {
+      setForm(EMPTY_IMPORT)
+      setVerified(false)
+      setVerifying(false)
+    }
   }, [open])
-
-  useEffect(() => {
-    if (!transportOpen) return
-    function h(e: MouseEvent) { if (transportRef.current && !transportRef.current.contains(e.target as Node)) setTransportOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [transportOpen])
 
   function openDropdown(
     e: React.MouseEvent<HTMLButtonElement>,
@@ -411,16 +344,20 @@ function ImportDrawer({ open, onClose, onSave }: { open: boolean; onClose: () =>
     openSetter(true)
   }
 
+  function handleVerify() {
+    setVerifying(true)
+    setTimeout(() => { setVerifying(false); setVerified(true) }, 1500)
+  }
+
   if (!open) return null
 
-  const step1Valid = form.type === 'birdeye' || (form.phoneNumber.trim() !== '' && form.terminationUri.trim() !== '')
-  const step2Valid = form.name.trim() !== '' && form.location !== '' && form.routingMode !== '' && form.assignedAgent !== '' && (form.type === 'sip' || form.existingNumber.trim() !== '')
+  const canVerify = form.name.trim() !== '' && form.phoneNumber.trim() !== '' && form.terminationUri.trim() !== ''
+  const canSave   = verified && form.location !== ''
 
   return (
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
-      {/* Drawer */}
       <div className="absolute right-0 top-0 flex h-full w-[650px] flex-col bg-surface shadow-modal">
 
         {/* Header */}
@@ -431,384 +368,228 @@ function ImportDrawer({ open, onClose, onSave }: { open: boolean; onClose: () =>
           </button>
         </div>
 
-        {/* Step dots */}
-        <StepDots step={step} />
-
-        <div className="h-px bg-border" />
-
         {/* Body */}
-        <div className="flex flex-1 flex-col gap-md overflow-y-auto px-2xl py-lg">
+        <div className="flex flex-1 flex-col gap-lg overflow-y-auto px-2xl py-lg">
 
-          {/* ── Step 1 ── */}
-          {step === 1 && (
-            <>
-              {/* Connection type — two side-by-side cards */}
-              <div className="flex flex-col gap-xs">
-                <span className="text-small text-text-primary">Connection type</span>
-                <div className="flex gap-md">
-                  {(['birdeye', 'sip'] as ImportType[]).map((t) => (
-                    <label
-                      key={t}
-                      className={`flex flex-1 cursor-pointer items-start gap-sm rounded-sm border p-md transition-colors ${
-                        form.type === t ? 'border-primary bg-surface' : 'border-border bg-surface hover:bg-surface-l2'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="connType"
-                        checked={form.type === t}
-                        onChange={() => setForm((f) => ({ ...f, type: t }))}
-                        className="mt-[3px] shrink-0 accent-primary"
-                      />
-                      <div className="flex flex-col gap-xs">
-                        <span className="text-body text-text-primary">
-                          {t === 'birdeye' ? 'Import Twilio number' : 'SIP trunk'}
-                        </span>
-                        <p className="text-small text-text-secondary">
-                          {t === 'birdeye' ? 'Buy a new Twilio-powered number' : 'Bring your existing line'}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
+          <p className="text-body text-text-secondary">Connect to your number via SIP trunking</p>
 
+          <div className="flex flex-col gap-lg pl-md">
 
-              {form.type === 'birdeye' && (
-                <div className="flex items-start gap-md rounded-sm bg-surface-selected p-md">
-                  <Icon name="info" size={18} className="mt-[2px] shrink-0 text-primary" />
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-small text-text-primary">Your Twilio receptionist number</span>
-                    <div className="flex items-center gap-sm">
-                      <span className="text-body text-text-primary">(512) 900-0002</span>
-                      <button
-                        type="button"
-                        onClick={() => navigator.clipboard.writeText('(512) 900-0002')}
-                        className="flex items-center gap-xs rounded-sm border border-border-selected bg-surface px-sm py-xs text-small text-text-action hover:bg-surface-l2"
-                      >
-                        <Icon name="content_copy" size={12} /> Copy
-                      </button>
-                    </div>
-                    <span className="text-small text-text-secondary">This number will be assigned to your line. You can map it to a location in the next step.</span>
-                  </div>
-                </div>
-              )}
+          {/* Name */}
+          <div className="flex flex-col gap-xs">
+            <span className="text-small text-text-primary">Name <span className="text-chip-danger-text">*</span></span>
+            <input
+              type="text"
+              placeholder="e.g. Main reception"
+              value={form.name}
+              onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setVerified(false) }}
+              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
 
-              {form.type === 'sip' && (
+          {/* Phone number */}
+          <div className="flex flex-col gap-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-small text-text-primary">Phone number <span className="text-chip-danger-text">*</span></span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  if (e164Open) { setE164Open(false); return }
+                  const r = e.currentTarget.getBoundingClientRect()
+                  setE164Anchor({ top: r.bottom + 4, right: window.innerWidth - r.right })
+                  setE164Open(true)
+                }}
+                className="flex items-center gap-xs text-small text-text-action"
+              >
+                Format: {form.e164Format} <Icon name="expand_more" size={14} />
+              </button>
+            </div>
+            <input
+              type="text"
+              placeholder="Enter phone number"
+              value={form.phoneNumber}
+              onChange={(e) => { setForm((f) => ({ ...f, phoneNumber: e.target.value })); setVerified(false) }}
+              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Termination URI */}
+          <div className="flex flex-col gap-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-small text-text-primary">Termination URI <span className="text-chip-danger-text">*</span></span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  if (transportOpen) { setTransportOpen(false); return }
+                  const r = e.currentTarget.getBoundingClientRect()
+                  setTransportAnchor({ top: r.bottom + 4, right: window.innerWidth - r.right })
+                  setTransportOpen(true)
+                }}
+                className="flex items-center gap-xs text-small text-text-action"
+              >
+                Transport: {form.transport} <Icon name="expand_more" size={14} />
+              </button>
+            </div>
+            <input
+              type="text"
+              placeholder="Enter termination URI"
+              value={form.terminationUri}
+              onChange={(e) => { setForm((f) => ({ ...f, terminationUri: e.target.value })); setVerified(false) }}
+              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Username */}
+          <div className="flex flex-col gap-xs">
+            <span className="text-small text-text-primary">Username <span className="text-text-tertiary">(Optional)</span></span>
+            <input
+              type="text"
+              placeholder="Enter username"
+              value={form.sipUsername}
+              onChange={(e) => setForm((f) => ({ ...f, sipUsername: e.target.value }))}
+              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* SIP password */}
+          <div className="flex flex-col gap-xs">
+            <span className="text-small text-text-primary">Password <span className="text-text-tertiary">(Optional)</span></span>
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={form.sipPassword}
+              onChange={(e) => setForm((f) => ({ ...f, sipPassword: e.target.value }))}
+              className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Verify */}
+          <div className="flex items-center gap-sm">
+            <button
+              type="button"
+              disabled={!canVerify || verifying || verified}
+              onClick={handleVerify}
+              className={`flex h-9 items-center gap-sm rounded-sm border px-lg text-body transition-colors ${
+                verified
+                  ? 'border-success bg-surface text-success cursor-default'
+                  : !canVerify || verifying
+                  ? 'cursor-not-allowed border-border bg-surface text-text-tertiary'
+                  : 'border-border-selected bg-surface text-text-primary hover:bg-surface-l2'
+              }`}
+            >
+              {verifying ? (
                 <>
-                  {/* Phone number + E.164 */}
-                  <div className="flex flex-col gap-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="text-small text-text-primary">Phone number</span>
-                      <button type="button" className="flex items-center gap-xs text-small text-text-action hover:underline">
-                        Format to E.164 <Icon name="expand_more" size={14} />
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Enter phone number"
-                      value={form.phoneNumber}
-                      onChange={(e) => setForm((f) => ({ ...f, phoneNumber: e.target.value }))}
-                      className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Termination URI */}
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-small text-text-primary">Termination URI</span>
-                    <input
-                      type="text"
-                      placeholder="Enter termination URI (NOT Retell SIP server uri)"
-                      value={form.terminationUri}
-                      onChange={(e) => setForm((f) => ({ ...f, terminationUri: e.target.value }))}
-                      className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
-                    />
-                  </div>
-
-                  {/* SIP username */}
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-small text-text-primary">SIP trunk user name <span className="text-text-tertiary">(Optional)</span></span>
-                    <input
-                      type="text"
-                      placeholder="Enter SIP trunk user name"
-                      value={form.sipUsername}
-                      onChange={(e) => setForm((f) => ({ ...f, sipUsername: e.target.value }))}
-                      className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
-                    />
-                  </div>
-
-                  {/* SIP password */}
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-small text-text-primary">SIP trunk password <span className="text-text-tertiary">(Optional)</span></span>
-                    <input
-                      type="password"
-                      placeholder="Enter SIP trunk password"
-                      value={form.sipPassword}
-                      onChange={(e) => setForm((f) => ({ ...f, sipPassword: e.target.value }))}
-                      className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
-                    />
-                  </div>
-
-                  {/* Nickname */}
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-small text-text-primary">Nickname <span className="text-text-tertiary">(Optional)</span></span>
-                    <input
-                      type="text"
-                      placeholder="Enter nickname"
-                      value={form.nickname}
-                      onChange={(e) => setForm((f) => ({ ...f, nickname: e.target.value }))}
-                      className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
-                    />
-                  </div>
+                  <span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />
+                  Verifying…
                 </>
+              ) : verified ? (
+                <>
+                  <Icon name="check_circle" size={16} className="text-success" />
+                  Verified
+                </>
+              ) : (
+                'Verify'
               )}
-            </>
-          )}
+            </button>
+            {!verified && !verifying && (
+              <span className={`text-small ${canVerify ? 'text-text-secondary' : 'text-text-tertiary'}`}>
+                {canVerify ? 'Ready to verify your SIP connection' : <><span className="text-chip-danger-text">*</span>Fill in all fields above to verify</>}
+              </span>
+            )}
+          </div>
 
-          {/* ── Step 2 ── */}
-          {step === 2 && (
-            <>
-              {/* Name */}
-              <div className="flex flex-col gap-xs">
-                <span className="text-small text-text-primary">Name</span>
-                <input
-                  type="text"
-                  placeholder="e.g. Main reception"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
-                />
-              </div>
+          </div>{/* end SIP fields indent */}
 
-              {/* Existing number (Birdeye path only) */}
-              {form.type === 'birdeye' && (
-                <div className="flex flex-col gap-xs">
-                  <span className="text-small text-text-primary">Your existing phone number</span>
-                  <input
-                    type="text"
-                    placeholder="e.g. (404) 555-0167"
-                    value={form.existingNumber}
-                    onChange={(e) => setForm((f) => ({ ...f, existingNumber: e.target.value }))}
-                    className="flex h-9 w-full items-center rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
-                  />
-                  <span className="text-small text-text-secondary">The number your patients currently dial</span>
-                </div>
-              )}
+          {/* Location section intro */}
+          <p className={`mt-[16px] text-body ${verified ? 'text-text-secondary' : 'text-text-tertiary'}`}>
+            Assign to a location to start routing calls.
+          </p>
 
-              {/* Location */}
-              <div className="flex flex-col gap-xs">
-                <span className="text-small text-text-primary">Location</span>
-                <button
-                  type="button"
-                  onClick={(e) => openDropdown(e, setLocationAnchor, setLocationOpen, locationOpen)}
-                  className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${locationOpen ? 'border-primary' : 'border-border-selected'}`}
-                >
-                  <span className={`flex-1 truncate text-left text-body ${form.location ? 'text-text-primary' : 'text-text-tertiary'}`}>
-                    {form.location || 'Select location'}
-                  </span>
-                  <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
-                </button>
-              </div>
+          <div className="pl-md">
+          {/* Location — unlocked after verify */}
+          <div className="flex flex-col gap-xs">
+            <span className={`text-small ${verified ? 'text-text-primary' : 'text-text-tertiary'}`}>Location</span>
+            <button
+              type="button"
+              disabled={!verified}
+              onClick={(e) => verified && openDropdown(e, setLocationAnchor, setLocationOpen, locationOpen)}
+              className={`flex h-9 w-full items-center gap-sm rounded-sm border pl-md pr-sm ${
+                !verified
+                  ? 'cursor-not-allowed border-border bg-surface-subtle'
+                  : locationOpen
+                  ? 'border-primary bg-surface hover:bg-surface-l2'
+                  : 'border-border-selected bg-surface hover:bg-surface-l2'
+              }`}
+            >
+              <span className={`flex-1 truncate text-left text-body ${form.location ? 'text-text-primary' : 'text-text-tertiary'}`}>
+                {form.location || 'Select location'}
+              </span>
+              <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+            </button>
+          </div>
+          </div>{/* end location indent */}
 
-              {/* Routing mode */}
-              <div className="flex flex-col gap-xs">
-                <span className="text-small text-text-primary">Routing mode</span>
-                <button
-                  type="button"
-                  onClick={(e) => openDropdown(e, setRoutingAnchor, setRoutingOpen, routingOpen)}
-                  className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${routingOpen ? 'border-primary' : 'border-border-selected'}`}
-                >
-                  <span className={`flex-1 truncate text-left text-body ${form.routingMode ? 'text-text-primary' : 'text-text-tertiary'}`}>
-                    {form.routingMode || 'Select routing mode'}
-                  </span>
-                  <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
-                </button>
-              </div>
-
-              {/* Assigned agent */}
-              <div className="flex flex-col gap-xs">
-                <span className="text-small text-text-primary">Assigned agents</span>
-                <button
-                  type="button"
-                  onClick={(e) => openDropdown(e, setAgentAnchor, setAgentOpen, agentOpen)}
-                  className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${agentOpen ? 'border-primary' : 'border-border-selected'}`}
-                >
-                  <span className={`flex-1 truncate text-left text-body ${form.assignedAgent ? 'text-text-primary' : 'text-text-tertiary'}`}>
-                    {form.assignedAgent || 'Select agent'}
-                  </span>
-                  <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
-                </button>
-              </div>
-
-            </>
-          )}
-
-          {/* ── Step 3 ── */}
-          {step === 3 && (
-            <>
-              {/* Routing summary */}
-              <div className="flex flex-col gap-sm rounded-sm border border-border bg-surface-selected p-md">
-                <div className="flex items-center gap-sm">
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-small text-text-secondary">Your existing number</span>
-                    <span className="text-body text-text-primary">{form.existingNumber || form.phoneNumber || '(404) 555-0167'}</span>
-                  </div>
-                  <Icon name="arrow_forward" size={18} className="mx-sm shrink-0 text-text-icon" />
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-small text-text-secondary">Birdeye proxy number</span>
-                    <span className="text-body text-text-primary">(512) 900-0002</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Instruction */}
-              <div className="rounded-sm border border-border p-md">
-                <p className="text-small text-text-secondary">
-                  Contact your provider (Verizon, Comcast, AT&T, Frontier, etc.) and ask them to forward your number to the Birdeye proxy number above.
-                </p>
-              </div>
-
-              {/* Test call inline */}
-              <div className="flex flex-col gap-md rounded-sm border border-border p-md">
-                <span className="text-small text-text-primary">Test your setup</span>
-
-                <div className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">
-                  <Icon name="phone" size={16} className="shrink-0 text-text-icon" />
-                  <span className="text-body text-text-secondary">+1</span>
-                  <span className="mx-xs h-4 w-px bg-border" />
-                  <span className="text-body text-text-tertiary">{form.existingNumber || form.phoneNumber || '(404) 555-0167'}</span>
-                </div>
-
-                <button
-                  type="button"
-                  className="flex h-9 items-center justify-center gap-sm rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
-                >
-                  <Icon name="phone_in_talk" size={16} className="text-text-icon" />
-                  Start test call
-                </button>
-              </div>
-
-              {/* Confirmation checkbox */}
-              <label className="flex cursor-pointer items-start gap-sm">
-                <input
-                  type="checkbox"
-                  checked={form.confirmed}
-                  onChange={(e) => setForm((f) => ({ ...f, confirmed: e.target.checked }))}
-                  className="mt-[3px] accent-primary"
-                />
-                <span className="text-body text-text-primary">
-                  I have set up call forwarding with my phone service provider and tested it
-                </span>
-              </label>
-            </>
-          )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border px-2xl py-lg">
-          {/* Outbound transport (step 1 SIP only) */}
-          {step === 1 && form.type === 'sip' ? (
-            <div className="relative" ref={transportRef}>
-              <button
-                type="button"
-                onClick={() => setTransportOpen((o) => !o)}
-                className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
-              >
-                Outbound transport: {form.transport}
-                <Icon name="expand_more" size={16} className="text-text-icon" />
-              </button>
-              {transportOpen && (
-                <div className="absolute bottom-[44px] left-0 z-50 min-w-[180px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-                  {TRANSPORT_OPTIONS.map((o) => (
-                    <button
-                      key={o.value}
-                      type="button"
-                      onClick={() => { setForm((f) => ({ ...f, transport: o.value })); setTransportOpen(false) }}
-                      className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : <div />}
-
-          <div className="flex items-center gap-sm">
-            {step > 1 && (
-              <button type="button" onClick={() => setStep((s) => (s - 1) as ImportStep)} className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2">
-                <Icon name="arrow_back" size={16} /> Back
-              </button>
-            )}
-            <button type="button" onClick={onClose} className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover">
-              Cancel
-            </button>
-            {step < 3 ? (
-              <button
-                type="button"
-                onClick={() => setStep((s) => (s + 1) as ImportStep)}
-                disabled={step === 1 ? !step1Valid : !step2Valid}
-                className={`flex h-9 items-center gap-xs rounded-sm px-lg text-body text-white transition-colors ${
-                  (step === 1 ? !step1Valid : !step2Valid)
-                    ? 'cursor-not-allowed bg-surface-selected text-text-tertiary'
-                    : 'bg-primary hover:bg-primary-hover'
-                }`}
-              >
-                Next <Icon name="arrow_forward" size={16} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  if (!form.confirmed) return
-                  onSave({
-                    name:           form.name,
-                    phoneNumber:    form.type === 'birdeye' ? form.existingNumber : form.phoneNumber,
-                    connection:     form.type === 'birdeye' ? 'Call forwarding' : 'SIP trunk',
-                    routingMode:    form.routingMode,
-                    assignedAgents: form.assignedAgent,
-                    locations:      form.location,
-                    provider:       'Twilio',
-                    status:         'Active',
-                  })
-                  onClose()
-                }}
-                disabled={!form.confirmed}
-                className={`flex h-9 items-center rounded-sm px-lg text-body text-white transition-colors ${
-                  !form.confirmed
-                    ? 'cursor-not-allowed bg-surface-selected text-text-tertiary'
-                    : 'bg-primary hover:bg-primary-hover'
-                }`}
-              >
-                Save
-              </button>
-            )}
-          </div>
+        <div className="flex items-center justify-end gap-sm border-t border-border px-2xl py-lg">
+          <button type="button" onClick={onClose} className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover">
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!canSave}
+            onClick={() => {
+              if (!canSave) return
+              onSave({
+                name:           form.name,
+                phoneNumber:    form.phoneNumber,
+                connection:     'SIP trunk',
+                routingMode:    '—',
+                assignedAgents: '—',
+                locations:      form.location,
+                provider:       'Twilio',
+                status:         'Active',
+              })
+              onClose()
+            }}
+            className={`flex h-9 items-center rounded-sm px-lg text-body text-white transition-colors ${
+              !canSave
+                ? 'cursor-not-allowed bg-surface-selected text-text-tertiary'
+                : 'bg-primary hover:bg-primary-hover'
+            }`}
+          >
+            Save
+          </button>
         </div>
       </div>
 
       {/* Floating dropdowns */}
+      {e164Open && e164Anchor && (
+        <>
+          <div className="fixed inset-0 z-[125]" onClick={() => setE164Open(false)} />
+          <div className="fixed z-[130]" style={{ top: e164Anchor.top, right: e164Anchor.right, minWidth: 260 }}>
+            <SelectMenu
+              options={E164_FORMAT_OPTIONS}
+              value={[form.e164Format]}
+              onChange={(v) => { setForm((f) => ({ ...f, e164Format: v[0] ?? 'E.164' })); setE164Open(false) }}
+            />
+          </div>
+        </>
+      )}
+      {transportOpen && transportAnchor && (
+        <>
+          <div className="fixed inset-0 z-[125]" onClick={() => setTransportOpen(false)} />
+          <div className="fixed z-[130]" style={{ top: transportAnchor.top, right: transportAnchor.right, minWidth: 120 }}>
+            <SelectMenu options={TRANSPORT_OPTIONS} value={[form.transport]} onChange={(v) => { setForm((f) => ({ ...f, transport: v[0] ?? 'TCP' })); setTransportOpen(false) }} />
+          </div>
+        </>
+      )}
       {locationOpen && locationAnchor && (
         <>
           <div className="fixed inset-0 z-[125]" onClick={() => setLocationOpen(false)} />
           <div className="fixed z-[130]" style={{ top: locationAnchor.top, left: locationAnchor.left, width: locationAnchor.width }}>
             <SelectMenu options={LOCATION_OPTIONS} value={form.location ? [form.location] : []} onChange={(v) => { setForm((f) => ({ ...f, location: v[0] ?? '' })); setLocationOpen(false) }} />
-          </div>
-        </>
-      )}
-      {routingOpen && routingAnchor && (
-        <>
-          <div className="fixed inset-0 z-[125]" onClick={() => setRoutingOpen(false)} />
-          <div className="fixed z-[130]" style={{ top: routingAnchor.top, left: routingAnchor.left, width: routingAnchor.width }}>
-            <SelectMenu options={ROUTING_OPTIONS} value={form.routingMode ? [form.routingMode] : []} onChange={(v) => { setForm((f) => ({ ...f, routingMode: v[0] ?? '' })); setRoutingOpen(false) }} />
-          </div>
-        </>
-      )}
-      {agentOpen && agentAnchor && (
-        <>
-          <div className="fixed inset-0 z-[125]" onClick={() => setAgentOpen(false)} />
-          <div className="fixed z-[130]" style={{ top: agentAnchor.top, left: agentAnchor.left, width: agentAnchor.width }}>
-            <SelectMenu options={AGENT2_OPTIONS} value={form.assignedAgent ? [form.assignedAgent] : []} onChange={(v) => { setForm((f) => ({ ...f, assignedAgent: v[0] ?? '' })); setAgentOpen(false) }} />
           </div>
         </>
       )}
