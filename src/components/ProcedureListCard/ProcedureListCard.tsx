@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 
 function ProcedureBookIcon({ size = 20, className = '' }: { size?: number; className?: string }) {
   return (
@@ -94,13 +95,13 @@ export function ProcedureListCard({
 
       {/* Hover actions */}
       {hovered && onView && (
-        <button
-          type="button"
+        <Link
+          as="button"
           onClick={(e) => { e.stopPropagation(); onView() }}
-          className="shrink-0 text-body text-primary hover:underline"
+          className="shrink-0 text-body"
         >
           View
-        </button>
+        </Link>
       )}
       {hovered && onRemove && (
         <button

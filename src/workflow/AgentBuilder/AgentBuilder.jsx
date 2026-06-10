@@ -275,7 +275,11 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
     id: START_NODE_ID,
     type: 'start',
     position: { x: 0, y },
-    data: { title: startData.title, subtitle: startData.subtitle },
+    data: {
+      title: startData.title,
+      subtitle: startData.subtitle,
+      subtitleIsLink: startData.subtitleIsLink,
+    },
   });
   y += FLOW_START_GAP;
 
@@ -540,6 +544,8 @@ export default function AgentBuilder({
   product = 'automotive',
   procedures = null,
   onAddProcedure,
+  publishDisabled = false,
+  defaultOpenSection = 'Trigger',
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -1074,7 +1080,12 @@ export default function AgentBuilder({
   }, [selectedNodeId]);
 
   const startAgentName = nodeDetails[START_NODE_ID]?.agentName || pageTitle;
-  const startData = { title: startAgentName, subtitle: 'All locations' };
+  const startLocations = nodeDetails[START_NODE_ID]?.locations || [];
+  const startData = {
+    title: startAgentName,
+    subtitle: startLocations.length > 0 ? 'All locations' : 'Add locations',
+    subtitleIsLink: startLocations.length === 0,
+  };
   const { nodes: rawNodes, edges } = buildFlow(nodeList, startData, nodeDetails, product);
 
   const nodes = rawNodes.map((n) => {
@@ -1743,6 +1754,7 @@ export default function AgentBuilder({
         theme="primary"
         label={isTemplateMode ? 'Save template' : 'Publish'}
         onClick={isTemplateMode ? handleSaveTemplate : handlePublish}
+        disabled={!isTemplateMode && publishDisabled}
       />
     </div>
   );
@@ -1825,9 +1837,7 @@ export default function AgentBuilder({
           <div className="agent-builder__lhs">
             <LHSDrawer
               defaultTab="Create manually"
-              triggerOpen
-              tasksOpen={false}
-              controlsOpen={false}
+              defaultOpenSection={defaultOpenSection}
               viewOnly={viewOnly}
               product={product}
               procedures={procedures}

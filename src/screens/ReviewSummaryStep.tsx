@@ -300,6 +300,7 @@ export function ReviewSummaryStep({
             onPreviewActiveChange={() => {}}
             showClose={false}
             showViewDetails={false}
+            showViewLogs={false}
           />
         </div>
       </div>

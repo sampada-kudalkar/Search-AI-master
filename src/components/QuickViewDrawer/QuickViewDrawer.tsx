@@ -1,4 +1,5 @@
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import { Chip } from '../Chip/Chip'
 import type { QuickViewDrawerProps, QuickViewDrawerIntakeProps } from './QuickViewDrawer.types'
 import type { ChipVariant } from '../Chip/Chip.types'
@@ -70,13 +71,13 @@ function DrawerShell({ patient, status, onClose, onViewDetails, aiSummary, child
             <Icon name="arrow_back" size={18} />
             Quick view
           </button>
-          <button
-            type="button"
+          <Link
+            as="button"
             onClick={onViewDetails}
-            className="text-body text-primary hover:underline"
+            className="text-body"
           >
             View details
-          </button>
+          </Link>
         </div>
 
         {/* Body */}
@@ -149,9 +150,9 @@ export function QuickViewDrawer(props: QuickViewDrawerProps) {
               <Icon name="arrow_back" size={18} />
               Quick view
             </button>
-            <button type="button" onClick={props.onViewDetails} className="text-body text-text-action hover:underline">
+            <Link as="button" onClick={props.onViewDetails} className="text-body">
               View details
-            </button>
+            </Link>
           </div>
           <div className="flex flex-1 flex-col overflow-y-auto">
             <div className="flex flex-col items-center gap-sm px-2xl pb-lg pt-xl">

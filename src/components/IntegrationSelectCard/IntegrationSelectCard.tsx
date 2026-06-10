@@ -1,4 +1,5 @@
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import type { IntegrationSelectCardProps } from './IntegrationSelectCard.types'
 
 function SelectRadio({ checked }: { checked: boolean }) {
@@ -50,14 +51,14 @@ export function IntegrationSelectCard({
             <span className="text-small text-text-secondary">Connected</span>
           </div>
         ) : (
-          <button
-            type="button"
+          <Link
+            as="button"
             onClick={(e) => { e.stopPropagation(); onConnect?.() }}
-            className="flex items-center gap-xs text-small text-text-action hover:underline"
+            className="flex items-center gap-xs text-small"
           >
             Connect
             <Icon name="open_in_new" size={12} />
-          </button>
+          </Link>
         )}
       </div>
 
@@ -78,11 +79,9 @@ export function IntegrationSelectCard({
       >
         <p className={`truncate text-body transition-colors ${onView ? 'text-text-primary group-hover:text-primary' : 'text-text-primary'}`}>{name}</p>
         {onView && (
-          <Icon
-            name="open_in_new"
-            size={14}
-            className="hidden shrink-0 text-primary group-hover:block"
-          />
+          <span className="hidden size-5 shrink-0 items-center justify-center rounded-full bg-primary group-hover:flex">
+            <Icon name="open_in_new" size={11} className="text-white" />
+          </span>
         )}
       </div>
 

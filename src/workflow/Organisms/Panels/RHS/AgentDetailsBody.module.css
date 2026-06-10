@@ -109,7 +109,7 @@
 }
 
 .moreLink:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* ─── "+ Add" link ─── */
@@ -127,5 +127,5 @@
 }
 
 .addLink:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }

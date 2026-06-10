@@ -19,10 +19,11 @@ import {
 } from '../components'
 import { AgentInstanceScreen } from './AgentInstanceScreen'
 import { NewFrontdeskAgentSetupScreen } from './NewFrontdeskAgentSetupScreen'
+import type { WizardAgentDraft } from '../data/wizardAgentConfig.types'
 
 interface AgentDetailScreenProps {
   agentName: string
-  onEditAgent?: (agentName: string) => void
+  onEditAgent?: (agentName: string, draft?: WizardAgentDraft) => void
   onOpenIntegrationSettings?: (integrationId: string) => void
   product?: string
 }
@@ -346,10 +347,10 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
           setShowSetupWizard(false)
           setShowCreateFlow(false)
         }}
-        onComplete={(name) => {
+        onComplete={(draft) => {
           setShowSetupWizard(false)
           setShowCreateFlow(false)
-          onEditAgent?.(name)
+          onEditAgent?.(draft.agentName, draft)
         }}
         onOpenIntegrationSettings={onOpenIntegrationSettings}
       />

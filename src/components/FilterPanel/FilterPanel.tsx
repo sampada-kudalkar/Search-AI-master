@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import { SelectMenu } from '../SelectMenu/SelectMenu'
 import { FilterField, FilterPanelProps } from './FilterPanel.types'
 
@@ -74,13 +75,13 @@ export function FilterPanel({
             })}
           </div>
 
-          <button
-            type="button"
+          <Link
+            as="button"
             onClick={onAdvancedFilters}
-            className="self-start rounded-sm py-xs text-body font-medium text-text-action hover:underline"
+            className="self-start rounded-sm py-xs text-body font-medium"
           >
             Advanced filters
-          </button>
+          </Link>
         </div>
       </div>
 

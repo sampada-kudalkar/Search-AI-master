@@ -9,7 +9,8 @@
   padding: 10px;
   flex-shrink: 0;
   overflow: visible;
-  z-index: 5;
+  position: relative;
+  z-index: 40;
 }
 
 .agent-builder__canvas {
@@ -341,7 +342,7 @@
 }
 
 .ab-view-banner__link:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .ab-view-badge {

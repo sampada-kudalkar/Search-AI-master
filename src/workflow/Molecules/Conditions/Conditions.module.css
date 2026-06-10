@@ -145,7 +145,7 @@
 }
 
 .addOptionBtn:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .addOptionIcon {

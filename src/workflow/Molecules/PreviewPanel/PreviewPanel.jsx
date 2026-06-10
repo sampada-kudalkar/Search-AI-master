@@ -252,6 +252,7 @@ export default function PreviewPanel({
   onPreviewActiveChange,
   showClose = true,
   showViewDetails = true,
+  showViewLogs = true,
 }) {
   const [panelView, setPanelView]   = useState('preview'); // preview | logs | details
   const [phase, setPhase]         = useState('idle');   // idle | dialing | active | ended
@@ -493,6 +494,7 @@ export default function PreviewPanel({
         onToggle={handleToggleView}
         showClose={showClose}
         onClose={handleClose}
+        showViewLogs={showViewLogs}
         logsLinkDisabled={logsLinkDisabled}
       />
 

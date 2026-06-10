@@ -1,4 +1,5 @@
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import { ViewActivityDrawerProps } from './ViewActivityDrawer.types'
 import { buildActivities, ActivityRow } from './activityUtils'
 
@@ -30,13 +31,13 @@ export function ViewActivityDrawer(props: ViewActivityDrawerProps) {
             </button>
             <span className="text-h3 text-text-primary">All activity of {patient}</span>
           </div>
-          <button
-            type="button"
+          <Link
+            as="button"
             onClick={onViewAllDetails}
-            className="text-body text-text-action hover:underline"
+            className="text-body"
           >
             View all details
-          </button>
+          </Link>
         </div>
 
         {/* Timeline */}

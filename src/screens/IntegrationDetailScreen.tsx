@@ -1,4 +1,4 @@
-import { Icon, TopNav } from '../components'
+import { Icon, Link, TopNav } from '../components'
 import { getHealthcareIntegration } from '../data/healthcareIntegrations'
 
 interface IntegrationDetailScreenProps {
@@ -14,21 +14,21 @@ export function IntegrationDetailScreen({ integrationId, onBack }: IntegrationDe
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
       <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
-        <button
-          type="button"
+        <Link
+          as="button"
           onClick={onBack}
-          className="text-body text-text-action hover:underline"
+          className="text-body"
         >
           Settings
-        </button>
+        </Link>
         <Icon name="chevron_right" size={16} className="text-text-icon" />
-        <button
-          type="button"
+        <Link
+          as="button"
           onClick={onBack}
-          className="text-body text-text-action hover:underline"
+          className="text-body"
         >
           Integrations
-        </button>
+        </Link>
         <Icon name="chevron_right" size={16} className="text-text-icon" />
         <span className="text-body text-text-primary">{title}</span>
       </div>

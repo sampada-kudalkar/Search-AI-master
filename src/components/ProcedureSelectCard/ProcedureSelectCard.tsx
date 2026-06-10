@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import type { ProcedureSelectCardProps } from './ProcedureSelectCard.types'
 
 function SelectCheckbox({ checked }: { checked: boolean }) {
@@ -43,16 +44,16 @@ export function ProcedureSelectCard({
       }`}
     >
       {hovered && onView && (
-        <button
-          type="button"
+        <Link
+          as="button"
           onClick={(e) => {
             e.stopPropagation()
             onView()
           }}
-          className="absolute right-xl top-xl text-body text-primary hover:underline"
+          className="absolute right-xl top-xl text-body"
         >
           View
-        </button>
+        </Link>
       )}
 
       <div className="mb-md">

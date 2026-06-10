@@ -34,11 +34,12 @@ import {
   type WebChatChannelSettings,
 } from './channelSetupSettings.types'
 import { ReviewSummaryStep } from './ReviewSummaryStep'
+import type { WizardAgentDraft } from '../data/wizardAgentConfig.types'
 
 interface NewFrontdeskAgentSetupScreenProps {
   onBack: () => void
   onCancel: () => void
-  onComplete?: (agentName: string) => void
+  onComplete?: (draft: WizardAgentDraft) => void
   onOpenIntegrationSettings?: (integrationId: string) => void
 }
 
@@ -723,14 +724,32 @@ export function NewFrontdeskAgentSetupScreen({
     }
   }
 
+  const isStep1Complete = agentName.trim().length > 0 && selectedChannels.size > 0
+  const isNextDisabled = currentStep === 1 && !isStep1Complete
+
   const handleNext = () => {
+    if (isNextDisabled) return
+
     if (currentStep < STEPS.length) {
       const nextStep = currentStep + 1
       setMaxStepReached((max) => Math.max(max, nextStep))
       setCurrentStep(nextStep)
       return
     }
-    onComplete?.(agentName.trim() || 'New frontdesk agent')
+    onComplete?.({
+      agentName: agentName.trim() || 'New frontdesk agent',
+      selectedChannels: [...selectedChannels],
+      voice,
+      greeting,
+      recording,
+      consent,
+      webchatSettings,
+      textSettings,
+      selectedProcedureIds,
+      procedureCatalog,
+      selectedIntegrationId,
+      connectedIntegrationIds,
+    })
   }
 
   const progress = PROGRESS_BY_STEP[currentStep] ?? 0
@@ -764,7 +783,12 @@ export function NewFrontdeskAgentSetupScreen({
           <button
             type="button"
             onClick={handleNext}
-            className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+            disabled={isNextDisabled}
+            className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
+              isNextDisabled
+                ? 'cursor-not-allowed bg-surface-selected text-text-tertiary'
+                : 'bg-primary text-white hover:bg-primary-hover'
+            }`}
           >
             {isLastStep ? 'Create' : 'Next'}
           </button>

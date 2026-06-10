@@ -19,6 +19,7 @@ export type { IntegrationSelectCardProps } from './IntegrationSelectCard/Integra
 export { IntakeFormPreviewDrawer } from './IntakeFormPreviewDrawer/IntakeFormPreviewDrawer'
 export { InfoCard } from './InfoCard/InfoCard'
 export { InfoCardListItem } from './InfoCard/InfoCardListItem'
+export { Link } from './Link/Link'
 export { Icon } from './Icon/Icon'
 export { IconRail } from './IconRail/IconRail'
 export { SideNav } from './SideNav/SideNav'
@@ -66,6 +67,7 @@ export type { SankeyNode, SankeyLink, SankeyChartProps } from './charts/SankeyCh
 export type { HeatmapProps } from './charts/Heatmap'
 export type { ChartTooltipItem, ChartTooltipProps } from './charts/ChartTooltip'
 
+export type { LinkProps } from './Link/Link.types'
 export type { ChipProps, ChipVariant } from './Chip/Chip.types'
 export type { ContextModalProps, ContextModalResult } from './ContextModal/ContextModal.types'
 export type {

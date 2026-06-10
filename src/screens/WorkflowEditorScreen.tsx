@@ -4,7 +4,9 @@ import {
   HEALTHCARE_AGENT_WORKFLOWS,
   DENTAL_AGENT_WORKFLOWS,
 } from '../data/agentWorkflows'
+import { buildWizardAgentWorkflow } from '../data/buildWizardAgentWorkflow'
 import { useProcedureStore } from '../data/ProcedureStoreContext'
+import type { WizardAgentDraft } from '../data/wizardAgentConfig.types'
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -51,6 +53,7 @@ interface WorkflowEditorScreenProps {
   onClose: () => void
   product?: string
   agentStatus?: string
+  wizardDraft?: WizardAgentDraft | null
 }
 
 export function WorkflowEditorScreen({
@@ -58,6 +61,7 @@ export function WorkflowEditorScreen({
   onClose,
   product = 'automotive',
   agentStatus = 'Running',
+  wizardDraft = null,
 }: WorkflowEditorScreenProps) {
   const { procedures, addProcedure } = useProcedureStore()
   const agentBaseName = agentName.replace(/ - .+$/, '')
@@ -92,22 +96,27 @@ export function WorkflowEditorScreen({
     ],
   }
 
-  const workflow = isHC && agentBaseName === 'Front desk agent'
-    ? {
-        nodes: baseWorkflow.nodes,
-        nodeDetails: {
-          ...baseWorkflow.nodeDetails,
-          '__start__': HC_FRONTDESK_START,
-          'fd-2': HC_FRONTDESK_FD2,
-        },
-      }
-    : baseWorkflow
+  const workflow = wizardDraft
+    ? buildWizardAgentWorkflow(wizardDraft)
+    : isHC && agentBaseName === 'Front desk agent'
+      ? {
+          nodes: baseWorkflow.nodes,
+          nodeDetails: {
+            ...baseWorkflow.nodeDetails,
+            '__start__': HC_FRONTDESK_START,
+            'fd-2': HC_FRONTDESK_FD2,
+          },
+        }
+      : baseWorkflow
+
+  const resolvedStatus = wizardDraft ? 'Draft' : agentStatus
+  const publishDisabled = Boolean(wizardDraft)
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
       <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-gray-400">Loading…</div>}>
         <AgentBuilder
-          key={`${agentName}::${product}`}
+          key={`${agentName}::${product}::${wizardDraft ? 'wizard' : 'default'}`}
           pageTitle={agentName}
           appTitle={agentName}
           onClose={onClose}
@@ -120,7 +129,9 @@ export function WorkflowEditorScreen({
           initialNodeDetails={workflow.nodeDetails}
           procedures={filteredProcedures}
           onAddProcedure={addProcedure}
-          initialStatus={agentStatus}
+          initialStatus={resolvedStatus}
+          publishDisabled={publishDisabled}
+          defaultOpenSection={wizardDraft ? 'Tasks' : 'Trigger'}
         />
       </Suspense>
     </div>

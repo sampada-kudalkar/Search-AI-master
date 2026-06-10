@@ -1,6 +1,7 @@
 // src/components/ViewActivityDrawer/activityUtils.tsx
 import { useState } from 'react'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import { Activity, ActivityType, ViewActivityDrawerProps } from './ViewActivityDrawer.types'
 
 export function parseDate(str: string): Date {
@@ -141,14 +142,14 @@ export function ActivityRow({ activity, isLast }: { activity: Activity; isLast: 
             <span className="text-small text-text-secondary">{activity.subtitle}</span>
           )}
           {activity.actionLabel && (
-            <button
-              type="button"
+            <Link
+              as="button"
               onClick={() => setExpanded((v) => !v)}
-              className="flex w-fit items-center gap-xs text-small text-text-action hover:underline"
+              className="flex w-fit items-center gap-xs text-small"
             >
               {expanded ? 'Hide details' : activity.actionLabel}
               <Icon name={expanded ? 'expand_less' : 'expand_more'} size={14} />
-            </button>
+            </Link>
           )}
         </div>
         <span className="shrink-0 text-small text-text-secondary">{activity.date}</span>

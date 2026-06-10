@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
-import { Icon, IconRail, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
+import type { WizardAgentDraft } from './data/wizardAgentConfig.types'
+import { Icon, IconRail, Link, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
 import { ManageAppointmentsScreen } from './screens/ManageAppointmentsScreen'
 import { SalesPipelineScreen } from './screens/SalesPipelineScreen'
 import { ServiceRequestsScreen } from './screens/ServiceRequestsScreen'
@@ -92,7 +93,6 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
-    defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
       { id: 'sales-pipeline',      label: 'Sales pipeline'      },
@@ -102,7 +102,6 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'agent',
     label: 'Agents',
-    defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent', label: 'Front desk agent' },
       { id: 'reminder-agent',  label: 'Reminder agent'  },
@@ -112,7 +111,6 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: true,
     items: [
       { id: 'conversations', label: 'Appointment overview' },
       { id: 'sales',         label: 'Sales'                },
@@ -122,7 +120,6 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: true,
     items: [
       { id: 'knowledge-base',     label: 'Knowledge base',     external: true },
       { id: 'procedure-library',  label: 'Procedures'          },
@@ -139,7 +136,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
-    defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
       { id: 'review-waitlist',     label: 'Review waitlist'     },
@@ -149,7 +145,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'agent',
     label: 'Agents',
-    defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent',  label: 'Front desk agent'  },
       { id: 'waitlist-agent',   label: 'Waitlist agent'   },
@@ -160,7 +155,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: true,
     items: [
       { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
       { id: 'hc-no-shows',           label: 'No shows prevented' },
@@ -171,7 +165,6 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: true,
     items: [
       { id: 'providers',         label: 'Providers'          },
       { id: 'appointment-type',  label: 'Appointment type'   },
@@ -188,7 +181,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'human-actions',
     label: 'Human actions',
-    defaultExpanded: true,
     items: [
       { id: 'manage-appointments', label: 'Manage appointments' },
       { id: 'review-waitlist',     label: 'Review waitlist'     },
@@ -198,7 +190,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'agent',
     label: 'Agents',
-    defaultExpanded: true,
     items: [
       { id: 'frontdesk-agent',             label: 'Front desk agent'             },
       { id: 'waitlist-agent',              label: 'Waitlist agent'              },
@@ -212,7 +203,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'outcomes',
     label: 'Outcomes',
-    defaultExpanded: true,
     items: [
       { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
       { id: 'dental-no-shows',           label: 'No shows prevented'   },
@@ -223,7 +213,6 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
   {
     id: 'resources',
     label: 'Resources',
-    defaultExpanded: true,
     items: [
       { id: 'providers',         label: 'Providers'  },
       { id: 'procedure-library', label: 'Procedures' },
@@ -268,6 +257,7 @@ export function App() {
   const [railActive, setRailActive] = useState('frontdesk')
   const [navActive, setNavActive] = useState('manage-appointments')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
+  const [wizardAgentDraft, setWizardAgentDraft] = useState<WizardAgentDraft | null>(null)
   const [activeProduct, setActiveProduct] = useState('healthcare')
   const [settingsTab, setSettingsTab] = useState<string | null>(null)
   const [settingsSubScreen, setSettingsSubScreen] = useState<string | null>(null)
@@ -282,6 +272,12 @@ export function App() {
     setActiveProduct(id)
     setNavActive(DEFAULT_NAV_BY_PRODUCT[id] ?? 'manage-appointments')
     setEditingAgentName(null)
+    setWizardAgentDraft(null)
+  }
+
+  function handleEditAgent(name: string, draft?: WizardAgentDraft) {
+    setWizardAgentDraft(draft ?? null)
+    setEditingAgentName(name)
   }
 
   const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
@@ -345,8 +341,12 @@ export function App() {
             <div className="flex-1 overflow-hidden">
               <WorkflowEditorScreen
                 agentName={editingAgentName}
-                onClose={() => setEditingAgentName(null)}
+                onClose={() => {
+                  setEditingAgentName(null)
+                  setWizardAgentDraft(null)
+                }}
                 product={activeProduct}
+                wizardDraft={wizardAgentDraft}
               />
             </div>
           </>
@@ -358,12 +358,13 @@ export function App() {
           <>
             <TopNav title="Front desk" initials="S" />
             <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
-              <button
+              <Link
+                as="button"
                 onClick={() => setIntakeDetail(null)}
-                className="text-body text-text-action hover:underline"
+                className="text-body"
               >
                 Manage intake
-              </button>
+              </Link>
               <Icon name="chevron_right" size={16} className="text-text-icon" />
               <span className="text-body text-text-primary">{intakeDetail!.detail.patient}</span>
             </div>
@@ -425,7 +426,7 @@ export function App() {
           <AgentDetailScreen
             key={navActive}
             agentName={AGENT_NAMES[navActive]}
-            onEditAgent={setEditingAgentName}
+            onEditAgent={handleEditAgent}
             onOpenIntegrationSettings={openIntegrationSettings}
             product={activeProduct}
           />

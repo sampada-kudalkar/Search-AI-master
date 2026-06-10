@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  a {
+    @apply text-text-action no-underline hover:no-underline hover:text-primary-hover;
+  }
+}
+
 @layer components {
   .ai-summary-panel {
     @apply rounded-sm border px-lg py-md;

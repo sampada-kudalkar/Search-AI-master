@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Chip } from '../Chip/Chip'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import { MessageDrawerProps } from './MessageDrawer.types'
 
 interface Message {
@@ -123,11 +124,11 @@ export function MessageDrawer({ open, patient, status = 'Unconfirmed', onClose }
                 <div className="text-body text-text-primary">{MOCK_CARD.datetime}</div>
               </div>
               <div className="flex items-center gap-md">
-                <button type="button" className="flex items-center gap-xs text-small text-text-action hover:underline">
+                <Link as="button" className="flex items-center gap-xs text-small">
                   <Icon name="autorenew" size={14} />
                   Reschedule
-                </button>
-                <button type="button" className="text-small text-text-action hover:underline">Send reminder</button>
+                </Link>
+                <Link as="button" className="text-small">Send reminder</Link>
                 <button type="button" className="text-text-icon">
                   <Icon name="more_horiz" size={16} />
                 </button>
