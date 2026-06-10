@@ -33,14 +33,16 @@ export function ProcedurePickerDetailView({
     <>
       <div className="flex shrink-0 items-center justify-between px-2xl pb-lg pt-2xl">
         <div className="flex min-w-0 items-center gap-sm">
-          <button
-            type="button"
-            aria-label="Back"
-            onClick={onBack}
-            className="flex size-7 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-          >
-            <BackArrowIcon />
-          </button>
+          {!isNew && (
+            <button
+              type="button"
+              aria-label="Back"
+              onClick={onBack}
+              className="flex size-7 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+            >
+              <BackArrowIcon />
+            </button>
+          )}
           <h2 className="truncate text-[16px] leading-6 tracking-[-0.32px] text-text-primary">
             {headerTitle}
           </h2>
