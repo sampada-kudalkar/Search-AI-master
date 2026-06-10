@@ -45,11 +45,13 @@ export function IntegrationListCard({
       {/* Top row: logo + status badge */}
       <div className="mb-md flex items-start justify-between">
         {/* Logo tile */}
-        <div
-          className="flex size-[48px] shrink-0 items-center justify-center rounded-full text-[15px] leading-none text-white"
-          style={{ backgroundColor: iconBg }}
-        >
-          {iconLabel}
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
+          <div
+            className="flex size-full items-center justify-center rounded-full text-[10px] leading-none text-white"
+            style={{ backgroundColor: iconBg }}
+          >
+            {iconLabel}
+          </div>
         </div>
 
         {/* Status badge / select indicator */}
