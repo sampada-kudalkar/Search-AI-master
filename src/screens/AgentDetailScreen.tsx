@@ -249,7 +249,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
               </button>
               {activeTab === 'agents' ? (
                 <>
-                  <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+                  <button type="button" onClick={() => onEditAgent?.('')} className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
                     Create agent
                   </button>
                   <button type="button" aria-label="Customize columns" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
