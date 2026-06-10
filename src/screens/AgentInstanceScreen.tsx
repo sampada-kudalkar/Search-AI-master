@@ -49,30 +49,30 @@ const TABS: Tab[] = [
 
 const METRICS_BY_AGENT: Record<string, Metric[]> = {
   'Front desk agent': [
-    { id: 'responded', value: '8,200', label: 'Conversations responded', delta: '1.3%', trend: 'up', info: true },
-    { id: 'resolved', value: '7,380', label: 'Conversations resolved', delta: '2.1%', trend: 'up', info: true },
-    { id: 'resolutionRate', value: '90%', label: 'Resolution rate', delta: '1.8%', trend: 'up', info: true },
-    { id: 'timeSaved', value: '18h', label: 'Time saved', delta: '12%', trend: 'up', info: true },
+    { id: 'responded', value: '8,200', label: 'Conversations responded', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total inbound conversations handled by this location in the selected period.' },
+    { id: 'resolved', value: '7,380', label: 'Conversations resolved', delta: '2.1%', trend: 'up', info: true, tooltip: 'Conversations closed without requiring human escalation at this location.' },
+    { id: 'resolutionRate', value: '90%', label: 'Resolution rate', delta: '1.8%', trend: 'up', info: true, tooltip: 'Percentage of conversations fully resolved by the agent. Calculated as resolved ÷ responded.' },
+    { id: 'timeSaved', value: '18h', label: 'Time saved', delta: '12%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved based on average handle time for equivalent human-handled conversations.' },
   ],
   'Reminder agent': [
-    { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
-    { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true },
-    { id: 'avgTime', value: '2m', label: 'Average response time', delta: '1.3%', trend: 'up', info: true },
-    { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
+    { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total appointment reminders sent by the agent at this location in the selected period.' },
+    { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of reminders that received a confirmed response from the customer.' },
+    { id: 'avgTime', value: '2m', label: 'Average response time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average time between the reminder being sent and the customer confirming or rescheduling.' },
+    { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
   ],
   'Outreach agent': [
-    { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true },
-    { id: 'response', value: '38%', label: 'Response rate', delta: '1.9%', trend: 'up', info: true },
-    { id: 'appointments', value: '641', label: 'Appointments scheduled', delta: '5.4%', trend: 'up', info: true },
-    { id: 'conversion', value: '11%', label: 'Conversion rate', delta: '0.7%', trend: 'up', info: true },
+    { id: 'leads', value: '2,103', label: 'Leads contacted', delta: '3.7%', trend: 'up', info: true, tooltip: 'Total leads the agent reached out to at this location in the selected period.' },
+    { id: 'response', value: '38%', label: 'Response rate', delta: '1.9%', trend: 'up', info: true, tooltip: 'Percentage of contacted leads that replied to the outreach.' },
+    { id: 'appointments', value: '641', label: 'Appointments scheduled', delta: '5.4%', trend: 'up', info: true, tooltip: 'Leads that confirmed a visit or test drive after being contacted.' },
+    { id: 'conversion', value: '11%', label: 'Conversion rate', delta: '0.7%', trend: 'up', info: true, tooltip: 'Percentage of contacted leads that resulted in a scheduled appointment. Calculated as appointments ÷ leads contacted.' },
   ],
 }
 
 const DEFAULT_METRICS: Metric[] = [
-  { id: 'interactions', value: '2,850', label: 'Interactions handled', delta: '1.3%', trend: 'up', info: true },
-  { id: 'fcr', value: '92%', label: 'First contact resolution rate', delta: '1.3%', trend: 'up', info: true },
-  { id: 'aht', value: '2m', label: 'Average handle time', delta: '1.3%', trend: 'up', info: true },
-  { id: 'escalation', value: '11%', label: 'Escalation rate', delta: '1.3%', trend: 'up', info: true },
+  { id: 'interactions', value: '2,850', label: 'Interactions handled', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total customer interactions managed by the agent at this location in the selected period.' },
+  { id: 'fcr', value: '92%', label: 'First contact resolution rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of interactions resolved on the first contact without follow-up.' },
+  { id: 'aht', value: '2m', label: 'Average handle time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average duration of a single interaction from start to resolution.' },
+  { id: 'escalation', value: '11%', label: 'Escalation rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of interactions escalated to a human agent. Lower is generally better.' },
 ]
 
 const LOCATIONS_BY_AGENT: Record<string, LocationRow[]> = {

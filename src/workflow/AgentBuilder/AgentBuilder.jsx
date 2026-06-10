@@ -1284,24 +1284,27 @@ export default function AgentBuilder({
     }
 
     if (effectiveType === 'voiceCall') {
-      const acceptedId = `${id}-vc-accepted`;
-      const rejectedId = `${id}-vc-rejected`;
-      const missedId  = `${id}-vc-missed`;
+      const completedId = `${id}-vc-completed`;
+      const rejectedId  = `${id}-vc-rejected`;
+      const missedId    = `${id}-vc-missed`;
+      const voicemailId = `${id}-vc-voicemail`;
       details = {
         taskName: 'Initiate voice call',
         description: 'Call the customer',
         toolId: 'initiate-voice-call',
         selectedTools: ['initiate-voice-call'],
         branches: [
-          { id: acceptedId, name: 'Call accepted', isVoiceCallBranch: true },
-          { id: rejectedId, name: 'Call rejected', isVoiceCallBranch: true },
-          { id: missedId,   name: 'Call missed',   isVoiceCallBranch: true },
+          { id: completedId, name: 'Call completed', isVoiceCallBranch: true },
+          { id: rejectedId,  name: 'Call rejected',  isVoiceCallBranch: true },
+          { id: missedId,    name: 'Call missed',     isVoiceCallBranch: true },
+          { id: voicemailId, name: 'Voicemail',       isVoiceCallBranch: true },
         ],
       };
       extraDetails = {
-        [acceptedId]: { branchName: 'Call accepted', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [rejectedId]: { branchName: 'Call rejected', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [missedId]:   { branchName: 'Call missed',   parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [completedId]: { branchName: 'Call completed', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [rejectedId]:  { branchName: 'Call rejected',  parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [missedId]:    { branchName: 'Call missed',     parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [voicemailId]: { branchName: 'Voicemail',       parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
       };
     }
 

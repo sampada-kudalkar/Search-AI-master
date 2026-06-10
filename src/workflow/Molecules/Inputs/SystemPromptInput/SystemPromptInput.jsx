@@ -2,10 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import '../prompt-chip.css';
 import { serializeFrom, deserializeInto, insertChipAt } from '../promptChipHelpers.js';
 import { VariableIcon, ExpandIcon } from '../PromptToolbarIcons.jsx';
-import { CHIP_TYPES, DataTypeIcon } from '../VariableChip/VariableChip.jsx';
+import FieldPickerModal from '../../../Organisms/Modals/FieldPickerModal/FieldPickerModal.jsx';
 import styles from './SystemPromptInput.module.css';
-
-const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default function SystemPromptInput({ value, onChange, required }) {
   const editorRef = useRef(null);
@@ -14,8 +12,7 @@ export default function SystemPromptInput({ value, onChange, required }) {
 
   const lastEmittedRef = useRef(null);
   const savedRangeRef = useRef(null);
-  const pickerContainerRef = useRef(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [fieldModalOpen, setFieldModalOpen] = useState(false);
 
   const emitChange = useCallback(() => {
     const s = serializeFrom(editorRef.current);
@@ -32,18 +29,7 @@ export default function SystemPromptInput({ value, onChange, required }) {
     deserializeInto(el, newVal, emitChange);
   }, [value, emitChange]);
 
-  useEffect(() => {
-    if (!pickerOpen) return;
-    const handler = (e) => {
-      if (pickerContainerRef.current && !pickerContainerRef.current.contains(e.target)) {
-        setPickerOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [pickerOpen]);
-
-  const handleOpenPicker = useCallback(() => {
+  const saveRange = useCallback(() => {
     const el = editorRef.current;
     if (el) {
       const sel = window.getSelection();
@@ -51,71 +37,70 @@ export default function SystemPromptInput({ value, onChange, required }) {
         savedRangeRef.current = sel.getRangeAt(0).cloneRange();
       }
     }
-    setPickerOpen((p) => !p);
   }, []);
 
-  const handleTypeSelect = useCallback((type) => {
-    setPickerOpen(false);
-    insertChipAt(editorRef.current, savedRangeRef.current, emitChange, type);
+  const handleOpenFieldModal = useCallback(() => {
+    saveRange();
+    setFieldModalOpen(true);
+  }, [saveRange]);
+
+  const handleFieldSelect = useCallback((fieldValue) => {
+    setFieldModalOpen(false);
+    insertChipAt(editorRef.current, savedRangeRef.current, emitChange, 'variable', fieldValue);
     savedRangeRef.current = null;
   }, [emitChange]);
 
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === '@') {
+      saveRange();
+      setTimeout(() => setFieldModalOpen(true), 0);
+    }
+  }, [saveRange]);
+
   return (
-    <div className={styles.wrap}>
-      <div className={styles.labelRow}>
-        <span className={styles.label}>System prompt</span>
-        {required && <span className={styles.required}>*</span>}
-      </div>
-      <div className={styles.inputBox}>
-        <div
-          ref={editorRef}
-          className={styles.editor}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={emitChange}
-          data-placeholder="Enter prompt"
-        />
-        <div className={styles.toolbar} ref={pickerContainerRef}>
-          <button
-            type="button"
-            className={`${styles.toolbarBtn} ${pickerOpen ? styles.toolbarBtnActive : ''}`}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={handleOpenPicker}
-            title="Insert variable"
-          >
-            <VariableIcon />
-          </button>
-          <button
-            type="button"
-            className={styles.toolbarBtn}
-            onMouseDown={(e) => e.preventDefault()}
-            title="Expand"
-          >
-            <ExpandIcon />
-          </button>
-          {pickerOpen && (
-            <div className={styles.typePicker}>
-              {CHIP_TYPES.map((ct) => (
-                <button
-                  key={ct.type}
-                  className={styles.typePickerItem}
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => handleTypeSelect(ct.type)}
-                >
-                  <span className={`${styles.typePickerSwatch} ${styles[`tpSwatch${cap(ct.type)}`] || ''}`}>
-                    {ct.icon
-                      ? <span className={`material-symbols-outlined ${styles[`tpIcon${cap(ct.type)}`] || ''}`}>{ct.icon}</span>
-                      : <DataTypeIcon />
-                    }
-                  </span>
-                  <span className={styles.typePickerLabel}>{ct.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+    <>
+      <div className={styles.wrap}>
+        <div className={styles.labelRow}>
+          <span className={styles.label}>System prompt</span>
+          {required && <span className={styles.required}>*</span>}
+        </div>
+        <div className={styles.inputBox}>
+          <div
+            ref={editorRef}
+            className={styles.editor}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={emitChange}
+            onKeyDown={handleKeyDown}
+            data-placeholder="Enter prompt"
+          />
+          <div className={styles.toolbar}>
+            <button
+              type="button"
+              className={`${styles.toolbarBtn} ${fieldModalOpen ? styles.toolbarBtnActive : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleOpenFieldModal}
+              title="Insert variable"
+            >
+              <VariableIcon />
+            </button>
+            <button
+              type="button"
+              className={styles.toolbarBtn}
+              onMouseDown={(e) => e.preventDefault()}
+              title="Expand"
+            >
+              <ExpandIcon />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      {fieldModalOpen && (
+        <FieldPickerModal
+          onClose={() => setFieldModalOpen(false)}
+          onSelectField={handleFieldSelect}
+        />
+      )}
+    </>
   );
 }

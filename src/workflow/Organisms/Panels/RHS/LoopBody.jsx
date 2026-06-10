@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FormInput, TextArea } from '../../../elemental-stubs';
 import VariableChip from '../../../Molecules/Inputs/VariableChip/VariableChip';
+import FieldPickerModal from '../../Modals/FieldPickerModal/FieldPickerModal';
 
 const font = '"Roboto", arial, sans-serif';
 
@@ -17,45 +18,32 @@ function SectionLabel({ label, showInfo }) {
 
 /* Variable chip input box — shows chips + an {x} add trigger */
 function LoopOverField({ chips, onAdd, onRemove }) {
-  const [adding, setAdding] = useState(false);
-
-  const handleAdd = (val) => {
-    onAdd(val);
-    setAdding(false);
-  };
+  const [fieldPickerOpen, setFieldPickerOpen] = useState(false);
 
   return (
-    <div style={{
-      border: '1px solid #d1d5db',
-      borderRadius: 4,
-      padding: '6px 8px',
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: 6,
-      minHeight: 38,
-      background: '#fff',
-      boxSizing: 'border-box',
-    }}>
-      {chips.map((chip, i) => (
-        <VariableChip
-          key={i}
-          value={chip}
-          type="variable"
-          onDelete={() => onRemove(i)}
-        />
-      ))}
-      {adding ? (
-        <VariableChip
-          value=""
-          type="variable"
-          autoFocus
-          onChange={handleAdd}
-          onDelete={() => setAdding(false)}
-        />
-      ) : (
+    <>
+      <div style={{
+        border: '1px solid #d1d5db',
+        borderRadius: 4,
+        padding: '6px 8px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 6,
+        minHeight: 38,
+        background: '#fff',
+        boxSizing: 'border-box',
+      }}>
+        {chips.map((chip, i) => (
+          <VariableChip
+            key={i}
+            value={chip}
+            type="variable"
+            onDelete={() => onRemove(i)}
+          />
+        ))}
         <button
           type="button"
-          onClick={() => setAdding(true)}
+          onClick={() => setFieldPickerOpen(true)}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -85,8 +73,17 @@ function LoopOverField({ chips, onAdd, onRemove }) {
             fontFamily: 'monospace',
           }}>{'{x}'}</span>
         </button>
+      </div>
+      {fieldPickerOpen && (
+        <FieldPickerModal
+          onClose={() => setFieldPickerOpen(false)}
+          onSelectField={(value) => {
+            onAdd(value);
+            setFieldPickerOpen(false);
+          }}
+        />
       )}
-    </div>
+    </>
   );
 }
 

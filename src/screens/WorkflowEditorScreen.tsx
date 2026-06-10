@@ -131,7 +131,7 @@ export function WorkflowEditorScreen({
           onAddProcedure={addProcedure}
           initialStatus={resolvedStatus}
           publishDisabled={publishDisabled}
-          defaultOpenSection={wizardDraft ? 'Tasks' : 'Trigger'}
+          defaultOpenSection="Tasks"
         />
       </Suspense>
     </div>

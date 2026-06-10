@@ -13,10 +13,10 @@ export interface HealthcareLogRow {
 }
 
 export const HEALTHCARE_LOGS_METRICS: Metric[] = [
-  { id: 'total', value: '12', label: 'Total conversation', info: true },
-  { id: 'resolved', value: '8', label: 'Resolved', info: true },
-  { id: 'transferred', value: '3', label: 'Transferred', info: true },
-  { id: 'abandoned', value: '1', label: 'Abandoned', info: true },
+  { id: 'total', value: '12', label: 'Total conversation', info: true, tooltip: 'Total number of conversations handled by the agent in the selected period.' },
+  { id: 'resolved', value: '8', label: 'Resolved', info: true, tooltip: 'Conversations that were fully resolved by the agent without human escalation.' },
+  { id: 'transferred', value: '3', label: 'Transferred', info: true, tooltip: 'Conversations handed off to a human agent for further assistance.' },
+  { id: 'abandoned', value: '1', label: 'Abandoned', info: true, tooltip: 'Conversations where the customer disconnected before resolution.' },
 ]
 
 export const HEALTHCARE_LOGS_ROWS: HealthcareLogRow[] = [
