@@ -361,16 +361,6 @@ function VoiceChannelSettings({
                   </div>
                 )}
               </div>
-              <label className="flex cursor-pointer items-center gap-sm">
-                <input
-                  type="radio"
-                  name="wizard-recording"
-                  checked={recording === 'silent'}
-                  onChange={() => onRecordingChange('silent')}
-                  className="accent-primary"
-                />
-                <span className="text-body text-text-primary">Record silently</span>
-              </label>
           </div>
         </div>
       </div>
