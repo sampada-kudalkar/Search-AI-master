@@ -478,12 +478,25 @@ const CM_STATUS_SERIES = [
   { key: 'Routed',      label: 'Routed',       color: '#FF7043' },
 ]
 
+const CM_ROUTING_DATA = [
+  { week: 'Mar\n3', Agents: 130, Humans: 64,  Pending: 60  },
+  { week: '2',      Agents: 60,  Humans: 44,  Pending: 40  },
+  { week: '3',      Agents: 120, Humans: 62,  Pending: 60  },
+  { week: '4',      Agents: 110, Humans: 88,  Pending: 50  },
+  { week: '5',      Agents: 60,  Humans: 38,  Pending: 30  },
+  { week: '6',      Agents: 110, Humans: 88,  Pending: 50  },
+  { week: '7',      Agents: 120, Humans: 72,  Pending: 60  },
+  { week: '8',      Agents: 80,  Humans: 68,  Pending: 40  },
+  { week: '9',      Agents: 80,  Humans: 78,  Pending: 40  },
+  { week: '10',     Agents: 90,  Humans: 62,  Pending: 40  },
+  { week: '11',     Agents: 90,  Humans: 62,  Pending: 40  },
+  { week: '12',     Agents: 80,  Humans: 68,  Pending: 40  },
+]
+
 const CM_ROUTING_SERIES = [
-  { key: 'Missed Call', label: 'AI agent',    color: '#42A5F5' },
-  { key: 'Scheduling',  label: 'Reception',   color: '#7E57C2' },
-  { key: 'Follow-up',   label: 'Billing',     color: '#4cae3d' },
-  { key: 'Resolved',    label: 'Clinical',    color: '#F5A623' },
-  { key: 'Routed',      label: 'Humans',      color: '#FF7043' },
+  { key: 'Agents',  label: 'Agents',  color: '#42A5F5' },
+  { key: 'Humans',  label: 'Humans',  color: '#FF7043' },
+  { key: 'Pending', label: 'Pending', color: '#F5A623' },
 ]
 
 interface CmLocationRow {
@@ -578,7 +591,7 @@ function ConversationManagedPanel() {
 
         {/* Routing distribution */}
         <ChartCard title="Routing distribution" className="h-[556px]">
-          <StackedBarChart data={CM_STATUS_DATA} series={CM_ROUTING_SERIES} xKey="week" height={430} showBarLabels wrapXLabels />
+          <StackedBarChart data={CM_ROUTING_DATA} series={CM_ROUTING_SERIES} xKey="week" height={430} showBarLabels wrapXLabels />
         </ChartCard>
 
         {/* Conversation across locations */}
