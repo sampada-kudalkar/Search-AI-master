@@ -545,7 +545,7 @@ export default function AgentBuilder({
   procedures = null,
   onAddProcedure,
   publishDisabled = false,
-  defaultOpenSection = 'Trigger',
+  defaultOpenSection = 'Tasks',
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -1750,7 +1750,7 @@ export default function AgentBuilder({
       >
         <span className="material-symbols-outlined" style={{ fontSize: 20, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20" }}>cloud_upload</span>
       </button>
-      <Button
+<Button
         theme="primary"
         label={isTemplateMode ? 'Save template' : 'Publish'}
         onClick={isTemplateMode ? handleSaveTemplate : handlePublish}
@@ -1855,6 +1855,7 @@ export default function AgentBuilder({
               orientation="vertical"
               viewOnly={viewOnly}
               onEdit={viewOnly ? onEdit : undefined}
+              onRun={() => setPreviewOpen(true)}
             />
           </div>
 
