@@ -33,7 +33,7 @@ function LeafRow({
         active ? 'bg-surface-selected' : 'hover:bg-surface-selected'
       }`}
     >
-      <span className="min-w-0 flex-1 truncate text-body font-light text-text-primary">
+      <span className={`min-w-0 flex-1 truncate text-body font-light ${leaf.strikethrough ? 'text-text-tertiary line-through' : 'text-text-primary'}`}>
         {leaf.label}
       </span>
       {leaf.external && <Icon name="open_in_new" size={16} className="shrink-0 text-text-icon" />}
