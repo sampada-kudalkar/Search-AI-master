@@ -84,22 +84,16 @@ export function IntegrationListCard({
         </div>
       </div>
 
-      {/* Name */}
-      <p className="mb-xs truncate text-body text-text-primary">{name}</p>
+      {/* Name — turns blue on hover when onView is wired */}
+      <p
+        onClick={onView ? (e) => { e.stopPropagation(); onView() } : undefined}
+        className={`mb-xs truncate text-body transition-colors ${onView ? 'group-hover:text-primary group-hover:cursor-pointer' : 'text-text-primary'}`}
+      >
+        {name}
+      </p>
 
-      {/* Description + View link */}
-      <div className="flex items-end justify-between gap-sm">
-        <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
-        {onView && (
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onView() }}
-            className="shrink-0 text-small text-primary opacity-0 transition-opacity hover:underline group-hover:opacity-100"
-          >
-            View
-          </button>
-        )}
-      </div>
+      {/* Description */}
+      <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
     </div>
   )
 }
