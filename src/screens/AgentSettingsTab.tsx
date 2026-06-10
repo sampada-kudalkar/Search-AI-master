@@ -1,6 +1,11 @@
 import { useState, useRef, type MouseEvent } from 'react'
 import { Icon, IntegrationsPickerDrawer, ProceduresPickerDrawer, RefChip } from '../components'
 import {
+  DEFAULT_AGENT_PROCEDURE_IDS,
+  HEALTHCARE_PROCEDURE_CATALOG,
+  type HealthcareProcedureCatalogItem,
+} from '../data/healthcareProcedureCatalog'
+import {
   DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
   DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
   getHealthcareIntegration,
@@ -547,24 +552,22 @@ function SettingsSectionHeader({
   )
 }
 
-// ── Card 3-dot menu (edit / delete on hover) ────────────────────
+// ── Card 3-dot menu (edit / delete) ───────────────────────────
 interface CardMenuProps {
   itemLabel: string
   onEdit?: () => void
   onDelete?: () => void
+  /** When true, skip absolute positioning (for use inside a positioned parent). */
+  inline?: boolean
 }
 
-function CardMenu({ itemLabel, onEdit, onDelete }: CardMenuProps) {
+function CardMenu({ itemLabel, onEdit, onDelete, inline = false }: CardMenuProps) {
   const [open, setOpen] = useState(false)
 
   if (!onEdit && !onDelete) return null
 
   return (
-    <div
-      className={`absolute right-md top-md z-10 transition-opacity ${
-        open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-      }`}
-    >
+    <div className={`z-10 ${inline ? 'relative' : 'absolute right-md top-md'}`}>
       <button
         type="button"
         aria-label={`${itemLabel} actions`}
@@ -626,7 +629,9 @@ interface ProcedureCardProps {
 function ProcedureCard({ title, description, lastEdited, onEdit, onRemove }: ProcedureCardProps) {
   return (
     <div className="group relative flex min-h-[148px] flex-col rounded-sm border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected">
-      <CardMenu itemLabel={title} onEdit={onEdit} onDelete={onRemove} />
+      <div className="absolute right-md top-md z-10 flex items-center gap-sm">
+        <CardMenu itemLabel={title} onEdit={onEdit} onDelete={onRemove} inline />
+      </div>
       <div className="mb-md">
         <ProcedureBookIcon size={22} className="text-text-secondary" />
       </div>
@@ -662,7 +667,15 @@ function IntegrationCard({
 }: IntegrationCardProps) {
   return (
     <div className="group relative flex min-h-[148px] flex-col rounded-sm border border-border-selected bg-surface p-xl transition-colors hover:bg-surface-selected">
-      <CardMenu itemLabel={name} onEdit={onEdit} onDelete={onRemove} />
+      <div className="absolute right-md top-md z-10 flex items-center gap-sm">
+        {connected && (
+          <div className="flex items-center gap-xs text-small text-text-secondary">
+            <span className="size-2 rounded-full bg-accent-positive" />
+            Connected
+          </div>
+        )}
+        <CardMenu itemLabel={name} onEdit={onEdit} onDelete={onRemove} inline />
+      </div>
       <div className="mb-md">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface p-[2px]">
           <div
@@ -673,78 +686,11 @@ function IntegrationCard({
           </div>
         </div>
       </div>
-      <h3 className="mb-xs text-body text-text-primary">{name}</h3>
+      <h3 className="mb-xs truncate text-body text-text-primary">{name}</h3>
       <p className="line-clamp-2 text-body text-text-secondary">{description}</p>
-      {connected && (
-        <div className="mt-auto flex items-center justify-end gap-xs pt-lg text-small text-text-secondary">
-          <span className="size-2 rounded-full bg-accent-positive" />
-          Connected
-        </div>
-      )}
     </div>
   )
 }
-
-// ── Healthcare-specific data ─────────────────────────────────────
-interface ProcedureCatalogItem {
-  id: string
-  title: string
-  description: string
-  lastEdited: string
-}
-
-const PROCEDURE_CATALOG: ProcedureCatalogItem[] = [
-  {
-    id: 'greet',
-    title: 'Greet and open conversation',
-    description: 'Identifies the caller, screens for urgency, and routes them to the right procedure.',
-    lastEdited: '2 days ago',
-  },
-  {
-    id: 'general',
-    title: 'Handle general inquiry',
-    description: 'Answers informational questions like hours, location, insurance, and services.',
-    lastEdited: '5 days ago',
-  },
-  {
-    id: 'emergency',
-    title: 'Handle emergency or urgent concern',
-    description: 'Detects urgent symptoms or concerns and escalates for patient safety.',
-    lastEdited: '1 week ago',
-  },
-  {
-    id: 'unclear',
-    title: 'Handle unclear message',
-    description: "Clarifies vague or out-of-scope messages to recover the patient's intent.",
-    lastEdited: '1 week ago',
-  },
-  {
-    id: 'talk-human',
-    title: 'Talk to human',
-    description: 'Routes the patient to a live staff member when they request human help.',
-    lastEdited: '3 days ago',
-  },
-  {
-    id: 'identify-patient',
-    title: 'Identify patient',
-    description: 'Matches the caller to an existing patient record using name and date of birth.',
-    lastEdited: '4 days ago',
-  },
-  {
-    id: 'new-patient',
-    title: 'New patient intake',
-    description: 'Collects demographics and insurance for patients new to the practice.',
-    lastEdited: '5 days ago',
-  },
-  {
-    id: 'book-appointment',
-    title: 'Book new appointment',
-    description: 'Finds open slots and books a new appointment for the patient.',
-    lastEdited: '2 days ago',
-  },
-]
-
-const DEFAULT_PROCEDURE_IDS = ['greet', 'general', 'emergency', 'unclear']
 
 type RecordingMode = 'off' | 'announced'
 
@@ -766,9 +712,14 @@ export function AgentSettingsTab({ product, onOpenIntegrationSettings }: AgentSe
   const [voiceCallEnabled, setVoiceCallEnabled] = useState(true)
   const [webChatEnabled, setWebChatEnabled] = useState(true)
   const [textEnabled, setTextEnabled] = useState(true)
-  const [procedureCatalog, setProcedureCatalog] = useState<ProcedureCatalogItem[]>(PROCEDURE_CATALOG)
-  const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>(DEFAULT_PROCEDURE_IDS)
+  const [procedureCatalog, setProcedureCatalog] = useState<HealthcareProcedureCatalogItem[]>(
+    () => [...HEALTHCARE_PROCEDURE_CATALOG],
+  )
+  const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>(
+    () => [...DEFAULT_AGENT_PROCEDURE_IDS],
+  )
   const [procedureDrawerOpen, setProcedureDrawerOpen] = useState(false)
+  const [editingProcedureId, setEditingProcedureId] = useState<string | null>(null)
   const [integrationDrawerOpen, setIntegrationDrawerOpen] = useState(false)
 
   const isHealthcare = product === 'healthcare'
@@ -780,6 +731,16 @@ export function AgentSettingsTab({ product, onOpenIntegrationSettings }: AgentSe
 
   const removeProcedure = (id: string) => {
     setSelectedProcedureIds((current) => current.filter((item) => item !== id))
+  }
+
+  const openProcedureDrawer = (procedureId?: string) => {
+    setEditingProcedureId(procedureId ?? null)
+    setProcedureDrawerOpen(true)
+  }
+
+  const closeProcedureDrawer = () => {
+    setProcedureDrawerOpen(false)
+    setEditingProcedureId(null)
   }
 
   const removeAgentIntegration = () => {
@@ -909,7 +870,7 @@ export function AgentSettingsTab({ product, onOpenIntegrationSettings }: AgentSe
             <SettingsSectionHeader
               title="Procedures"
               addAriaLabel="Add procedure"
-              onAdd={() => setProcedureDrawerOpen(true)}
+              onAdd={() => openProcedureDrawer()}
             />
             {selectedProcedures.length === 0 ? (
               <div className="flex h-32 items-center justify-center rounded-sm border border-border-selected bg-surface text-body text-text-tertiary">
@@ -923,7 +884,7 @@ export function AgentSettingsTab({ product, onOpenIntegrationSettings }: AgentSe
                     title={proc.title}
                     description={proc.description}
                     lastEdited={proc.lastEdited}
-                    onEdit={() => {}}
+                    onEdit={() => openProcedureDrawer(proc.id)}
                     onRemove={() => removeProcedure(proc.id)}
                   />
                 ))}
@@ -933,10 +894,11 @@ export function AgentSettingsTab({ product, onOpenIntegrationSettings }: AgentSe
               open={procedureDrawerOpen}
               procedures={procedureCatalog}
               selectedIds={selectedProcedureIds}
-              onClose={() => setProcedureDrawerOpen(false)}
+              initialDetailId={editingProcedureId}
+              onClose={closeProcedureDrawer}
               onSave={(ids) => {
                 setSelectedProcedureIds(ids)
-                setProcedureDrawerOpen(false)
+                closeProcedureDrawer()
               }}
               onCreateProcedure={(procedure) => {
                 setProcedureCatalog((current) => [

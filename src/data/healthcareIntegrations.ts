@@ -61,6 +61,11 @@ export const HEALTHCARE_INTEGRATION_CATALOG: HealthcareIntegration[] = [
 /** Integrations connected at the account level (multiple allowed). */
 export const DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS = ['allscripts', 'epic', 'athena', 'ecw']
 
+/** All catalog integrations shown as connected in the new-agent setup wizard. */
+export const DEFAULT_WIZARD_CONNECTED_INTEGRATION_IDS = HEALTHCARE_INTEGRATION_CATALOG.map(
+  (item) => item.id,
+)
+
 /** Single integration selected for the front desk agent. */
 export const DEFAULT_AGENT_SELECTED_INTEGRATION_ID = 'allscripts'
 

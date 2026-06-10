@@ -84,13 +84,20 @@ export function IntegrationListCard({
         </div>
       </div>
 
-      {/* Name — turns blue on hover when onView is wired */}
-      <p
+      {/* Name — turns blue + shows redirect icon on hover when onView is wired */}
+      <div
         onClick={onView ? (e) => { e.stopPropagation(); onView() } : undefined}
-        className={`mb-xs truncate text-body transition-colors ${onView ? 'group-hover:text-primary group-hover:cursor-pointer' : 'text-text-primary'}`}
+        className={`mb-xs flex items-center gap-xs ${onView ? 'cursor-pointer' : ''}`}
       >
-        {name}
-      </p>
+        <p className={`truncate text-body transition-colors ${onView ? 'text-text-primary group-hover:text-primary' : 'text-text-primary'}`}>{name}</p>
+        {onView && (
+          <Icon
+            name="open_in_new"
+            size={14}
+            className="hidden shrink-0 text-primary group-hover:block"
+          />
+        )}
+      </div>
 
       {/* Description */}
       <p className="line-clamp-2 text-body text-text-secondary">{description}</p>

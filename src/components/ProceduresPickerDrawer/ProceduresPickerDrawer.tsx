@@ -26,9 +26,12 @@ export function ProceduresPickerDrawer({
   open,
   procedures,
   selectedIds,
+  initialDetailId = null,
+  initialView = 'list',
   onClose,
   onSave,
   onCreateProcedure,
+  closeOnCreateCancel = false,
 }: ProceduresPickerDrawerProps) {
   const [query, setQuery] = useState('')
   const [draftIds, setDraftIds] = useState<string[]>(selectedIds)
@@ -38,15 +41,38 @@ export function ProceduresPickerDrawer({
   const [createDraft, setCreateDraft] = useState<ProcedureDetailDraft>(createNewProcedureDraft)
 
   useEffect(() => {
-    if (open) {
-      setDraftIds(selectedIds)
-      setQuery('')
-      setView('list')
+    if (!open) return
+
+    setDraftIds(selectedIds)
+    setQuery('')
+    setCreateDraft(createNewProcedureDraft())
+
+    if (initialDetailId) {
+      const procedure = procedures.find((p) => p.id === initialDetailId)
+      if (procedure) {
+        setDetailDrafts((current) => ({
+          ...current,
+          [initialDetailId]:
+            current[initialDetailId] ??
+            buildProcedureDetailDraft(initialDetailId, procedure.title),
+        }))
+        setViewingId(initialDetailId)
+        setView('detail')
+        return
+      }
+    }
+
+    if (initialView === 'create') {
+      setView('create')
       setViewingId(null)
       setDetailDrafts({})
-      setCreateDraft(createNewProcedureDraft())
+      return
     }
-  }, [open, selectedIds])
+
+    setView('list')
+    setViewingId(null)
+    setDetailDrafts({})
+  }, [open, selectedIds, initialDetailId, initialView, procedures])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -96,9 +122,19 @@ export function ProceduresPickerDrawer({
     setCreateDraft(createNewProcedureDraft())
   }
 
+  const isDirectEditEntry = Boolean(initialDetailId)
+
+  const exitDetailView = () => {
+    if (isDirectEditEntry) {
+      onClose()
+      return
+    }
+    closeSubView()
+  }
+
   const saveDetail = (draft: ProcedureDetailDraft) => {
     setDetailDrafts((current) => ({ ...current, [draft.id]: draft }))
-    closeSubView()
+    exitDetailView()
   }
 
   const saveCreate = (draft: ProcedureDetailDraft) => {
@@ -124,6 +160,10 @@ export function ProceduresPickerDrawer({
   }
 
   const handleOverlayClick = () => {
+    if (view === 'detail' && isDirectEditEntry) {
+      onClose()
+      return
+    }
     if (view === 'detail' || view === 'create') {
       closeSubView()
       return
@@ -132,6 +172,10 @@ export function ProceduresPickerDrawer({
   }
 
   const handleBack = () => {
+    if (view === 'detail' && isDirectEditEntry) {
+      onClose()
+      return
+    }
     if (view === 'detail' || view === 'create') {
       closeSubView()
       return
@@ -158,12 +202,13 @@ export function ProceduresPickerDrawer({
             isNew
             onBack={closeSubView}
             onSave={saveCreate}
+            onCancel={closeOnCreateCancel ? onClose : undefined}
           />
         ) : view === 'detail' && activeDetailDraft ? (
           <ProcedurePickerDetailView
             key={viewingId}
             draft={activeDetailDraft}
-            onBack={closeSubView}
+            onBack={exitDetailView}
             onSave={saveDetail}
           />
         ) : (

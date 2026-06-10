@@ -18,6 +18,7 @@ import {
 import {
   DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
   DEFAULT_WIZARD_CONNECTED_INTEGRATION_IDS,
+  getHealthcareIntegration,
   HEALTHCARE_INTEGRATION_CATALOG,
   type HealthcareIntegration,
 } from '../data/healthcareIntegrations'
@@ -26,6 +27,13 @@ import {
   TextSetupSettings,
   WebChatSetupSettings,
 } from './channelSetupSettings'
+import {
+  DEFAULT_TEXT_CHANNEL_SETTINGS,
+  DEFAULT_WEBCHAT_CHANNEL_SETTINGS,
+  type TextChannelSettings,
+  type WebChatChannelSettings,
+} from './channelSetupSettings.types'
+import { ReviewSummaryStep } from './ReviewSummaryStep'
 
 interface NewFrontdeskAgentSetupScreenProps {
   onBack: () => void
@@ -87,14 +95,14 @@ function stepMarkerClass({
     : ''
 
   if (isComplete) {
-    return `flex size-7 shrink-0 items-center justify-center rounded-full bg-primary transition-colors ${hoverClass}`
+    return `flex size-5 shrink-0 items-center justify-center rounded-full bg-primary transition-colors ${hoverClass}`
   }
 
   if (isActive) {
-    return `flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-surface text-small text-primary transition-colors ${hoverClass}`
+    return `flex size-5 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-surface text-small text-primary transition-colors ${hoverClass}`
   }
 
-  return `flex size-7 shrink-0 items-center justify-center rounded-full border border-border-selected bg-surface text-small text-text-tertiary transition-colors ${hoverClass}`
+  return `flex size-5 shrink-0 items-center justify-center rounded-full border border-border-selected bg-surface text-small text-text-tertiary transition-colors ${hoverClass}`
 }
 
 function StepIndicator({
@@ -117,7 +125,7 @@ function StepIndicator({
 
           return (
             <li key={step.id} className="flex gap-md">
-              <div className="flex w-7 shrink-0 flex-col items-center">
+              <div className="flex w-5 shrink-0 flex-col items-center">
                 <button
                   type="button"
                   disabled={!canNavigate}
@@ -381,6 +389,10 @@ function ConfigureChannelsStep({
   onRecordingChange,
   consent,
   onConsentChange,
+  webchatSettings,
+  onWebchatSettingsChange,
+  textSettings,
+  onTextSettingsChange,
 }: {
   agentName: string
   onAgentNameChange: (value: string) => void
@@ -394,6 +406,10 @@ function ConfigureChannelsStep({
   onRecordingChange: (value: RecordingMode) => void
   consent: string
   onConsentChange: (value: string) => void
+  webchatSettings: WebChatChannelSettings
+  onWebchatSettingsChange: (patch: Partial<WebChatChannelSettings>) => void
+  textSettings: TextChannelSettings
+  onTextSettingsChange: (patch: Partial<TextChannelSettings>) => void
 }) {
   return (
     <div className="flex w-full max-w-[700px] flex-col gap-xl">
@@ -464,13 +480,19 @@ function ConfigureChannelsStep({
 
         {selectedChannels.has('webchat') && (
           <ChannelSettingsPanel title="Web chat">
-            <WebChatSetupSettings />
+            <WebChatSetupSettings
+              settings={webchatSettings}
+              onSettingsChange={onWebchatSettingsChange}
+            />
           </ChannelSettingsPanel>
         )}
 
         {selectedChannels.has('text') && (
           <ChannelSettingsPanel title="Text">
-            <TextSetupSettings />
+            <TextSetupSettings
+              settings={textSettings}
+              onSettingsChange={onTextSettingsChange}
+            />
           </ChannelSettingsPanel>
         )}
       </div>
@@ -584,15 +606,6 @@ function SelectIntegrationsStep({
   )
 }
 
-function PlaceholderStep({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex max-w-[700px] flex-col gap-sm">
-      <h2 className="text-h3 text-text-primary">{title}</h2>
-      <p className="text-body text-text-secondary">{description}</p>
-    </div>
-  )
-}
-
 export function NewFrontdeskAgentSetupScreen({
   onBack,
   onCancel,
@@ -627,6 +640,16 @@ export function NewFrontdeskAgentSetupScreen({
     DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
   )
   const [integrationDrawerOpen, setIntegrationDrawerOpen] = useState(false)
+  const [webchatSettings, setWebchatSettings] = useState<WebChatChannelSettings>(
+    () => ({ ...DEFAULT_WEBCHAT_CHANNEL_SETTINGS }),
+  )
+  const [textSettings, setTextSettings] = useState<TextChannelSettings>(
+    () => ({ ...DEFAULT_TEXT_CHANNEL_SETTINGS }),
+  )
+
+  const selectedIntegration = selectedIntegrationId
+    ? getHealthcareIntegration(selectedIntegrationId) ?? null
+    : null
 
   const toggleChannel = (id: ChannelId) => {
     setSelectedChannels((prev) => {
@@ -749,7 +772,7 @@ export function NewFrontdeskAgentSetupScreen({
       </div>
 
       <div className="flex flex-1 gap-2xl overflow-y-auto px-2xl pb-2xl pt-lg">
-        <aside className="sticky top-0 flex w-[280px] shrink-0 flex-col self-start rounded-md border border-border bg-surface px-xl py-xl min-h-[calc(100vh-9rem)]">
+        <aside className="sticky top-0 flex w-[280px] shrink-0 flex-col self-start rounded-md border border-border bg-surface px-xl py-xl" style={{ height: 'calc(100vh - 9rem)' }}>
           <div className="mb-xl">
             <h2 className="text-body text-text-primary">Agent setup</h2>
             <p className="mt-xs text-small text-text-secondary">
@@ -777,7 +800,7 @@ export function NewFrontdeskAgentSetupScreen({
           </div>
         </aside>
 
-        <div className="min-w-0 flex-1 pt-xl pb-[100px]">
+        <div className="min-w-0 flex-1 pt-xl pb-[160px]">
           {currentStep === 1 && (
             <ConfigureChannelsStep
               agentName={agentName}
@@ -792,6 +815,14 @@ export function NewFrontdeskAgentSetupScreen({
               onRecordingChange={setRecording}
               consent={consent}
               onConsentChange={setConsent}
+              webchatSettings={webchatSettings}
+              onWebchatSettingsChange={(patch) =>
+                setWebchatSettings((current) => ({ ...current, ...patch }))
+              }
+              textSettings={textSettings}
+              onTextSettingsChange={(patch) =>
+                setTextSettings((current) => ({ ...current, ...patch }))
+              }
             />
           )}
           {currentStep === 2 && (
@@ -815,9 +846,19 @@ export function NewFrontdeskAgentSetupScreen({
             />
           )}
           {currentStep === 4 && (
-            <PlaceholderStep
-              title="Review summary"
-              description="Review your agent configuration before creating it."
+            <ReviewSummaryStep
+              agentName={agentName}
+              selectedChannels={selectedChannels}
+              voice={voice}
+              greeting={greeting}
+              recording={recording}
+              consent={consent}
+              webchatSettings={webchatSettings}
+              textSettings={textSettings}
+              procedures={procedureCatalog}
+              selectedProcedureIds={selectedProcedureIds}
+              integration={selectedIntegration}
+              onEditStep={goToStep}
             />
           )}
         </div>
@@ -832,6 +873,7 @@ export function NewFrontdeskAgentSetupScreen({
         onClose={closeProcedureDrawer}
         onSave={setSelectedProcedureIds}
         onCreateProcedure={handleCreateProcedure}
+        closeOnCreateCancel
       />
 
       <IntegrationsPickerDrawer

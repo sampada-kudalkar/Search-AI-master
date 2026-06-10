@@ -9,6 +9,7 @@ interface ProcedurePickerDetailViewProps {
   onBack: () => void
   onSave: (draft: ProcedureDetailDraft) => void
   isNew?: boolean
+  onCancel?: () => void
 }
 
 export function ProcedurePickerDetailView({
@@ -16,6 +17,7 @@ export function ProcedurePickerDetailView({
   onBack,
   onSave,
   isNew = false,
+  onCancel,
 }: ProcedurePickerDetailViewProps) {
   const [local, setLocal] = useState(draft)
 
@@ -50,7 +52,7 @@ export function ProcedurePickerDetailView({
         <div className="flex shrink-0 items-center gap-sm">
           <button
             type="button"
-            onClick={onBack}
+            onClick={onCancel ?? onBack}
             className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover"
           >
             Cancel

@@ -1,0 +1,66 @@
+import { useState } from 'react'
+import { Icon } from '../Icon/Icon'
+import type { ProcedureSelectCardProps } from './ProcedureSelectCard.types'
+
+function SelectCheckbox({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={`flex size-4 shrink-0 items-center justify-center rounded-[2px] border transition-colors ${
+        checked ? 'border-primary bg-primary' : 'border-control-border bg-surface'
+      }`}
+    >
+      {checked && <Icon name="check" size={11} fill weight={600} className="text-white" />}
+    </span>
+  )
+}
+
+export function ProcedureSelectCard({
+  title,
+  description,
+  selected,
+  onToggle,
+  onView,
+}: ProcedureSelectCardProps) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onToggle()
+        }
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`group relative flex min-h-[148px] cursor-pointer flex-col rounded-md border p-xl transition-colors hover:bg-surface-selected ${
+        selected
+          ? 'border-2 border-primary bg-surface'
+          : 'border border-border-selected bg-surface'
+      }`}
+    >
+      {hovered && onView && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onView()
+          }}
+          className="absolute right-xl top-xl text-body text-primary hover:underline"
+        >
+          View
+        </button>
+      )}
+
+      <div className="mb-md">
+        <SelectCheckbox checked={selected} />
+      </div>
+
+      <h3 className="mb-xs pr-lg text-body text-text-primary">{title}</h3>
+      <p className="line-clamp-3 text-body text-text-secondary">{description}</p>
+    </div>
+  )
+}
