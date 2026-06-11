@@ -325,7 +325,7 @@ export function AutoAppointmentTypeScreen() {
                 onClick={() => setLocationOpen(o => !o)}
                 className="flex h-9 w-full items-center justify-between rounded-sm border border-border-selected bg-surface px-md text-body text-text-primary hover:bg-surface-l2"
               >
-                <span className={locationFilter.length === 0 ? 'text-text-tertiary' : ''}>
+                <span className="text-text-primary">
                   {locationFilter.length === 0 ? 'All locations' : (ST_LOCATION_OPTIONS.find(o => o.value === locationFilter[0])?.label ?? 'All locations')}
                 </span>
                 <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
