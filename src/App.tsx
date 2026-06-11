@@ -118,7 +118,7 @@ const AUTOMOTIVE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'auto-frontdesk-overview',   label: 'Frontdesk overview'   },
-      { id: 'auto-no-shows',             label: 'No shows prevented'   },
+      { id: 'auto-no-shows',             label: 'Appointment confirmation'   },
       { id: 'conversations',             label: 'Appointment overview', strikethrough: true },
       { id: 'sales',                     label: 'Sales',                strikethrough: true },
       { id: 'service',                   label: 'Service',              strikethrough: true },
@@ -163,7 +163,7 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
-      { id: 'hc-no-shows',           label: 'No shows prevented' },
+      { id: 'hc-no-shows',           label: 'Appointment confirmation' },
       { id: 'hc-waitlist',           label: 'Waitlist filled'    },
       { id: 'hc-intakes',            label: 'Intakes completed'  },
     ],
@@ -211,7 +211,7 @@ const DENTAL_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'dental-frontdesk-overview', label: 'Frontdesk overview'   },
-      { id: 'dental-no-shows',           label: 'No shows prevented'   },
+      { id: 'dental-no-shows',           label: 'Appointment confirmation'   },
       { id: 'dental-waitlist',           label: 'Waitlist filled'       },
       { id: 'dental-intakes',            label: 'Intakes completed'     },
     ],

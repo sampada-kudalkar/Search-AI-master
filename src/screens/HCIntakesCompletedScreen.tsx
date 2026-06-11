@@ -5,62 +5,75 @@ import {
   DataTable,
   DateRangeSelector,
   DonutChart,
+  FilterPanel,
+  Icon,
   ReportHeader,
   SankeyChart,
   StackedBarChart,
   SummaryStats,
   TopNav,
   type Column,
+  type FilterField,
   type SankeyLink,
   type SankeyNode,
 } from '../components'
+
+const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase().replace(/\s+/g, '-'), label: l }))
+
+const FILTER_FIELDS: FilterField[] = [
+  { id: 'region',          label: 'Region',              options: opts('Northeast', 'Southeast', 'Midwest', 'Southwest', 'West Coast', 'Pacific Northwest') },
+  { id: 'division',        label: 'Division',            options: opts('Division A', 'Division B', 'Division C', 'Division D', 'Division E') },
+  { id: 'city',            label: 'City',                options: opts('Austin', 'San Francisco', 'Phoenix', 'Denver', 'Seattle', 'Dallas', 'Houston', 'Chicago') },
+  { id: 'zip',             label: 'Zip',                 options: opts('78701', '78702', '94102', '85001', '80201', '98101', '75201', '60601') },
+  { id: 'outcome',         label: 'Outcome',             options: opts('Resolved', 'Human transfer', 'Pending') },
+  { id: 'content-manager', label: 'Content manager',     options: opts('Kelsy Hiltz', 'Marcus Webb', 'Priya Nair', 'Sofia Mendez', 'Derek Okafor') },
+  { id: 'social-manager',  label: 'Social manager',      options: opts('Tasha Winters', 'Omar Farouk', 'Brianna Cole', 'Nathan Cruz', 'Linda Hargrove') },
+  { id: 'area-code',       label: 'Area code',           options: opts('512', '415', '602', '303', '206', '214', '713', '312') },
+  { id: 'region-manager',  label: 'Region manager',      options: opts('James Whitfield', 'Ray Castellano', 'Ana Reyes', 'David Park', 'Michelle Torres') },
+  { id: 'room-custom',     label: 'Room custom',         options: opts('Exam Room 1', 'Exam Room 2', 'Consultation A', 'Consultation B', 'Waiting Bay') },
+  { id: 'new-alpha-beta',  label: 'New alpha beta test', options: opts('Alpha Group', 'Beta Group', 'Control Group', 'Pilot A', 'Pilot B') },
+  { id: 'custom-test',     label: 'Custom test',         options: opts('Test Group A', 'Test Group B', 'Cohort 1', 'Cohort 2', 'Cohort 3') },
+  { id: 'location',              label: 'Location',                        options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
+  { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
+  { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
+  { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'SMS', 'Email', 'Website', 'Chat') },
+]
 
 // Healthcare chart card — uses the tune icon for the left action button
 function HCCard(props: React.ComponentProps<typeof ChartCard>) {
   return <ChartCard {...props} leftActionIcon="tune" />
 }
-const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 12 months', 'Custom']
+
+const DATE_RANGE_OPTIONS = ['Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months', 'Custom']
 
 const SUMMARY_STATS = [
-  { id: 'sent',        value: '1.4K',  label: 'Intake forms sent',    delta: '36.6%', trend: 'up'   as const },
+  { id: 'sent',        value: '1.4K',  label: 'Outreach sent',        delta: '36.6%', trend: 'up'   as const },
   { id: 'completed',   value: '750',   label: 'Intakes completed',    delta: '18%',   trend: 'up'   as const },
   { id: 'rate',        value: '52.4%', label: 'Completion rate',      delta: '4.2%',  trend: 'up'   as const },
   { id: 'avgTime',     value: '8.5 m', label: 'Avg completion time',  delta: '20%',   trend: 'down' as const },
-  { id: 'notAttempted',value: '120',   label: 'Not attempted',        delta: '20%',   trend: 'up'   as const },
 ]
 
-// 0=Pre-visit agents, 1=Human-driven,
-// 2=Text/SMS, 3=Email, 4=Portal, 5=In-office,
-// 6=Completed, 7=Not attempted, 8=Pending
+// 0=Website, 1=Voice, 2=SMS, 3=Email           (channel)
+// 4=New patient, 5=Returning patient           (patient type)
+// 6=Completed, 7=In-progress, 8=Pending        (outcome)
 const FUNNEL_NODES: SankeyNode[] = [
-  {
-    name: 'Pre-visit agents (74.3%)',
-    breakdown: [
-      { label: 'Pre-visit agent – North region', pct: '44%', value: 2756 },
-      { label: 'Pre-visit agent – South region', pct: '34%', value: 2127 },
-      { label: 'Pre-visit agent – West region',  pct: '22%', value: 1375 },
-    ],
-  },
-  { name: 'Human-driven (25.7%)' },
-  { name: 'Text/SMS (42.6%)' }, { name: 'Email (33.8%)' }, { name: 'Portal (15.6%)' }, { name: 'In-office (8.1%)' },
-  { name: 'Completed (52.4%)' }, { name: 'Pending (13.4%)' }, { name: 'Not attempted (34.2%)' },
+  { name: 'Website (28.4%)' }, { name: 'Voice (35.2%)' }, { name: 'SMS (22.1%)' }, { name: 'Email (14.3%)' },
+  { name: 'New patient (57.4%)' }, { name: 'Returning patient (42.6%)' },
+  { name: 'Completed (52.4%)' }, { name: 'In-progress (13.4%)' }, { name: 'Pending (34.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
-  { source: 0, target: 2, value: 30 }, { source: 0, target: 3, value: 24 }, { source: 0, target: 4, value: 11 }, { source: 0, target: 5, value: 6 },
-  { source: 1, target: 2, value: 10 }, { source: 1, target: 3, value: 8  }, { source: 1, target: 4, value: 4  }, { source: 1, target: 5, value: 2 },
-  { source: 2, target: 6, value: 22 }, { source: 2, target: 7, value: 4  }, { source: 2, target: 8, value: 14 },
-  { source: 3, target: 6, value: 18 }, { source: 3, target: 7, value: 2  }, { source: 3, target: 8, value: 12 },
-  { source: 4, target: 6, value: 9  }, { source: 4, target: 7, value: 1  }, { source: 4, target: 8, value: 5  },
-  { source: 5, target: 6, value: 4  }, { source: 5, target: 7, value: 1  }, { source: 5, target: 8, value: 3  },
+  // channel → patient type
+  { source: 0, target: 4, value: 16 }, { source: 0, target: 5, value: 12 },
+  { source: 1, target: 4, value: 20 }, { source: 1, target: 5, value: 15 },
+  { source: 2, target: 4, value: 13 }, { source: 2, target: 5, value: 9  },
+  { source: 3, target: 4, value: 7  }, { source: 3, target: 5, value: 6  },
+  // patient type → outcome
+  { source: 4, target: 6, value: 30 }, { source: 4, target: 7, value: 8  }, { source: 4, target: 8, value: 18 },
+  { source: 5, target: 6, value: 21 }, { source: 5, target: 7, value: 6  }, { source: 5, target: 8, value: 15 },
 ]
-// 0=Pre-visit agents(purple), 1=Human(gray)
-// 2=SMS(blue), 3=Email(teal), 4=Portal(dark-orange), 5=In-office(light-orange)
-// 6=Completed(green), 7=Pending(orange), 8=Not attempted(orange-red)
-const FUNNEL_NODE_COLORS: Record<number, string> = {
-  0: '#7c4dff', 1: '#bdbdbd',
-  2: '#1976d2', 3: '#00bcd4', 4: '#f5a623', 5: '#fbbf24',
-  6: '#4cae3d', 7: '#f59e0b', 8: '#f97316',
-}
+// outcome overrides only — channels and patient type inherit categorical defaults
+const FUNNEL_NODE_COLORS: Record<number, string> = { 7: '#f5a623', 8: '#de1b0c' }
 
 const INTAKE_OVERTIME_DATA = [
   { month: 'Dec 2023', completed: 280, attempted: 80, notAttempted: 74 },
@@ -71,9 +84,9 @@ const INTAKE_OVERTIME_DATA = [
   { month: 'May',      completed: 248, attempted: 80, notAttempted: 50 },
 ]
 const INTAKE_OVERTIME_SERIES = [
-  { key: 'completed',   label: 'Completed',     color: '#4cae3d' },
-  { key: 'attempted',   label: 'Attempted',     color: '#f59e0b' },
-  { key: 'notAttempted',label: 'Not attempted', color: '#ef4444' },
+  { key: 'completed',   label: 'Completed',   color: '#4cae3d' },
+  { key: 'attempted',   label: 'In progress', color: '#f59e0b' },
+  { key: 'notAttempted',label: 'Pending',     color: '#ef4444' },
 ]
 
 const PATIENT_TYPE_DONUT = [
@@ -89,7 +102,7 @@ const CHANNEL_DONUT = [
 
 function deltaSpan(delta: string) {
   const isPos = delta.startsWith('+')
-  return <span className={`text-xs ${isPos ? 'text-success' : 'text-danger'}`}>{delta}</span>
+  return <span className={`text-xs ${isPos ? 'text-chip-success-text' : 'text-chip-danger-text'}`}>{delta}</span>
 }
 
 interface LocationRow {
@@ -113,34 +126,46 @@ const LOCATION_DATA: LocationRow[] = [
 ]
 const LOCATION_COLUMNS: Column<LocationRow>[] = [
   { key: 'location',   label: 'Location',        width: 200, sortable: true },
-  { key: 'completed',  label: 'Completed',        width: 160, sortable: true },
-  { key: 'attempted',  label: 'Attempted',        width: 160, sortable: true },
+  { key: 'completed',  label: 'Intake completed',  width: 160, sortable: true },
+  { key: 'attempted',  label: 'Outreach sent',     width: 160, sortable: true },
   {
     key: 'completionRate', label: 'Completion rate', width: 200, sortable: true,
     render: (_v, row) => (
       <span>{row.completionRate} {deltaSpan(row.completionDelta as string)}</span>
     ),
   },
-  { key: 'avgTime',    label: 'Avg time',         width: 160, sortable: true },
+  { key: 'avgTime',    label: 'Avg completion time', width: 180, sortable: true },
 ]
 
 export function HCIntakesCompletedScreen() {
-  const [dateRange, setDateRange] = useState('Last 3 months')
+  const [dateRange, setDateRange] = useState('Last 6 months')
+  const [filterOpen, setFilterOpen] = useState(false)
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
+      <div className="flex flex-1 overflow-hidden">
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
           title="Intakes completed"
           subtitle="Patient intake form completion rates and drop-off analysis driven by the pre-visit agent."
           rightSlot={
-            <DateRangeSelector
-              value={dateRange}
-              options={DATE_RANGE_OPTIONS}
-              onChange={setDateRange}
-            />
+            <div className="flex items-center gap-sm">
+              <DateRangeSelector
+                value={dateRange}
+                options={DATE_RANGE_OPTIONS}
+                onChange={setDateRange}
+              />
+              <button
+                type="button"
+                aria-label="Filters"
+                onClick={() => setFilterOpen((o) => !o)}
+                className={`flex size-9 items-center justify-center rounded-sm text-text-icon ${filterOpen ? 'bg-surface-selected' : 'border border-border-selected bg-surface hover:bg-surface-l2'}`}
+              >
+                <Icon name="filter_list" size={20} />
+              </button>
+            </div>
           }
         />
 
@@ -149,10 +174,10 @@ export function HCIntakesCompletedScreen() {
           <SummaryStats stats={SUMMARY_STATS} />
 
           <HCCard title="Intake funnel">
-            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Intake forms sent', 'Channel', 'Outcome']} />
+            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Intake reminders sent by channel', 'Patient type', 'Outcome']} />
           </HCCard>
 
-          <HCCard title="Intake overtime">
+          <HCCard title="Intake overtime" tooltip="Monthly breakdown of patient intakes by status — completed, in progress, and pending.">
             <StackedBarChart
               data={INTAKE_OVERTIME_DATA}
               series={INTAKE_OVERTIME_SERIES}
@@ -195,6 +220,13 @@ export function HCIntakesCompletedScreen() {
           </HCCard>
 
         </div>
+      </div>
+      <FilterPanel
+        open={filterOpen}
+        fields={FILTER_FIELDS}
+        onClose={() => setFilterOpen(false)}
+        onAdvancedFilters={() => {}}
+      />
       </div>
     </div>
   )
