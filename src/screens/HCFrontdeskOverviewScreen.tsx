@@ -5,6 +5,8 @@ import {
   ChartStatRow,
   DataTable,
   DateRangeSelector,
+  FilterPanel,
+  type FilterField,
   DonutChart,
   ReportHeader,
   SankeyChart,
@@ -118,7 +120,7 @@ const SUMMARY_STATS = [
 // Removed No-show per design direction
 // 0-3: channels, 4-5: handled by, 6-10: outcomes
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Website 38%' }, { name: 'Voice 20%' }, { name: 'Text 23%' }, { name: 'Email 19%' },
+  { name: 'Website 38%' }, { name: 'Voice 20%' }, { name: 'SMS 23%' }, { name: 'Email 19%' },
   { name: 'AI-driven 72%' }, { name: 'Human-driven 28%' },
   { name: 'Answered 48%' }, { name: 'Bookings 18%' }, { name: 'Rescheduled 10%' }, { name: 'Cancellations 4%' }, { name: 'Pending 20%' },
 ]
@@ -254,8 +256,19 @@ const DEFAULT_CHAT: ChatMsg[] = [
   { id: '4', sender: 'agent',    text: "Everything looks good on our end. You're all set!",   time: '09:03 AM' },
 ]
 
+const opts = (...labels: string[]) => labels.map((l) => ({ value: l.toLowerCase().replace(/\s+/g, '-'), label: l }))
+
+const FILTER_FIELDS: FilterField[] = [
+  { id: 'location',            label: 'Location',            options: opts('North Austin', 'South Austin', 'San Francisco', 'Phoenix, AZ', 'Denver, CO', 'Seattle, WA') },
+  { id: 'channel',             label: 'Channel',             options: opts('Website', 'Voice', 'Text', 'Email') },
+  { id: 'handled-by',         label: 'Handled by',          options: opts('AI-driven', 'Human-driven') },
+  { id: 'outcome',             label: 'Outcome',             options: opts('Answered', 'Bookings', 'Rescheduled', 'Cancellations', 'Pending') },
+  { id: 'assignee',            label: 'Assignee',            options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales') },
+]
+
 export function HCFrontdeskOverviewScreen() {
   const [dateRange, setDateRange] = useState('Last 3 months')
+  const [filterOpen, setFilterOpen] = useState(false)
   const [nodeDrawer, setNodeDrawer] = useState<string | null>(null)
   const [selectedConvo, setSelectedConvo] = useState<FunnelConversation | null>(null)
   const [detailVisible, setDetailVisible] = useState(false)
@@ -280,16 +293,27 @@ export function HCFrontdeskOverviewScreen() {
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
+      <div className="flex flex-1 overflow-hidden">
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
           title="Frontdesk overview"
           subtitle="All human and agent-driven appointment outcomes across all channels and locations."
           rightSlot={
-            <DateRangeSelector
-              value={dateRange}
-              options={DATE_RANGE_OPTIONS}
-              onChange={setDateRange}
-            />
+            <div className="flex items-center gap-sm">
+              <DateRangeSelector
+                value={dateRange}
+                options={DATE_RANGE_OPTIONS}
+                onChange={setDateRange}
+              />
+              <button
+                type="button"
+                aria-label="Filters"
+                onClick={() => setFilterOpen((o) => !o)}
+                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+              >
+                <Icon name="filter_list" size={20} />
+              </button>
+            </div>
           }
         />
 
@@ -371,6 +395,14 @@ export function HCFrontdeskOverviewScreen() {
 
         </div>
       </div>
+      <FilterPanel
+        open={filterOpen}
+        fields={FILTER_FIELDS}
+        onClose={() => setFilterOpen(false)}
+        onAdvancedFilters={() => {}}
+      />
+      </div>
+
       {/* List drawer */}
       {nodeDrawer !== null && (
         <>
