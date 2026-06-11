@@ -5,6 +5,7 @@ import {
   Icon,
   MetricTiles,
   Tabs,
+  TestCallModal,
   TopNav,
   type ChipVariant,
   type Column,
@@ -15,6 +16,7 @@ import { BackArrowIcon } from '../assets/BackArrowIcon'
 import { AgentLogsTab } from './AgentLogsTab'
 import { AgentSettingsTab } from './AgentSettingsTab'
 import { WorkflowViewerTab } from './WorkflowViewerTab'
+import { RecommendationsTab } from './RecommendationsTab'
 
 interface AgentInstanceScreenProps {
   instanceName: string
@@ -167,6 +169,7 @@ export function AgentInstanceScreen({
   const [activeTab, setActiveTab] = useState('outcomes')
   const [actionsOpen, setActionsOpen] = useState(false)
   const [instanceStatus, setInstanceStatus] = useState(status)
+  const [testCallOpen, setTestCallOpen] = useState(false)
 
   // Derive agent name from instance name (e.g. "Front desk agent - North region" → "Front desk agent")
   const agentName = instanceName.replace(/ - .+$/, '')
@@ -178,6 +181,7 @@ export function AgentInstanceScreen({
   const locations = LOCATIONS_BY_AGENT[agentName] ?? LOCATIONS_BY_AGENT['Front desk agent']
 
   const isWorkflowTab = activeTab === 'workflow'
+  const isRecommendationTab = activeTab === 'recommendation'
   const showHealthcareLogs =
     activeTab === 'logs' && product === 'healthcare' && agentName === 'Front desk agent'
 
@@ -200,7 +204,7 @@ export function AgentInstanceScreen({
           <Chip label={instanceStatus} variant={STATUS_VARIANT[instanceStatus] ?? 'neutral'} />
         </div>
         <div className="flex items-center gap-sm">
-          <div className="relative">
+<div className="relative">
             <button
               type="button"
               onClick={() => setActionsOpen((open) => !open)}
@@ -268,13 +272,24 @@ export function AgentInstanceScreen({
         <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
-      {/* Tab content — workflow tab fills remaining height, others scroll */}
+      <TestCallModal
+        open={testCallOpen}
+        agentName={agentName}
+        onClose={() => setTestCallOpen(false)}
+      />
+
+      {/* Tab content — workflow and recommendation tabs fill remaining height, others scroll */}
       {isWorkflowTab ? (
         <WorkflowViewerTab
           instanceName={instanceName}
           onEdit={() => onEditAgent?.(instanceName)}
           product={product}
+          onTestCall={() => setTestCallOpen(true)}
         />
+      ) : isRecommendationTab ? (
+        <div className="flex-1 overflow-auto">
+          <RecommendationsTab />
+        </div>
       ) : (
         <div className="flex-1 overflow-auto">
           {activeTab === 'outcomes' ? (
