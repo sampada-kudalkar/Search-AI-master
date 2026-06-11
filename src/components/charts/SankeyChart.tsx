@@ -44,6 +44,7 @@ function makeNode(overrides?: Record<number, string>, onHover?: (idx: number | n
     const lx = onRightEdge ? x - 6 : x + width + 6
     const anchor = onRightEdge ? 'end' : 'start'
     const midY = y + height / 2
+    const label = labelPct ? `${labelName} ${labelPct.replace(/[()]/g, '')}` : labelName
     return (
       <g
         onMouseEnter={(e) => { setHovered(true); onHover?.(index, e.clientX, e.clientY) }}
@@ -52,11 +53,8 @@ function makeNode(overrides?: Record<number, string>, onHover?: (idx: number | n
         style={{ cursor: 'pointer' }}
       >
         <rect x={x} y={y} width={width} height={height} rx={2} fill={fill} />
-        <text x={lx} y={midY - 7} textAnchor={anchor} dominantBaseline="middle" fontFamily="Roboto" fontSize={12} fontWeight={500} fill="#212121" textDecoration={hovered ? 'underline' : 'none'}>
-          {labelName}
-        </text>
-        <text x={lx} y={midY + 7} textAnchor={anchor} dominantBaseline="middle" fontFamily="Roboto" fontSize={12} fontWeight={500} fill="#6B7280" textDecoration={hovered ? 'underline' : 'none'}>
-          {labelPct.replace(/[()]/g, '')}
+        <text x={lx} y={midY} textAnchor={anchor} dominantBaseline="middle" fontFamily="Roboto" fontSize={12} fontWeight={400} fill="#212121" textDecoration={hovered ? 'underline' : 'none'}>
+          {label}
         </text>
       </g>
     )
@@ -156,7 +154,7 @@ export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnH
           {columnHeaders.map((label, i) => {
             const tip = columnHeaderTooltips?.[i]
             return (
-              <span key={label} style={{ fontSize: 12, fontWeight: 500, color: '#9CA3AF', fontFamily: 'Roboto, sans-serif', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span key={label} style={{ fontSize: 12, fontWeight: 400, color: '#9CA3AF', fontFamily: 'Roboto, sans-serif', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}>
                 {label}
                 {tip && (
                   <span

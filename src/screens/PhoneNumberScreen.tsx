@@ -484,8 +484,8 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
               })
               onClose()
             }}
-            className={`flex h-9 items-center rounded-sm px-lg text-body text-white transition-colors ${
-              !canSave ? 'cursor-not-allowed bg-surface-selected text-text-tertiary' : 'bg-primary hover:bg-primary-hover'
+            className={`flex h-9 items-center rounded-sm px-lg text-body transition-colors ${
+              !canSave ? 'cursor-not-allowed bg-surface-selected text-text-tertiary' : 'bg-primary text-white hover:bg-primary-hover'
             }`}
           >
             Save
@@ -555,7 +555,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
 
           {/* Username */}
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Username <span className="text-text-tertiary">(Optional)</span></label>
+            <label className="text-small text-text-secondary">Username</label>
             <input
               type="text"
               placeholder="Enter username"
@@ -567,7 +567,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
 
           {/* Password */}
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-secondary">Password <span className="text-text-tertiary">(Optional)</span></label>
+            <label className="text-small text-text-secondary">Password</label>
             <input
               type="password"
               placeholder="Enter password"
