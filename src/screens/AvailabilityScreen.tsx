@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { Icon, TopNav } from '../components'
+import { useEffect, useRef, useState } from 'react'
+import { Icon, SelectMenu, Toast, TopNav } from '../components'
+import type { SelectOption } from '../components'
 
 // ── Toggle ─────────────────────────────────────────────────────────────────────
 function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
@@ -49,14 +50,37 @@ const DAY_LABELS: { key: DayKey; label: string }[] = [
   { key: 'sat', label: 'Sat' },
 ]
 
-const APPOINTMENT_TYPES = ['New patient exam', 'Emergency visit', 'Routine cleaning', 'Invisalign consultation', 'Follow-up visit']
-const OPERATORIES = ['Operatory 1', 'Operatory 2', 'Operatory 3', 'Operatory 4']
-const TIME_OPTIONS = [
-  '07:00 AM', '07:30 AM', '08:00 AM', '08:30 AM', '09:00 AM', '09:30 AM',
-  '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
-  '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM',
-  '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM', '06:00 PM',
+// ── Dropdown data ──────────────────────────────────────────────────────────────
+const PROVIDER_OPTIONS: SelectOption[] = [
+  { value: 'chen',   label: 'Dr. Sarah Chen' },
+  { value: 'rivera', label: 'Dr. Marcus Rivera' },
+  { value: 'torres', label: 'Amy Torres' },
+  { value: 'kim',    label: 'Dr. James Kim' },
 ]
+
+const APPT_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'npe',       label: 'New patient exam' },
+  { value: 'emergency', label: 'Emergency visit' },
+  { value: 'cleaning',  label: 'Routine cleaning' },
+  { value: 'invisalign',label: 'Invisalign consultation' },
+  { value: 'followup',  label: 'Follow-up visit' },
+  { value: 'filling',   label: 'Tooth filling' },
+]
+
+const OPERATORY_OPTIONS: SelectOption[] = [
+  { value: 'op1', label: 'Operatory 1' },
+  { value: 'op2', label: 'Operatory 2' },
+  { value: 'op3', label: 'Operatory 3' },
+  { value: 'op4', label: 'Operatory 4' },
+  { value: 'op5', label: 'Operatory 5' },
+]
+
+const TIME_OPTIONS: SelectOption[] = [
+  '07:00 AM','07:30 AM','08:00 AM','08:30 AM','09:00 AM','09:30 AM',
+  '10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM',
+  '01:00 PM','01:30 PM','02:00 PM','02:30 PM','03:00 PM','03:30 PM',
+  '04:00 PM','04:30 PM','05:00 PM','05:30 PM','06:00 PM',
+].map(t => ({ value: t, label: t }))
 
 const INITIAL_SCHEDULE: Record<DayKey, DaySchedule> = {
   sun: { enabled: false, windows: [] },
@@ -64,28 +88,28 @@ const INITIAL_SCHEDULE: Record<DayKey, DaySchedule> = {
   tue: {
     enabled: true,
     windows: [
-      { id: 'w1', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w1', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
       { id: 'w2', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   wed: {
     enabled: true,
     windows: [
-      { id: 'w3', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w3', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
       { id: 'w4', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   thu: {
     enabled: true,
     windows: [
-      { id: 'w5', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w5', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
       { id: 'w6', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
     ],
   },
   fri: {
     enabled: true,
     windows: [
-      { id: 'w7', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit', operatory: 'Operatory 1', note: '' },
+      { id: 'w7', startTime: '09:00 AM', endTime: '10:00 AM', appointmentType: 'Emergency visit',  operatory: 'Operatory 1', note: '' },
       { id: 'w8', startTime: '02:00 PM', endTime: '05:00 PM', appointmentType: 'New Patient Exam', operatory: 'Operatory 2', note: '' },
     ],
   },
@@ -98,6 +122,177 @@ const INITIAL_TIME_OFFS: TimeOffEntry[] = [
   { id: 't3', date: 'Jul 4, 2026', label: 'Independence Day — clinic closed', allProviders: true, allLocations: true },
 ]
 
+// ── DropdownField (SelectMenu wrapper) ────────────────────────────────────────
+interface DropdownFieldProps {
+  label: string
+  required?: boolean
+  options: SelectOption[]
+  value: string[]
+  multi?: boolean
+  searchable?: boolean
+  placeholder?: string
+  onChange: (v: string[]) => void
+}
+function DropdownField({ label, required, options, value, multi, searchable, placeholder, onChange }: DropdownFieldProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const selectedLabels = value.map(v => options.find(o => o.value === v)?.label ?? v)
+  const triggerLabel = value.length === 0
+    ? (placeholder ?? 'Select')
+    : value.length > 1
+    ? `${selectedLabels[0]}, +${value.length - 1} more`
+    : selectedLabels[0]
+
+  return (
+    <div className="relative flex flex-col gap-sm" ref={ref}>
+      {label && (
+        <label className="text-small text-text-secondary">
+          {label}{required && <span className="ml-xs text-danger">*</span>}
+        </label>
+      )}
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex h-9 w-full items-center justify-between rounded-sm border border-border bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-hover focus:outline-none"
+      >
+        <span className={value.length === 0 ? 'text-text-tertiary' : ''}>{triggerLabel}</span>
+        <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
+      </button>
+      {open && (
+        <div className="absolute top-full z-[60] mt-xs w-full">
+          <SelectMenu
+            options={options}
+            value={value}
+            multi={multi}
+            searchable={searchable}
+            onChange={v => { onChange(v); if (!multi) setOpen(false) }}
+            onApply={() => setOpen(false)}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Availability source custom dropdown ────────────────────────────────────────
+const SOURCE_OPTIONS = [
+  {
+    id: 'birdeye' as const,
+    title: 'Manage in Birdeye',
+    description: 'Define provider booking windows here. Best for Dentrix, Open Dental, and Eaglesoft',
+  },
+  {
+    id: 'pms' as const,
+    title: 'Sync from PMS',
+    description: 'Read availability directly from your PMS in real time. Best for Denticon and Dentrix Ascend',
+  },
+]
+
+interface SourceDropdownProps {
+  value: 'birdeye' | 'pms'
+  onChange: (v: 'birdeye' | 'pms') => void
+}
+function SourceDropdown({ value, onChange }: SourceDropdownProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const selected = SOURCE_OPTIONS.find(o => o.id === value)!
+
+  useEffect(() => {
+    if (!open) return
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex h-9 w-full items-center justify-between rounded-sm border border-border bg-surface pl-md pr-sm text-body text-text-primary hover:bg-surface-hover focus:outline-none"
+      >
+        <span>{selected.title}</span>
+        <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
+      </button>
+      {open && (
+        <div className="absolute top-full z-[60] mt-xs w-full min-w-[400px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+          {SOURCE_OPTIONS.map(opt => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => { onChange(opt.id); setOpen(false) }}
+              className={`flex w-full items-start justify-between px-md py-sm text-left hover:bg-surface-hover ${opt.id === value ? 'bg-surface-hover' : ''}`}
+            >
+              <div className="flex flex-col gap-xs">
+                <span className="text-body text-text-primary">{opt.title}</span>
+                <span className="text-small text-text-secondary">{opt.description}</span>
+              </div>
+              {opt.id === value && <Icon name="check" size={18} className="mt-0.5 shrink-0 text-primary" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Confirm dialog ─────────────────────────────────────────────────────────────
+interface ConfirmDialogProps {
+  open: boolean
+  title: string
+  message: string
+  onConfirm: () => void
+  onCancel: () => void
+}
+function ConfirmDialog({ open, title, message, onConfirm, onCancel }: ConfirmDialogProps) {
+  if (!open) return null
+  return (
+    <>
+      <div className="fixed inset-0 z-[200] bg-black/20" onClick={onCancel} />
+      <div className="fixed left-1/2 top-[72px] z-[201] w-[520px] -translate-x-1/2 rounded-sm border border-border bg-surface shadow-modal">
+        {/* Header */}
+        <div className="flex items-center justify-between px-2xl pt-xl pb-md">
+          <span className="text-body text-text-primary">{title}</span>
+          <button type="button" onClick={onCancel} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+        {/* Body */}
+        <p className="px-2xl pb-xl text-body text-text-secondary">{message}</p>
+        {/* Footer */}
+        <div className="flex justify-end gap-sm px-2xl pb-xl">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover"
+          >
+            No, keep it
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+          >
+            Yes, delete
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // ── Add Window Drawer ──────────────────────────────────────────────────────────
 interface AddWindowDrawerProps {
   open: boolean
@@ -107,16 +302,18 @@ interface AddWindowDrawerProps {
 }
 function AddWindowDrawer({ open, dayLabel, onClose, onSave }: AddWindowDrawerProps) {
   const [recurrence, setRecurrence] = useState<'weekly' | 'specific'>('weekly')
-  const [startTime, setStartTime] = useState('09:00 AM')
-  const [endTime, setEndTime] = useState('10:00 AM')
-  const [appointmentType, setAppointmentType] = useState('New patient exam')
-  const [operatory, setOperatory] = useState('')
+  const [startTime, setStartTime] = useState(['09:00 AM'])
+  const [endTime, setEndTime] = useState(['10:00 AM'])
+  const [appointmentType, setAppointmentType] = useState<string[]>([])
+  const [operatory, setOperatory] = useState<string[]>([])
   const [note, setNote] = useState('')
 
   if (!open) return null
 
   function handleSave() {
-    onSave({ startTime, endTime, appointmentType, operatory, note })
+    const apptLabel = APPT_TYPE_OPTIONS.find(o => o.value === appointmentType[0])?.label ?? appointmentType[0] ?? ''
+    const opLabel   = OPERATORY_OPTIONS.find(o => o.value === operatory[0])?.label ?? operatory[0] ?? ''
+    onSave({ startTime: startTime[0], endTime: endTime[0], appointmentType: apptLabel, operatory: opLabel, note })
     onClose()
   }
 
@@ -142,67 +339,54 @@ function AddWindowDrawer({ open, dayLabel, onClose, onSave }: AddWindowDrawerPro
           <div>
             <p className="mb-md text-body text-text-secondary">When does this apply?</p>
             <div className="grid grid-cols-2 gap-md">
-              <button
-                type="button"
-                onClick={() => setRecurrence('weekly')}
-                className={`flex items-start gap-sm rounded-sm border p-md text-left transition-colors ${recurrence === 'weekly' ? 'border-primary bg-primary/5' : 'border-border bg-surface hover:bg-surface-hover'}`}
-              >
-                <div className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 ${recurrence === 'weekly' ? 'border-primary' : 'border-border-selected'}`}>
-                  {recurrence === 'weekly' && <div className="size-2 rounded-full bg-primary" />}
-                </div>
-                <div>
-                  <p className="text-body text-text-primary">Every week</p>
-                  <p className="text-small text-text-secondary">Repeats every {dayLabel}</p>
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRecurrence('specific')}
-                className={`flex items-start gap-sm rounded-sm border p-md text-left transition-colors ${recurrence === 'specific' ? 'border-primary bg-primary/5' : 'border-border bg-surface hover:bg-surface-hover'}`}
-              >
-                <div className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 ${recurrence === 'specific' ? 'border-primary' : 'border-border-selected'}`}>
-                  {recurrence === 'specific' && <div className="size-2 rounded-full bg-primary" />}
-                </div>
-                <div>
-                  <p className="text-body text-text-primary">A specific date</p>
-                  <p className="text-small text-text-secondary">One-off availability</p>
-                </div>
-              </button>
+              {([
+                { id: 'weekly' as const,   title: 'Every week',      sub: `Repeats every ${dayLabel}` },
+                { id: 'specific' as const, title: 'A specific date', sub: 'One-off availability' },
+              ]).map(opt => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setRecurrence(opt.id)}
+                  className={`flex items-start gap-sm rounded-sm border p-md text-left transition-colors ${recurrence === opt.id ? 'border-primary bg-primary/5' : 'border-border bg-surface hover:bg-surface-hover'}`}
+                >
+                  <div className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 ${recurrence === opt.id ? 'border-primary' : 'border-border-selected'}`}>
+                    {recurrence === opt.id && <div className="size-2 rounded-full bg-primary" />}
+                  </div>
+                  <div>
+                    <p className="text-body text-text-primary">{opt.title}</p>
+                    <p className="text-small text-text-secondary">{opt.sub}</p>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Time row */}
           <div className="grid grid-cols-2 gap-lg">
-            <div className="flex flex-col gap-sm">
-              <label className="text-body text-text-primary">Start time <span className="text-danger">*</span></label>
-              <select value={startTime} onChange={e => setStartTime(e.target.value)} className="h-9 rounded-sm border border-border bg-surface pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
-                {TIME_OPTIONS.map(t => <option key={t}>{t}</option>)}
-              </select>
-            </div>
-            <div className="flex flex-col gap-sm">
-              <label className="text-body text-text-primary">End time <span className="text-danger">*</span></label>
-              <select value={endTime} onChange={e => setEndTime(e.target.value)} className="h-9 rounded-sm border border-border bg-surface pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
-                {TIME_OPTIONS.map(t => <option key={t}>{t}</option>)}
-              </select>
-            </div>
+            <DropdownField label="Start time" required options={TIME_OPTIONS} value={startTime} onChange={setStartTime} />
+            <DropdownField label="End time"   required options={TIME_OPTIONS} value={endTime}   onChange={setEndTime} />
           </div>
 
           {/* Appointment type */}
-          <div className="flex flex-col gap-sm">
-            <label className="text-body text-text-primary">Appointment type <span className="text-danger">*</span></label>
-            <select value={appointmentType} onChange={e => setAppointmentType(e.target.value)} className="h-9 rounded-sm border border-border bg-surface pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none">
-              {APPOINTMENT_TYPES.map(t => <option key={t}>{t}</option>)}
-            </select>
-          </div>
+          <DropdownField
+            label="Appointment type"
+            required
+            options={APPT_TYPE_OPTIONS}
+            value={appointmentType}
+            multi
+            searchable
+            placeholder="Select appointment types"
+            onChange={setAppointmentType}
+          />
 
           {/* Operatory */}
-          <div className="flex flex-col gap-sm">
-            <label className="text-body text-text-primary">Operatory</label>
-            <select value={operatory} onChange={e => setOperatory(e.target.value)} className="h-9 rounded-sm border border-border bg-surface pl-md pr-xl text-body text-text-secondary focus:border-primary focus:outline-none">
-              <option value="">Select</option>
-              {OPERATORIES.map(o => <option key={o}>{o}</option>)}
-            </select>
-          </div>
+          <DropdownField
+            label="Operatory"
+            options={OPERATORY_OPTIONS}
+            value={operatory}
+            placeholder="Select operatory"
+            onChange={setOperatory}
+          />
 
           {/* Note */}
           <div className="flex flex-col gap-sm">
@@ -231,6 +415,7 @@ function AddTimeOffDrawer({ open, onClose, onSave }: AddTimeOffDrawerProps) {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [label, setLabel] = useState('')
+  const [provider, setProvider] = useState<string[]>([])
   const [allProviders, setAllProviders] = useState(false)
   const [allLocations, setAllLocations] = useState(false)
 
@@ -268,16 +453,28 @@ function AddTimeOffDrawer({ open, onClose, onSave }: AddTimeOffDrawerProps) {
               <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-9 rounded-sm border border-border bg-surface pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none" />
             </div>
           </div>
+
+          <DropdownField
+            label="Provider"
+            options={PROVIDER_OPTIONS}
+            value={provider}
+            multi
+            searchable
+            placeholder="All providers"
+            onChange={setProvider}
+          />
+
           <div className="flex flex-col gap-sm">
             <label className="text-body text-text-primary">Label <span className="text-danger">*</span></label>
             <input type="text" value={label} onChange={e => setLabel(e.target.value)} placeholder="eg. Independence Day — clinic closed" className="h-9 rounded-sm border border-border bg-surface px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none" />
           </div>
+
           <div className="flex flex-col gap-md">
-            <label className="flex items-center gap-sm cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-sm">
               <input type="checkbox" checked={allProviders} onChange={e => setAllProviders(e.target.checked)} className="rounded border-border" />
               <span className="text-body text-text-primary">Apply to all providers</span>
             </label>
-            <label className="flex items-center gap-sm cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-sm">
               <input type="checkbox" checked={allLocations} onChange={e => setAllLocations(e.target.checked)} className="rounded border-border" />
               <span className="text-body text-text-primary">Apply to all locations</span>
             </label>
@@ -290,31 +487,63 @@ function AddTimeOffDrawer({ open, onClose, onSave }: AddTimeOffDrawerProps) {
 
 // ── Main Screen ────────────────────────────────────────────────────────────────
 export function AvailabilityScreen() {
-  const [activeTab, setActiveTab] = useState<'booking' | 'source'>('booking')
-  const [provider, setProvider] = useState('Dr Sarah Chen')
+  const [provider, setProvider] = useState(['chen'])
   const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>(INITIAL_SCHEDULE)
   const [timeOffs, setTimeOffs] = useState<TimeOffEntry[]>(INITIAL_TIME_OFFS)
   const [addWindowDay, setAddWindowDay] = useState<DayKey | null>(null)
   const [showTimeOffDrawer, setShowTimeOffDrawer] = useState(false)
   const [availabilitySource, setAvailabilitySource] = useState<'birdeye' | 'pms'>('birdeye')
 
+  // Delete confirmation
+  const [confirmDelete, setConfirmDelete] = useState<{ type: 'window'; day: DayKey; winId: string } | { type: 'timeoff'; id: string } | null>(null)
+
+  // Toast
+  const [toastMessage, setToastMessage] = useState('')
+  const [toastVisible, setToastVisible] = useState(false)
+
+  function showToast(msg: string) {
+    setToastMessage(msg)
+    setToastVisible(true)
+  }
+
+  function handleSourceChange(val: 'birdeye' | 'pms') {
+    setAvailabilitySource(val)
+    if (val === 'pms') {
+      showToast('Fetching data from the PMS. This may take some time.')
+    }
+  }
+
   function handleAddWindow(win: Omit<TimeWindow, 'id'>) {
     if (!addWindowDay) return
     const id = `w-${Date.now()}`
     setSchedule(prev => ({
       ...prev,
-      [addWindowDay]: {
-        ...prev[addWindowDay],
-        windows: [...prev[addWindowDay].windows, { ...win, id }],
-      },
+      [addWindowDay]: { ...prev[addWindowDay], windows: [...prev[addWindowDay].windows, { ...win, id }] },
     }))
   }
 
-  function handleRemoveWindow(day: DayKey, winId: string) {
-    setSchedule(prev => ({
-      ...prev,
-      [day]: { ...prev[day], windows: prev[day].windows.filter(w => w.id !== winId) },
-    }))
+  function requestDeleteWindow(day: DayKey, winId: string) {
+    setConfirmDelete({ type: 'window', day, winId })
+  }
+
+  function requestDeleteTimeOff(id: string) {
+    setConfirmDelete({ type: 'timeoff', id })
+  }
+
+  function handleConfirmDelete() {
+    if (!confirmDelete) return
+    if (confirmDelete.type === 'window') {
+      const { day, winId } = confirmDelete
+      setSchedule(prev => ({
+        ...prev,
+        [day]: { ...prev[day], windows: prev[day].windows.filter(w => w.id !== winId) },
+      }))
+      showToast('Your window has been deleted.')
+    } else {
+      setTimeOffs(prev => prev.filter(t => t.id !== confirmDelete.id))
+      showToast('Your time off entry has been deleted.')
+    }
+    setConfirmDelete(null)
   }
 
   function handleToggleDay(day: DayKey, val: boolean) {
@@ -325,208 +554,167 @@ export function AvailabilityScreen() {
     setTimeOffs(prev => [...prev, { ...entry, id: `t-${Date.now()}` }])
   }
 
-  function handleRemoveTimeOff(id: string) {
-    setTimeOffs(prev => prev.filter(t => t.id !== id))
-  }
-
   const activeDayLabel = addWindowDay ? DAY_LABELS.find(d => d.key === addWindowDay)?.label ?? '' : ''
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onClose={() => setToastVisible(false)}
+      />
+
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         {/* Page header */}
-        <div className="flex items-center justify-between bg-surface px-2xl py-xl">
-          <div className="flex flex-col gap-xs">
-            <span className="text-h2 text-text-primary">Availability</span>
-            <span className="text-small text-text-secondary">Manage provider booking windows and availability rules</span>
-          </div>
-          <div className="flex items-center gap-sm">
-            <button type="button" className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
-              <Icon name="sync" size={18} />
-              Sync from PMS
-            </button>
-            <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
-              Save
-            </button>
-          </div>
+        <div className="flex items-center justify-between bg-surface px-2xl py-lg">
+          <span className="text-h2 text-text-primary">Availability</span>
+          <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+            Save
+          </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex px-2xl">
-          {([
-            { id: 'booking' as const, label: 'Provider booking preferences' },
-            { id: 'source' as const, label: 'Availability source' },
-          ]).map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-md pb-sm pt-xs text-body border-b-2 transition-colors ${activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab content */}
-        {activeTab === 'booking' ? (
-          <div className="flex flex-col gap-2xl p-2xl">
-            {/* Info banner */}
-            <div className="flex items-center gap-sm rounded-sm border border-border bg-surface-hover px-lg py-md">
-              <Icon name="info" size={18} className="shrink-0 text-text-secondary" />
-              <p className="text-body text-text-secondary">
-                Define each provider's availability and appointment types. These are not actual appointments — they are the rules the booking agent uses to find and offer open slots.
-              </p>
+        <div className="flex flex-col gap-lg p-2xl">
+          {/* Availability source row */}
+          <div className="grid grid-cols-2 gap-lg rounded-sm border border-border p-lg">
+            <div className="flex flex-col gap-xs">
+              <label className="text-small text-text-secondary">
+                Availability source <span className="text-danger">*</span>
+              </label>
+              <SourceDropdown value={availabilitySource} onChange={handleSourceChange} />
             </div>
+            {availabilitySource === 'birdeye' && (
+              <div className="flex flex-col gap-xs">
+                <label className="text-small text-text-secondary">
+                  Select provider <span className="text-danger">*</span>
+                </label>
+                <DropdownField
+                  label=""
+                  options={PROVIDER_OPTIONS}
+                  value={provider}
+                  onChange={setProvider}
+                />
+              </div>
+            )}
+          </div>
 
-            {/* Provider selector */}
-            <div className="flex items-center gap-md">
-              <label className="text-body text-text-secondary">Select provider:</label>
-              <select
-                value={provider}
-                onChange={e => setProvider(e.target.value)}
-                className="h-9 min-w-[200px] rounded-sm border border-border bg-surface pl-md pr-xl text-body text-text-primary focus:border-primary focus:outline-none"
-              >
-                <option>Dr Sarah Chen</option>
-                <option>Dr Marcus Rivera</option>
-                <option>Amy Torres</option>
-                <option>Dr James Kim</option>
-              </select>
+          {availabilitySource === 'pms' ? (
+            /* PMS syncing state */
+            <div className="flex items-center gap-sm rounded-sm border border-blue-200 bg-blue-50 px-lg py-md">
+              <Icon name="info" size={18} className="shrink-0 text-blue-500" />
+              <p className="text-body text-blue-700">Fetching data from the PMS. This may take some time.</p>
             </div>
-
-            {/* Day rows */}
-            <div className="flex flex-col divide-y divide-border rounded-sm border border-border">
-              {DAY_LABELS.map(({ key, label }) => {
-                const day = schedule[key]
-                return (
-                  <div key={key} className="flex items-start gap-lg px-lg py-md">
-                    {/* Day label */}
-                    <span className="w-8 shrink-0 pt-1 text-body text-text-primary">{label}</span>
-
-                    {/* Day off label */}
-                    {!day.enabled && <span className="w-14 shrink-0 pt-1 text-body text-text-tertiary">Day off</span>}
-                    {day.enabled && <span className="w-14 shrink-0" />}
-
-                    {/* Windows */}
-                    <div className="flex flex-1 flex-wrap items-start gap-sm">
-                      {day.windows.map(win => (
-                        <div
-                          key={win.id}
-                          className="group relative flex min-w-[160px] flex-col gap-xs rounded-sm border-l-[3px] border-primary bg-primary/5 px-sm py-xs"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveWindow(key, win.id)}
-                            className="absolute right-1 top-1 hidden size-5 items-center justify-center rounded text-text-tertiary hover:text-danger group-hover:flex"
-                          >
-                            <Icon name="close" size={14} />
-                          </button>
-                          <span className="text-small text-primary">{win.startTime} - {win.endTime}</span>
-                          <span className="text-xs text-text-secondary">{win.operatory}</span>
-                          <span className="inline-flex w-fit items-center rounded-sm bg-surface px-sm py-0.5 text-xs text-text-secondary border border-border">
-                            {win.appointmentType}
-                          </span>
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => setAddWindowDay(key)}
-                        className="flex h-8 items-center gap-xs rounded-sm border border-dashed border-border px-sm text-body text-text-secondary hover:border-primary hover:text-primary"
-                      >
-                        <Icon name="add" size={16} />
-                        Add window
-                      </button>
-                    </div>
-
-                    {/* Toggle */}
-                    <div className="shrink-0 pt-1">
-                      <Toggle value={day.enabled} onChange={val => handleToggleDay(key, val)} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Time off & closures */}
-            <div className="flex flex-col gap-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-[16px] text-text-primary">Time off & closures</h2>
-                  <p className="mt-xs text-small text-text-secondary">
-                    Block full days when the clinic is closed or a provider is unavailable. The agent won't offer slots on these dates, overriding the weekly booking windows.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowTimeOffDrawer(true)}
-                  className="flex h-9 shrink-0 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
-                >
-                  <Icon name="add" size={16} />
-                  Add time off
-                </button>
+          ) : (
+            <>
+              {/* Manage availability section */}
+              <div>
+                <h2 className="text-[16px] text-text-primary">Manage availability</h2>
+                <p className="mt-xs text-small text-text-secondary">
+                  Define each provider's availability and appointment types. These are not actual appointments — they are the rules the booking agent uses to find and offer open slots.
+                </p>
               </div>
 
+              {/* Day rows */}
               <div className="flex flex-col divide-y divide-border rounded-sm border border-border">
-                {timeOffs.map(entry => (
-                  <div key={entry.id} className="flex items-center justify-between px-lg py-md">
-                    <div className="flex flex-col gap-xs">
-                      <span className="text-body text-text-primary">{entry.date}</span>
-                      <span className="text-small text-text-secondary">{entry.label}</span>
+                {DAY_LABELS.map(({ key, label }) => {
+                  const day = schedule[key]
+                  return (
+                    <div key={key} className="flex items-center gap-lg px-lg py-md">
+                      <span className="w-8 shrink-0 text-body text-text-primary">{label}</span>
+
+                      {!day.enabled && <span className="w-14 shrink-0 text-body text-text-tertiary">Day off</span>}
+                      {day.enabled && <span className="w-14 shrink-0" />}
+
+                      <div className="flex flex-1 flex-wrap items-start gap-sm">
+                        {day.windows.map(win => (
+                          <div
+                            key={win.id}
+                            className="group relative flex min-w-[160px] flex-col gap-xs rounded-sm border-l-[3px] border-primary bg-primary/5 px-sm py-xs"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => requestDeleteWindow(key, win.id)}
+                              className="absolute right-1 top-1 hidden size-5 items-center justify-center rounded text-text-tertiary hover:text-danger group-hover:flex"
+                            >
+                              <Icon name="close" size={14} />
+                            </button>
+                            <span className="text-small text-primary">{win.startTime} - {win.endTime}</span>
+                            <span className="text-xs text-text-secondary">{win.operatory}</span>
+                            <span className="inline-flex w-fit items-center rounded-sm border border-border bg-surface px-sm py-0.5 text-xs text-text-secondary">
+                              {win.appointmentType}
+                            </span>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setAddWindowDay(key)}
+                          className="flex h-8 items-center gap-xs rounded-sm border border-dashed border-border px-sm text-body text-text-secondary hover:border-primary hover:text-primary"
+                        >
+                          <Icon name="add" size={16} />
+                          Add window
+                        </button>
+                      </div>
+
+                      <div className="shrink-0">
+                        <Toggle value={day.enabled} onChange={val => handleToggleDay(key, val)} />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-sm">
-                      {entry.allProviders && (
-                        <span className="rounded-sm bg-chip-warning-bg px-sm py-0.5 text-xs text-chip-warning-text">All providers</span>
-                      )}
-                      {entry.allLocations && (
-                        <span className="rounded-sm bg-chip-warning-bg px-sm py-0.5 text-xs text-chip-warning-text">All locations</span>
-                      )}
-                      <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-                        <Icon name="edit" size={18} />
-                      </button>
-                      <button type="button" onClick={() => handleRemoveTimeOff(entry.id)} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover hover:text-danger">
-                        <Icon name="delete" size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
-            </div>
-          </div>
-        ) : (
-          <div className="p-2xl">
-            <div className="grid grid-cols-2 gap-lg">
-              {([
-                {
-                  id: 'birdeye' as const,
-                  title: 'Manage in Birdeye',
-                  description: 'Define provider booking windows here. Best for Dentrix, Open Dental, and Eaglesoft.',
-                },
-                {
-                  id: 'pms' as const,
-                  title: 'Sync from PMS',
-                  description: 'Read availability directly from your PMS in real time. Best for Denticon and Dentrix Ascend.',
-                },
-              ]).map(opt => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setAvailabilitySource(opt.id)}
-                  className={`flex items-start gap-sm rounded-sm border p-lg text-left transition-colors ${availabilitySource === opt.id ? 'border-primary bg-primary/5' : 'border-border bg-surface hover:bg-surface-hover'}`}
-                >
-                  <div className={`mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 ${availabilitySource === opt.id ? 'border-primary' : 'border-border-selected'}`}>
-                    {availabilitySource === opt.id && <div className="size-2 rounded-full bg-primary" />}
-                  </div>
+
+              {/* Time off & closures */}
+              <div className="flex flex-col gap-lg">
+                <div className="flex items-start justify-between gap-lg">
                   <div>
-                    <p className="text-body text-text-primary">{opt.title}</p>
-                    <p className="mt-xs text-small text-text-secondary">{opt.description}</p>
+                    <h2 className="text-[16px] text-text-primary">Time off & closures</h2>
+                    <p className="mt-xs text-small text-text-secondary">
+                      Block full days when the clinic is closed or a provider is unavailable. The agent won't offer slots on these dates, overriding the weekly booking windows.
+                    </p>
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                  <button
+                    type="button"
+                    onClick={() => setShowTimeOffDrawer(true)}
+                    className="flex h-9 shrink-0 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+                  >
+                    <Icon name="add" size={16} />
+                    Add time off
+                  </button>
+                </div>
+
+                <div className="flex flex-col divide-y divide-border rounded-sm border border-border">
+                  {timeOffs.map(entry => (
+                    <div key={entry.id} className="flex items-center justify-between px-lg py-md">
+                      <div className="flex flex-col gap-xs">
+                        <span className="text-body text-text-primary">{entry.date}</span>
+                        <span className="text-small text-text-secondary">{entry.label}</span>
+                      </div>
+                      <div className="flex items-center gap-sm">
+                        {entry.allProviders && (
+                          <span className="rounded-sm bg-chip-warning-bg px-sm py-0.5 text-xs text-chip-warning-text">All providers</span>
+                        )}
+                        {entry.allLocations && (
+                          <span className="rounded-sm bg-chip-warning-bg px-sm py-0.5 text-xs text-chip-warning-text">All locations</span>
+                        )}
+                        <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+                          <Icon name="edit" size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => requestDeleteTimeOff(entry.id)}
+                          className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover hover:text-danger"
+                        >
+                          <Icon name="delete" size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Drawers */}
@@ -540,6 +728,15 @@ export function AvailabilityScreen() {
         open={showTimeOffDrawer}
         onClose={() => setShowTimeOffDrawer(false)}
         onSave={handleAddTimeOff}
+      />
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        title="Delete this item?"
+        message="This action cannot be undone. The window or time-off entry will be permanently removed."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDelete(null)}
       />
     </div>
   )
