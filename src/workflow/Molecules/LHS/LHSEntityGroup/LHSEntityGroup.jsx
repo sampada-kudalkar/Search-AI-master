@@ -1,7 +1,18 @@
 import React, { useState, useRef } from 'react';
 import './LHSEntityGroup.css';
 
-export default function LHSEntityGroup({ title, items = [], nodeType, parentLabel, onItemsChange, viewOnly = false, readOnly = false, dragAlwaysVisible = false }) {
+export default function LHSEntityGroup({
+  title,
+  items = [],
+  nodeType,
+  parentLabel,
+  onItemsChange,
+  viewOnly = false,
+  readOnly = false,
+  dragAlwaysVisible = false,
+  disabledItems = null,
+}) {
+  const disabledSet = disabledItems instanceof Set ? disabledItems : new Set(disabledItems ?? []);
   const canEdit = !viewOnly && !readOnly && !!onItemsChange;
   const [editingIdx, setEditingIdx] = useState(null);
   const [editDraft, setEditDraft] = useState('');
@@ -57,12 +68,15 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
       <p className="lhs-entity-group__title">{title}</p>
 
       <div className="lhs-entity-group__items">
-        {items.map((item, idx) => (
+        {items.map((item, idx) => {
+          const isDisabled = disabledSet.has(item);
+          return (
           <div
             key={idx}
-            className={`lhs-entity-group__item${editingIdx === idx ? ' lhs-entity-group__item--editing' : ''}`}
-            draggable={!viewOnly && (readOnly || editingIdx !== idx)}
-            onDragStart={(e) => !viewOnly && (readOnly || editingIdx !== idx) && handleDragStart(e, item)}
+            className={`lhs-entity-group__item${editingIdx === idx ? ' lhs-entity-group__item--editing' : ''}${isDisabled ? ' lhs-entity-group__item--disabled' : ''}`}
+            draggable={!viewOnly && !isDisabled && (readOnly || editingIdx !== idx)}
+            onDragStart={(e) => !viewOnly && !isDisabled && (readOnly || editingIdx !== idx) && handleDragStart(e, item)}
+            aria-disabled={isDisabled || undefined}
           >
             {editingIdx === idx ? (
               <input
@@ -102,14 +116,17 @@ export default function LHSEntityGroup({ title, items = [], nodeType, parentLabe
                   </button>
                 ) : null}
                 <span
-                  className={`lhs-entity-group__item-drag material-symbols-outlined${dragAlwaysVisible ? ' lhs-entity-group__item-drag--visible' : ''}`}
+                  className={`lhs-entity-group__item-drag material-symbols-outlined${
+                    dragAlwaysVisible || isDisabled ? ' lhs-entity-group__item-drag--visible' : ''
+                  }`}
                 >
                   drag_indicator
                 </span>
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
 
         {addingNew && (
           <div className="lhs-entity-group__item lhs-entity-group__item--editing">

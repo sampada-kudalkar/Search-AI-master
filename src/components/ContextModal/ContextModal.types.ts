@@ -40,4 +40,6 @@ export interface ContextModalProps {
   open: boolean
   onClose: () => void
   onSave: (result: ContextModalResult) => void
+  /** Stack above nested drawers (default 110). */
+  overlayZIndex?: number
 }

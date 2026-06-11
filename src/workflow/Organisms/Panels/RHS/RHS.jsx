@@ -1,6 +1,5 @@
 import React from 'react';
 import RHSSidePanelHeader from '../../../Molecules/RHS/RHSHeader/RHSHeader';
-import RHSSidePanelFooter from '../../../Molecules/RHS/RHSFooter/RHSFooter';
 import AgentDetailsBody from './AgentDetailsBody';
 import LLMTaskBody from './LLMTaskBody';
 import EntityTaskBody from './EntityTaskBody';
@@ -147,15 +146,6 @@ export default function RHS({ variant = 'agentDetails', title, bodyProps, onClos
           </div>
         </div>
 
-        {!viewOnly && (
-          <RHSSidePanelFooter
-            onSave={onSave}
-            showPromptStrength={config.showPromptStrength}
-            promptStrength="Weak"
-            promptFillWidth={52}
-            onViewSuggestions={() => {}}
-          />
-        )}
       </div>
   );
 }

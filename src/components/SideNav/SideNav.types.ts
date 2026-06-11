@@ -5,6 +5,8 @@ export interface NavLeaf {
   external?: boolean
   /** Renders the label with a strikethrough style. */
   strikethrough?: boolean
+  /** Renders the item indented one level, for sub-items. */
+  indent?: boolean
 }
 
 export interface NavSection {

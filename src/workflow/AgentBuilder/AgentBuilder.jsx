@@ -9,6 +9,8 @@ import { Button } from '../elemental-stubs';
 import { saveAgent, getAgentBySlug, getCachedAgent, saveCustomTool, getCustomTools, getCustomToolsByIds } from '../services/agentService';
 import CustomToolViewer from '../Organisms/Drawers/CustomToolViewer/CustomToolViewer';
 import PreviewPanel from '../Molecules/PreviewPanel/PreviewPanel';
+import ReminderToolDrawer from '../Organisms/Drawers/ReminderToolDrawer/ReminderToolDrawer';
+import VoiceCallToolDrawer from '../Organisms/Drawers/VoiceCallToolDrawer/VoiceCallToolDrawer';
 import ToolLibraryDrawer from '../Organisms/Drawers/ToolLibraryDrawer/ToolLibraryDrawer';
 import {
   getProcedureById,
@@ -135,6 +137,7 @@ const TASK_DROP_DEFAULTS = {
   'Reschedule appointment': { description: 'Change an existing appointment date or time' },
   'Cancel appointment': { description: 'Cancel a scheduled appointment' },
   'Confirm appointment': { description: 'Confirm appointment details with the customer' },
+  'Appointment reminder': { description: '3 weeks, 3 days and 24 hours before · Email & text', selectedTools: ['reminder-tool'] },
   'Update contact property': { description: 'Update a field on the contact record' },
   'Add contact to list': { description: 'Add the contact to a marketing or CRM list' },
   'Remove contact from list': { description: 'Remove the contact from a list' },
@@ -265,12 +268,18 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
   let y = 0;
   const nodes = [];
   const edges = [];
+  // Shared sequential step counter — incremented for every rendered content node
+  let stepCounter = 0;
 
   nodes.push({
     id: START_NODE_ID,
     type: 'start',
     position: { x: 0, y },
-    data: { title: startData.title, subtitle: startData.subtitle },
+    data: {
+      title: startData.title,
+      subtitle: startData.subtitle,
+      subtitleIsLink: startData.subtitleIsLink,
+    },
   });
   y += FLOW_START_GAP;
 
@@ -282,6 +291,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
     const prevId = i === 0 ? START_NODE_ID : nodeList[i - 1].id;
     lastNodeY = y;
     lastNodeBlockHeight = getNodeBlockHeight(item, nodeId, nodeDetails, product);
+    const topLevelStep = ++stepCounter;
     nodes.push({
       id: nodeId,
       type: item.flowType,
@@ -289,14 +299,14 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
       data: item.flowType === 'branch'
         ? {
             ...item.data,
-            stepNumber: i + 1,
+            stepNumber: topLevelStep,
             title: 'Based on conditions',
             subtitle: 'Build condition-specific flows',
           }
         : item.data?.subtype === 'Schedule-based'
           ? {
               ...item.data,
-              stepNumber: i + 1,
+              stepNumber: topLevelStep,
               headerLabel: 'Schedule-based trigger',
               title: nodeDetails[nodeId]?.triggerName ?? item.data.title,
               subtitle: nodeDetails[nodeId]?.description ?? item.data.subtitle,
@@ -304,7 +314,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           : item.flowType === 'procedures'
             ? {
                 ...item.data,
-                stepNumber: i + 1,
+                stepNumber: topLevelStep,
                 procedureItems: mapProcedureItems(
                   nodeDetails[nodeId]?.procedureIds,
                   nodeDetails,
@@ -314,7 +324,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
               }
             : {
                 ...item.data,
-                stepNumber: i + 1,
+                stepNumber: topLevelStep,
                 ...(item.flowType === 'delay'
                   ? {
                       titlePlaceholder: 'Configure delay settings',
@@ -346,7 +356,11 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
     if (item.flowType === 'branch' || item.flowType === 'voiceCall') {
       const isVoiceCall = item.flowType === 'voiceCall';
       const branches = nodeDetails[nodeId]?.branches || [];
-      const spacing = 480;
+      // Use wider spacing when any branch arm contains a nested voiceCall (which fans out further)
+      const hasNestedVoiceCall = !isVoiceCall && branches.some(b =>
+        (nodeDetails[b.id]?.nodes || []).some(n => n.flowType === 'voiceCall')
+      );
+      const spacing = hasNestedVoiceCall ? 1100 : 480;
       const startX = -((branches.length - 1) * spacing) / 2;
       const branchChipY = y + 150;
       const branchNodeStartY = y + 260;
@@ -372,7 +386,7 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           const childId = childNode.id;
           const childDet = nodeDetails[childId] || {};
           // Enrich child node data from nodeDetails — same logic as top-level nodes
-          let childData = { ...childNode.data, stepNumber: childNode.data?.stepNumber ?? null };
+          let childData = { ...childNode.data, stepNumber: ++stepCounter };
           if (childNode.flowType === 'procedures') {
             childData = {
               ...childData,
@@ -410,27 +424,66 @@ function buildFlow(nodeList, startData, nodeDetails = {}, product = 'automotive'
           });
           previousId = childNode.id;
           previousChildFlowType = childNode.flowType;
+
+          // Recursively fan out voiceCall sub-branches when voiceCall is nested inside a branch path
+          if (childNode.flowType === 'voiceCall') {
+            const vcBranches = nodeDetails[childId]?.branches || [];
+            const vcSpacing = 480;
+            const vcStartX = branchX - ((vcBranches.length - 1) * vcSpacing) / 2;
+            const vcChipY = branchNodeStartY + childIndex * 250 + 150;
+            const vcNodeStartY = branchNodeStartY + childIndex * 250 + 260;
+            vcBranches.forEach((vcBranch, vcBi) => {
+              const vcBranchX = vcStartX + vcBi * vcSpacing;
+              const vcBranchNodes = nodeDetails[vcBranch.id]?.nodes || [];
+              nodes.push({
+                id: vcBranch.id,
+                type: 'branchPath',
+                position: { x: vcBranchX, y: vcChipY },
+                data: { label: vcBranch.name, parentId: childId, isFallback: !!vcBranch.isFallback, isVoiceCallBranch: true },
+              });
+              edges.push({ id: `e-${childId}-${vcBranch.id}`, source: childId, target: vcBranch.id, type: 'branchFan' });
+              let vcPrevId = vcBranch.id;
+              vcBranchNodes.forEach((vcChild, vcIdx) => {
+                const vcChildId = vcChild.id;
+                const vcChildDet = nodeDetails[vcChildId] || {};
+                let vcChildData = { ...vcChild.data, stepNumber: ++stepCounter };
+                if (vcChild.flowType !== 'delay' && vcChild.flowType !== 'branch') {
+                  vcChildData = { ...vcChildData, title: vcChildDet.taskName ?? vcChildDet.triggerName ?? vcChildData.title, subtitle: vcChildDet.description ?? vcChildData.subtitle };
+                }
+                nodes.push({ id: vcChildId, type: vcChild.flowType, position: { x: vcBranchX, y: vcNodeStartY + vcIdx * 250 }, data: vcChildData });
+                edges.push({ id: `e-${vcPrevId}-${vcChildId}`, source: vcPrevId, target: vcChildId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
+                vcPrevId = vcChildId;
+              });
+              const vcEndId = `${vcBranch.id}-end`;
+              nodes.push({ id: vcEndId, type: 'branchEnd', position: { x: vcBranchX, y: vcNodeStartY + vcBranchNodes.length * 250 }, data: { parentId: vcBranch.id } });
+              edges.push({ id: `e-${vcPrevId}-${vcEndId}`, source: vcPrevId, target: vcEndId, type: 'addButton', data: { branchPathId: vcBranch.id, afterNodeId: vcPrevId === vcBranch.id ? null : vcPrevId } });
+            });
+          }
         });
 
-        const branchEndId = `${branch.id}-end`;
-        nodes.push({
-          id: branchEndId,
-          type: 'branchEnd',
-          position: { x: branchX, y: branchNodeStartY + branchNodes.length * 250 },
-          data: { parentId: branch.id },
-        });
-        edges.push({
-          id: `e-${previousId}-${branchEndId}`,
-          source: previousId,
-          target: branchEndId,
-          type: 'addButton',
-          data: {
-            branchPathId: branch.id,
-            afterNodeId: previousId === branch.id ? null : previousId,
-            viewOnly: !!branch.isFallback,
-            ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
-          },
-        });
+        // Skip branchEnd when the last child is a voiceCall — it already has its own branch-end nodes
+        const lastChildIsVoiceCall = branchNodes.length > 0 && branchNodes[branchNodes.length - 1].flowType === 'voiceCall';
+        if (!lastChildIsVoiceCall) {
+          const branchEndId = `${branch.id}-end`;
+          nodes.push({
+            id: branchEndId,
+            type: 'branchEnd',
+            position: { x: branchX, y: branchNodeStartY + branchNodes.length * 250 },
+            data: { parentId: branch.id },
+          });
+          edges.push({
+            id: `e-${previousId}-${branchEndId}`,
+            source: previousId,
+            target: branchEndId,
+            type: 'addButton',
+            data: {
+              branchPathId: branch.id,
+              afterNodeId: previousId === branch.id ? null : previousId,
+              viewOnly: !!branch.isFallback,
+              ...(previousChildFlowType === 'procedures' ? { hideAddButton: true } : {}),
+            },
+          });
+        }
       });
       // Branch paths fan out to the side — do not inflate main-spine y or spine edges stretch.
     }
@@ -491,6 +544,8 @@ export default function AgentBuilder({
   product = 'automotive',
   procedures = null,
   onAddProcedure,
+  publishDisabled = false,
+  defaultOpenSection = 'Tasks',
 }) {
   /* ─── Prop-based slug params (no React Router) ─── */
   const urlModuleSlug = propModuleSlug || moduleContext || 'search';
@@ -515,12 +570,14 @@ export default function AgentBuilder({
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   // Tracks which procedure is open in the detail view (UI-only, not persisted)
   const [activeProcedureId, setActiveProcedureId] = useState(null);
-  // Tool viewer state
-  const [viewingTool, setViewingTool] = useState(null); // full tool object
-  const [toolPickerOpen, setToolPickerOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewActive, setPreviewActive] = useState(false);
+  // Tool viewer state
+  const [viewingTool, setViewingTool] = useState(null); // full tool object
+  const [reminderToolOpen, setReminderToolOpen] = useState(false);
+  const [voiceCallToolOpen, setVoiceCallToolOpen] = useState(false);
+  const [toolPickerOpen, setToolPickerOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [nodeDetails, setNodeDetails] = useState(() => {
     const base = initialNodeDetails || {};
     const startNode = base[START_NODE_ID];
@@ -1023,7 +1080,12 @@ export default function AgentBuilder({
   }, [selectedNodeId]);
 
   const startAgentName = nodeDetails[START_NODE_ID]?.agentName || pageTitle;
-  const startData = { title: startAgentName, subtitle: 'All locations' };
+  const startLocations = nodeDetails[START_NODE_ID]?.locations || [];
+  const startData = {
+    title: startAgentName,
+    subtitle: startLocations.length > 0 ? 'All locations' : 'Add locations',
+    subtitleIsLink: startLocations.length === 0,
+  };
   const { nodes: rawNodes, edges } = buildFlow(nodeList, startData, nodeDetails, product);
 
   const nodes = rawNodes.map((n) => {
@@ -1129,10 +1191,12 @@ export default function AgentBuilder({
       : label;
     let details = makeNodeDetails(effectiveType, effectiveType === 'procedures' ? procedureSeed : label);
     if (effectiveType === 'task' && description && label !== 'Custom') {
+      const taskDefaults = TASK_DROP_DEFAULTS[description] || {};
       details = {
         ...details,
         taskName: description,
-        description: TASK_DROP_DEFAULTS[description]?.description ?? '',
+        description: taskDefaults.description ?? '',
+        ...(taskDefaults.selectedTools ? { selectedTools: taskDefaults.selectedTools } : {}),
       };
     }
 
@@ -1220,27 +1284,27 @@ export default function AgentBuilder({
     }
 
     if (effectiveType === 'voiceCall') {
-      const completedId  = `${id}-vc-completed`;
-      const rejectedId   = `${id}-vc-rejected`;
-      const missedId     = `${id}-vc-missed`;
-      const voicemailId  = `${id}-vc-voicemail`;
+      const completedId = `${id}-vc-completed`;
+      const rejectedId  = `${id}-vc-rejected`;
+      const missedId    = `${id}-vc-missed`;
+      const voicemailId = `${id}-vc-voicemail`;
       details = {
         taskName: 'Initiate voice call',
         description: 'Call the customer',
         toolId: 'initiate-voice-call',
         selectedTools: ['initiate-voice-call'],
         branches: [
-          { id: completedId,  name: 'Call completed', isVoiceCallBranch: true },
-          { id: rejectedId,   name: 'Call rejected',  isVoiceCallBranch: true },
-          { id: missedId,     name: 'Call missed',    isVoiceCallBranch: true },
-          { id: voicemailId,  name: 'Voicemail',      isVoiceCallBranch: true },
+          { id: completedId, name: 'Call completed', isVoiceCallBranch: true },
+          { id: rejectedId,  name: 'Call rejected',  isVoiceCallBranch: true },
+          { id: missedId,    name: 'Call missed',     isVoiceCallBranch: true },
+          { id: voicemailId, name: 'Voicemail',       isVoiceCallBranch: true },
         ],
       };
       extraDetails = {
-        [completedId]:  { branchName: 'Call completed', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [rejectedId]:   { branchName: 'Call rejected',  parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [missedId]:     { branchName: 'Call missed',    parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
-        [voicemailId]:  { branchName: 'Voicemail',      parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [completedId]: { branchName: 'Call completed', parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [rejectedId]:  { branchName: 'Call rejected',  parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [missedId]:    { branchName: 'Call missed',     parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
+        [voicemailId]: { branchName: 'Voicemail',       parentId: id, isBranchPath: true, isVoiceCallBranch: true, nodes: [] },
       };
     }
 
@@ -1415,7 +1479,9 @@ export default function AgentBuilder({
             }));
             handleCloseDrawer();
           }}
-          onPreview={() => {}}
+          onPreview={() => setPreviewOpen((v) => !v)}
+          previewOpen={previewOpen}
+          previewActive={previewActive}
           onExpand={() => {}}
           triggerName={currentDetails.triggerName ?? ''}
           description={currentDetails.description ?? ''}
@@ -1635,6 +1701,7 @@ export default function AgentBuilder({
             initialValues: currentDetails,
             onFieldChange: activeFieldChange,
             onEditTool: (toolId) => {
+              if (toolId === 'initiate-voice-call') { setVoiceCallToolOpen(true); return; }
               getCustomToolsByIds([toolId]).then((tools) => {
                 if (tools[0]) setViewingTool(tools[0]);
               });
@@ -1656,6 +1723,7 @@ export default function AgentBuilder({
           initialValues: currentDetails,
           onFieldChange: activeFieldChange,
           onOpenTool: (toolId) => {
+            if (toolId === 'reminder-tool') { setReminderToolOpen(true); return; }
             getCustomToolsByIds([toolId]).then((tools) => {
               if (tools[0]) setViewingTool(tools[0]);
             });
@@ -1685,10 +1753,11 @@ export default function AgentBuilder({
       >
         <span className="material-symbols-outlined" style={{ fontSize: 20, lineHeight: 1, fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20" }}>cloud_upload</span>
       </button>
-      <Button
+<Button
         theme="primary"
         label={isTemplateMode ? 'Save template' : 'Publish'}
         onClick={isTemplateMode ? handleSaveTemplate : handlePublish}
+        disabled={!isTemplateMode && publishDisabled}
       />
     </div>
   );
@@ -1771,9 +1840,7 @@ export default function AgentBuilder({
           <div className="agent-builder__lhs">
             <LHSDrawer
               defaultTab="Create manually"
-              triggerOpen
-              tasksOpen={false}
-              controlsOpen={false}
+              defaultOpenSection={defaultOpenSection}
               viewOnly={viewOnly}
               product={product}
               procedures={procedures}
@@ -1791,9 +1858,7 @@ export default function AgentBuilder({
               orientation="vertical"
               viewOnly={viewOnly}
               onEdit={viewOnly ? onEdit : undefined}
-              onRun={() => setPreviewOpen((v) => !v)}
-              previewOpen={previewOpen}
-              previewActive={previewActive}
+              onRun={() => setPreviewOpen(true)}
             />
           </div>
 
@@ -1808,10 +1873,7 @@ export default function AgentBuilder({
           {previewOpen && (
             <div className="agent-builder__preview">
               <PreviewPanel
-                onClose={() => {
-                  setPreviewOpen(false);
-                  setPreviewActive(false);
-                }}
+                onClose={() => { setPreviewOpen(false); setPreviewActive(false); }}
                 onPreviewActiveChange={setPreviewActive}
               />
             </div>
@@ -1828,6 +1890,12 @@ export default function AgentBuilder({
           onClose={() => setShareModalOpen(false)}
         />
       )}
+
+      {/* ─── Reminder tool drawer ─── */}
+      <ReminderToolDrawer isOpen={reminderToolOpen} onClose={() => setReminderToolOpen(false)} />
+
+      {/* ─── Voice call tool drawer ─── */}
+      <VoiceCallToolDrawer isOpen={voiceCallToolOpen} onClose={() => setVoiceCallToolOpen(false)} />
 
       {/* ─── Tool configuration overlay ─── */}
       {viewingTool && (

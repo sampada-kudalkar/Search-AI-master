@@ -9,7 +9,8 @@
   padding: 10px;
   flex-shrink: 0;
   overflow: visible;
-  z-index: 5;
+  position: relative;
+  z-index: 40;
 }
 
 .agent-builder__canvas {
@@ -31,17 +32,6 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.agent-builder__preview {
-  flex-shrink: 0;
-  padding: 10px;
-  width: 395px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  z-index: 5;
-  overflow: hidden;
 }
 
 /* ─── Build mode wrapper ─── */
@@ -352,7 +342,7 @@
 }
 
 .ab-view-banner__link:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .ab-view-badge {
@@ -431,4 +421,15 @@
   color: #555;
   line-height: 20px;
   letter-spacing: -0.28px;
+}
+
+.agent-builder__preview {
+  flex-shrink: 0;
+  padding: 10px;
+  width: 395px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+  overflow: hidden;
 }

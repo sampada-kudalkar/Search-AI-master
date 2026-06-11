@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Icon, TopNav } from '../components'
+import { Icon, Link, TopNav } from '../components'
 import iconQrCode from '../assets/icon-qr-code.svg'
 import iconSetupStatus from '../assets/icon-setup-status.svg'
 import iconMediaLibrary from '../assets/icon-media-library.svg'
@@ -37,6 +37,7 @@ interface SettingItem {
   icon: string
   iconSrc?: string
   label: string
+  subtext?: string
   status?: string
   statusColor?: string
 }
@@ -71,20 +72,20 @@ const SECTIONS: SettingsSection[] = [
     description: 'Add all your business locations and unlock the power of Birdeye.',
     learnMore: true,
     items: [
-      { icon: 'near_me',   label: 'Business' },
-      { icon: '', iconSrc: iconSetupStatus, label: 'Setup status' },
-      { icon: '', iconSrc: iconQrCode, label: 'QR codes' },
+      { icon: 'near_me',   label: 'Business', subtext: 'Manage your business details, contact information, and operating hours' },
+      { icon: '', iconSrc: iconSetupStatus, label: 'Setup status', subtext: 'View setup progress and configuration status across locations' },
+      { icon: '', iconSrc: iconQrCode, label: 'QR codes', subtext: 'Create QR codes to drive customer engagement and actions' },
     ],
   },
   {
     id: 'knowledge',
     title: 'Knowledge',
-    description: 'One place to manage your AI ground truth across files, docs, images, and videos.',
+    description: 'Manage knowledge sources used by AI agents and automations.',
     items: [
-      { icon: '', iconSrc: iconMediaLibrary, label: 'Media library' },
-      { icon: '', iconSrc: iconFaqs,  label: 'FAQs' },
-      { icon: '', iconSrc: iconLinks, label: 'Links' },
-      { icon: '', iconSrc: iconFiles, label: 'Files' },
+      { icon: '', iconSrc: iconMediaLibrary, label: 'Media library', subtext: 'Upload and organize images, videos, and brand assets' },
+      { icon: '', iconSrc: iconFaqs,  label: 'FAQs', subtext: 'Create and manage answers to frequently asked customer questions' },
+      { icon: '', iconSrc: iconLinks, label: 'Links', subtext: 'Manage links shared across customer-facing experiences and channels' },
+      { icon: '', iconSrc: iconFiles, label: 'Files', subtext: 'Upload and manage files used across your account' },
     ],
   },
   {
@@ -93,8 +94,8 @@ const SECTIONS: SettingsSection[] = [
     description: 'Customize business-specific branding like color themes and brand names.',
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconDashboard,  label: 'Dashboard appearance' },
-      { icon: '', iconSrc: iconEmailText, label: 'Email and text' },
+      { icon: '', iconSrc: iconDashboard,  label: 'Dashboard appearance', subtext: 'Customize your dashboard name, branding, and appearance settings' },
+      { icon: '', iconSrc: iconEmailText, label: 'Email and text', subtext: 'Customize email and text templates, branding, and content' },
     ],
   },
   {
@@ -103,15 +104,15 @@ const SECTIONS: SettingsSection[] = [
     description: 'Connect your social media pages to help promote brand content.',
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconGoogle,    label: 'Google',      status: '9 pages disconnected', statusColor: 'text-chip-danger-text' },
-      { icon: '', iconSrc: iconFacebook,  label: 'Facebook',    status: 'Permission needed',    statusColor: 'text-chip-danger-text' },
-      { icon: '', iconSrc: iconInstagram, label: 'Instagram',   status: '1 of 16 connected',    statusColor: 'text-accent-positive' },
-      { icon: '', iconSrc: iconTwitter,   label: 'X (Twitter)', status: '1 page disconnected',  statusColor: 'text-chip-danger-text' },
-      { icon: '', iconSrc: iconLinkedin,  label: 'LinkedIn',    status: '6 of 14 connected',    statusColor: 'text-accent-positive' },
-      { icon: '', iconSrc: iconYoutube,   label: 'YouTube',     status: '6 of 14 connected',    statusColor: 'text-accent-positive' },
-      { icon: '', iconSrc: iconAppfolio,  label: 'AppFolio',    status: '1 of 2 connected',     statusColor: 'text-accent-positive' },
-      { icon: '', iconSrc: iconAllApps,   label: 'All apps' },
-      { icon: '', iconSrc: iconApi,       label: 'API' },
+      { icon: '', iconSrc: iconGoogle,    label: 'Google',      subtext: 'Manage your Google Business Profile and customer interactions', status: '9 pages disconnected', statusColor: 'text-chip-danger-text' },
+      { icon: '', iconSrc: iconFacebook,  label: 'Facebook',    subtext: 'Publish content and respond to messages from one place', status: 'Permission needed',    statusColor: 'text-chip-danger-text' },
+      { icon: '', iconSrc: iconInstagram, label: 'Instagram',   subtext: 'Publish posts, manage comments, and respond to direct messages', status: '1 of 16 connected',    statusColor: 'text-accent-positive' },
+      { icon: '', iconSrc: iconTwitter,   label: 'X (Twitter)', subtext: 'Publish content, monitor conversations, and manage direct messages', status: '1 page disconnected',  statusColor: 'text-chip-danger-text' },
+      { icon: '', iconSrc: iconLinkedin,  label: 'LinkedIn',    subtext: "Publish content and manage your company's LinkedIn presence", status: '6 of 14 connected',    statusColor: 'text-accent-positive' },
+      { icon: '', iconSrc: iconYoutube,   label: 'YouTube',     subtext: 'Upload and manage videos across connected YouTube channels', status: '6 of 14 connected',    statusColor: 'text-accent-positive' },
+      { icon: '', iconSrc: iconAppfolio,  label: 'AppFolio',    subtext: 'Connect AppFolio to streamline communication with tenants', status: '1 of 2 connected',     statusColor: 'text-accent-positive' },
+      { icon: '', iconSrc: iconAllApps,   label: 'All apps',    subtext: 'Discover and connect apps to extend your workflows' },
+      { icon: '', iconSrc: iconApi,       label: 'API',         subtext: 'Integrate external systems and automate data exchange securely' },
     ],
   },
   {
@@ -121,7 +122,7 @@ const SECTIONS: SettingsSection[] = [
     description: 'Optimize everyday tasks and boost your productivity with BirdAI.',
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconAi, label: 'Manage BirdAI' },
+      { icon: '', iconSrc: iconAi, label: 'Manage BirdAI', subtext: 'Configure AI features, summaries, and automated assistance' },
     ],
   },
   {
@@ -130,9 +131,9 @@ const SECTIONS: SettingsSection[] = [
     description: 'Manage and cross-promote reviews on your social sites.',
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconResponseTemplates, label: 'Response templates' },
-      { icon: '', iconSrc: iconAutoReplyRules,   label: 'Auto-reply rules' },
-      { icon: '', iconSrc: iconAutoShareRules,   label: 'Auto-share rules' },
+      { icon: '', iconSrc: iconResponseTemplates, label: 'Response templates', subtext: 'Create reusable response templates for customer communications' },
+      { icon: '', iconSrc: iconAutoReplyRules,   label: 'Auto-reply rules', subtext: 'Automate responses using custom rules and triggers' },
+      { icon: '', iconSrc: iconAutoShareRules,   label: 'Auto-share rules', subtext: 'Automatically share reviews across your social channels' },
     ],
   },
   {
@@ -141,8 +142,8 @@ const SECTIONS: SettingsSection[] = [
     description: "Reveal meaningful and actionable insights via customers' feedback.",
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconCategories, label: 'Categories' },
-      { icon: '', iconSrc: iconKeywords,  label: 'Keywords and adjectives' },
+      { icon: '', iconSrc: iconCategories, label: 'Categories', subtext: 'Organize categories to measure business performance and insights' },
+      { icon: '', iconSrc: iconKeywords,  label: 'Keywords and adjectives', subtext: 'Track keywords and sentiment across customer feedback' },
     ],
   },
   {
@@ -151,7 +152,7 @@ const SECTIONS: SettingsSection[] = [
     description: "Evaluate your competitors' strengths and weaknesses to reinforce your market strategy.",
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconManageCompetitors, label: 'Manage competitors' },
+      { icon: '', iconSrc: iconManageCompetitors, label: 'Manage competitors', subtext: 'Add competitors and compare performance and customer sentiment' },
     ],
   },
   {
@@ -159,8 +160,8 @@ const SECTIONS: SettingsSection[] = [
     title: 'Widgets',
     description: 'Manage and customize your web and appointment widgets.',
     items: [
-      { icon: '', iconSrc: iconWebWidgets, label: 'Web widgets' },
-      { icon: '', iconSrc: iconAppointments, label: 'Appointment widgets' },
+      { icon: '', iconSrc: iconWebWidgets, label: 'Web widgets', subtext: 'Customize your widget in order to maximize conversions through webchat' },
+      { icon: '', iconSrc: iconAppointments, label: 'Appointment widgets', subtext: 'Follow easy steps to customize the appointment widget and add it to your website' },
     ],
   },
   {
@@ -169,7 +170,7 @@ const SECTIONS: SettingsSection[] = [
     description: 'Get paid faster, improve customer satisfaction and track funds via Birdeye Payments.',
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconPayments, label: 'Set up payments' },
+      { icon: '', iconSrc: iconPayments, label: 'Set up payments', subtext: 'Add banking details and manage payment request settings' },
     ],
   },
   {
@@ -178,18 +179,18 @@ const SECTIONS: SettingsSection[] = [
     description: 'Manage your account including users, employees, support and more.',
     learnMore: true,
     items: [
-      { icon: '', iconSrc: iconUsers,     label: 'Users' },
-      { icon: '', iconSrc: iconTeams,     label: 'Teams' },
-      { icon: '', iconSrc: iconEmployees, label: 'Employees' },
-      { icon: '', iconSrc: iconBilling,   label: 'Billing' },
-      { icon: '', iconSrc: iconSupport,   label: 'Support' },
-      { icon: 'language',                 label: 'Timezone' },
-      { icon: 'grid_view',                label: 'Products' },
+      { icon: '', iconSrc: iconUsers,     label: 'Users', subtext: 'Add users and manage roles, permissions, and notifications' },
+      { icon: '', iconSrc: iconTeams,     label: 'Teams', subtext: 'Organize users into teams for efficient collaboration' },
+      { icon: '', iconSrc: iconEmployees, label: 'Employees', subtext: 'Add employees and manage customer-facing interactions' },
+      { icon: '', iconSrc: iconBilling,   label: 'Billing', subtext: 'View invoices, subscriptions, and payment information' },
+      { icon: '', iconSrc: iconSupport,   label: 'Support', subtext: 'Access help resources and contact the support team' },
+      { icon: 'language',                 label: 'Timezone', subtext: "Configure your account's timezone and regional settings" },
+      { icon: 'grid_view',                label: 'Products', subtext: 'Manage active and inactive products available in your account' },
     ],
   },
 ]
 
-export function SettingsScreen({ initialTab, onTabConsumed }: { initialTab?: string | null; onTabConsumed?: () => void }) {
+export function SettingsScreen({ initialTab, onTabConsumed, onWebWidgets, onAppointmentWidgets }: { initialTab?: string | null; onTabConsumed?: () => void; onWebWidgets?: () => void; onAppointmentWidgets?: () => void }) {
   const [query, setQuery] = useState('')
   const [activeNav, setActiveNav] = useState(initialTab ?? SETTINGS_NAV[0])
 
@@ -280,7 +281,7 @@ export function SettingsScreen({ initialTab, onTabConsumed }: { initialTab?: str
                   <p className="mt-xs text-body text-text-secondary">
                     {section.description}
                     {section.learnMore && (
-                      <>{' '}<button type="button" className="text-text-action hover:underline">Learn more</button></>
+                      <>{' '}<Link as="button">Learn more</Link></>
                     )}
                   </p>
                 </div>
@@ -292,7 +293,8 @@ export function SettingsScreen({ initialTab, onTabConsumed }: { initialTab?: str
                       <button
                         key={item.label}
                         type="button"
-                        className="flex h-[88px] items-center gap-md rounded-sm px-sm text-left hover:bg-surface-hover"
+                        onClick={item.label === 'Web widgets' ? onWebWidgets : item.label === 'Appointment widgets' ? onAppointmentWidgets : undefined}
+                        className="group flex h-[88px] items-center gap-md overflow-hidden rounded-sm px-sm text-left hover:bg-surface-hover"
                       >
                         {item.iconSrc
                           ? <img src={item.iconSrc} alt="" className="size-[22px] shrink-0 text-text-icon" />
@@ -308,6 +310,11 @@ export function SettingsScreen({ initialTab, onTabConsumed }: { initialTab?: str
                               </span>
                             )}
                           </div>
+                          {item.subtext && (
+                            <p className="mt-0 max-h-0 overflow-hidden text-small text-text-secondary opacity-0 transition-all duration-200 group-hover:mt-[3px] group-hover:max-h-[2rem] group-hover:opacity-100">
+                              {item.subtext}
+                            </p>
+                          )}
                         </div>
                       </button>
                     ))}

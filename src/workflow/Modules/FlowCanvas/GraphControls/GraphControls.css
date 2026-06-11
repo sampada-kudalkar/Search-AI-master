@@ -7,7 +7,6 @@
   border: 1px solid #e5e9f0;
   border-radius: 8px;
   font-family: 'Roboto', sans-serif;
-  overflow: visible;
 }
 
 .graph-controls .material-symbols-outlined {
@@ -151,43 +150,35 @@
   background: #f2f4f7;
 }
 
-/* ─── Preview tooltip wrapper ─── */
-.graph-controls__run-wrap {
+.graph-control-tooltip {
   position: relative;
-  display: flex;
-  align-items: center;
+  display: inline-flex;
 }
 
-.graph-controls__run-tooltip {
+.graph-control-tooltip__label {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  background: #212121;
+  padding: 4px 8px;
+  background: #303030;
   color: #fff;
   font-size: 12px;
   font-weight: 400;
-  font-family: 'Roboto', sans-serif;
-  white-space: nowrap;
-  padding: 5px 10px;
+  line-height: 16px;
+  letter-spacing: -0.24px;
   border-radius: 4px;
-  letter-spacing: -0.12px;
+  white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
   z-index: 200;
+  font-family: 'Roboto', sans-serif;
 }
 
-.graph-controls__run-tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-bottom-color: #212121;
-}
-
-.graph-controls__run-wrap:hover .graph-controls__run-tooltip {
+.graph-control-tooltip:hover .graph-control-tooltip__label,
+.graph-control-tooltip:focus-within .graph-control-tooltip__label {
   opacity: 1;
+  visibility: visible;
 }

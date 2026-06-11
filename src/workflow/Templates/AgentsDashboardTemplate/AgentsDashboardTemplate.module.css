@@ -41,7 +41,7 @@
 }
 
 .viewOnlyBannerLink:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 /* ─── View-only pill badge ─── */

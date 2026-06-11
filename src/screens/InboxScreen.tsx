@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import Highcharts from 'highcharts'
-import HighchartsReact from 'highcharts-react-official'
-import HighchartsSankey from 'highcharts/modules/sankey'
 import { ChartCard, DataTable, DonutChart, Icon, SankeyChart, StackedBarChart, SummaryStats, TopNav, type Column, type NavSection } from '../components'
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (!(Highcharts as any).seriesTypes?.sankey) { (HighchartsSankey as any)(Highcharts) }
 
 interface Conversation {
   id: string
@@ -250,73 +244,34 @@ const SUMMARY_STATS = [
   { id: 'unresolved', value: '9.8%',  label: 'Unresolved',         delta: '-10%',   trend: 'down' as const },
 ]
 
-const HC_SANKEY_DATA: [string, string, number][] = [
-  // Channel → Handler
-  ['Voice', 'Agent involved',  3200],
-  ['Voice', 'Human involved',  1800],
-  ['Text',  'Agent involved',  2400],
-  ['Text',  'Human involved',  1400],
-  ['Chat',  'Agent involved',  1800],
-  ['Chat',  'Human involved',  1200],
-  // Handler → Status
-  ['Agent involved', 'Resolved',    4200],
-  ['Agent involved', 'Routed',      1800],
-  ['Agent involved', 'Unresolved',  1400],
-  ['Human involved', 'Resolved',    2600],
-  ['Human involved', 'Routed',       900],
-  ['Human involved', 'Unresolved',   900],
+const SANKEY_NODES = [
+  { name: 'Voice' },
+  { name: 'Text' },
+  { name: 'Chat' },
+  { name: 'Email' },
+  { name: 'Agent involved' },
+  { name: 'Human involved' },
+  { name: 'Resolved' },
+  { name: 'Routed' },
+  { name: 'Unresolved' },
 ]
 
-const HC_SANKEY_NODES = [
-  { id: 'Voice',          color: '#CE5ECE' },
-  { id: 'Text',           color: '#4A2D7A' },
-  { id: 'Chat',           color: '#42A5F5' },
-  { id: 'Agent involved', color: '#5C6BC0' },
-  { id: 'Human involved', color: '#F5B301' },
-  { id: 'Resolved',       color: '#8BC34A', column: 2 },
-  { id: 'Routed',         color: '#FF7043', column: 2 },
-  { id: 'Unresolved',     color: '#BDBDBD', column: 2 },
+const SANKEY_LINKS = [
+  { source: 'Voice',          target: 'Agent involved', value: 3200 },
+  { source: 'Voice',          target: 'Human involved', value: 1800 },
+  { source: 'Text',           target: 'Agent involved', value: 2400 },
+  { source: 'Text',           target: 'Human involved', value: 1400 },
+  { source: 'Chat',           target: 'Agent involved', value: 1800 },
+  { source: 'Chat',           target: 'Human involved', value: 1200 },
+  { source: 'Email',          target: 'Agent involved', value: 1100 },
+  { source: 'Email',          target: 'Human involved', value:  700 },
+  { source: 'Agent involved', target: 'Resolved',       value: 5100 },
+  { source: 'Agent involved', target: 'Routed',         value: 2200 },
+  { source: 'Agent involved', target: 'Unresolved',     value: 1200 },
+  { source: 'Human involved', target: 'Resolved',       value: 3100 },
+  { source: 'Human involved', target: 'Routed',         value: 1100 },
+  { source: 'Human involved', target: 'Unresolved',     value: 1000 },
 ]
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sankeyOpts: any = {
-  chart: {
-    type: 'sankey',
-    height: 520,
-    backgroundColor: 'transparent',
-    style: { fontFamily: "'Roboto',sans-serif" },
-    margin: [16, 20, 16, 20],
-  },
-  title: { text: undefined },
-  series: [{
-    type: 'sankey' as const,
-    keys: ['from', 'to', 'weight'],
-    data: HC_SANKEY_DATA,
-    nodes: HC_SANKEY_NODES,
-    linkOpacity: 0.25,
-    dataLabels: {
-      nodeFormat: '{point.name}',
-      style: {
-        fontSize: '12px',
-        fontWeight: '400',
-        color: '#212121',
-        textOutline: 'none',
-        fontFamily: "'Roboto',sans-serif",
-      },
-      align: 'left',
-      nodeFormatter: undefined,
-      padding: 8,
-    },
-    nodeWidth: 15,
-  }],
-  tooltip: {
-    headerFormat: '',
-    pointFormat: '{point.fromNode.name} → {point.toNode.name}: <b>{point.weight:,.0f}</b>',
-    nodeFormat: '<b>{point.name}</b>: {point.sum:,.0f} conversations',
-    style: { fontFamily: "'Roboto',sans-serif", fontSize: '12px' },
-  },
-  credits: { enabled: false },
-}
 
 const OVERTIME_DATA = [
   { month: 'Dec\n2023', Resolved: 180, Routed: 120, Unresolved: 134 },
@@ -333,16 +288,18 @@ const OVERTIME_SERIES = [
 ]
 
 const DONUT_DATA = [
-  { name: 'Voice', value: 43.2, color: '#1976d2' },
-  { name: 'Text',  value: 32.5, color: '#4cae3d' },
-  { name: 'Email', value: 24.3, color: '#f5a623' },
+  { name: 'Voice', value: 35.0, color: '#1976d2' },
+  { name: 'Text',  value: 26.5, color: '#4cae3d' },
+  { name: 'Chat',  value: 22.0, color: '#9c27b0' },
+  { name: 'Email', value: 16.5, color: '#f5a623' },
 ]
 
 const CHANNEL_STATS = [
-  { id: 'total', value: '7.9k', label: 'Total conversations', delta: '+1.3%', trend: 'up' as const },
-  { id: 'voice', value: '5K',   label: 'Voice',               delta: '+1.3%', trend: 'up' as const },
-  { id: 'text',  value: '1.5k', label: 'Text',                delta: '+1.3%', trend: 'up' as const },
-  { id: 'email', value: '1.4k', label: 'Email' },
+  { id: 'total', value: '10.3k', label: 'Total conversations', delta: '+1.3%',  trend: 'up'   as const },
+  { id: 'voice', value: '3.6k',  label: 'Voice',               delta: '+4.2%',  trend: 'up'   as const },
+  { id: 'text',  value: '2.7k',  label: 'Text',                delta: '-1.1%',  trend: 'down' as const },
+  { id: 'chat',  value: '2.3k',  label: 'Chat',                delta: '+0.8%',  trend: 'up'   as const },
+  { id: 'email', value: '1.7k',  label: 'Email',               delta: '-2.4%',  trend: 'down' as const },
 ]
 
 interface LocationRow {
@@ -397,7 +354,7 @@ function ResponsesPanel() {
         {/* Summary */}
         <SummaryStats title="Summary" stats={SUMMARY_STATS} />
 
-        {/* Performance funnel — Highcharts Sankey */}
+        {/* Performance funnel — Sankey */}
         <ChartCard
           title="Performance funnel"
           showActions={false}
@@ -412,9 +369,7 @@ function ResponsesPanel() {
             <span className="absolute" style={{ left: '50%', transform: 'translateX(-50%)' }}>Handler</span>
             <span className="absolute right-0">Status</span>
           </div>
-          <div className="-mx-lg">
-            <HighchartsReact highcharts={Highcharts} options={sankeyOpts} />
-          </div>
+          <SankeyChart nodes={SANKEY_NODES} links={SANKEY_LINKS} height={520} />
         </ChartCard>
 
         {/* Conversations overtime — customize + 3-dot menu */}
@@ -451,7 +406,7 @@ function ResponsesPanel() {
               </div>
             ))}
           </div>
-          <DonutChart data={DONUT_DATA} centerValue="7.9k" centerLabel="Total conversations" height={380} />
+          <DonutChart data={DONUT_DATA} centerValue="10.3k" centerLabel="Total conversations" height={380} />
         </ChartCard>
 
         {/* Conversation across locations — only 3-dot menu */}
@@ -480,29 +435,31 @@ const CM_SUMMARY = [
 ]
 
 const CM_SANKEY_NODES = [
-  { name: 'Calls' },      // 0 — pink/magenta
-  { name: 'SMS' },         // 1 — dark purple
-  { name: 'Email' },       // 2 — blue
-  { name: 'Tagged' },      // 3 — green
-  { name: 'Untagged' },    // 4 — gray
-  { name: 'Routed' },      // 5 — blue
-  { name: 'Pending' },     // 6 — yellow/amber
-  { name: 'Missed' },      // 7 — dark red
-  { name: 'Resolved' },    // 8 — green
-  { name: 'Unresolved' },  // 9 — gray
+  { name: 'Voice' },       // 0
+  { name: 'Text' },        // 1
+  { name: 'Chat' },        // 2
+  { name: 'Email' },       // 3
+  { name: 'Tagged' },      // 4
+  { name: 'Untagged' },    // 5
+  { name: 'Routed' },      // 6
+  { name: 'Pending' },     // 7
+  { name: 'Missed' },      // 8
+  { name: 'Resolved' },    // 9
+  { name: 'Unresolved' },  // 10
 ]
 const CM_SANKEY_LINKS = [
   // Channel → Tagging status
-  { source: 0, target: 3, value: 2800 }, { source: 0, target: 4, value: 800 },
-  { source: 1, target: 3, value: 2200 }, { source: 1, target: 4, value: 1000 },
-  { source: 2, target: 3, value: 1200 }, { source: 2, target: 4, value: 800 },
+  { source: 0, target: 4, value: 2800 }, { source: 0, target: 5, value: 800 },
+  { source: 1, target: 4, value: 2200 }, { source: 1, target: 5, value: 1000 },
+  { source: 2, target: 4, value: 1600 }, { source: 2, target: 5, value: 700 },
+  { source: 3, target: 4, value: 1200 }, { source: 3, target: 5, value: 800 },
   // Tagging status → Routing status
-  { source: 3, target: 5, value: 3800 }, { source: 3, target: 6, value: 1600 }, { source: 3, target: 7, value: 800 },
-  { source: 4, target: 5, value: 1000 }, { source: 4, target: 6, value: 800 }, { source: 4, target: 7, value: 800 },
+  { source: 4, target: 6, value: 4800 }, { source: 4, target: 7, value: 2000 }, { source: 4, target: 8, value: 1000 },
+  { source: 5, target: 6, value: 1400 }, { source: 5, target: 7, value: 800 },  { source: 5, target: 8, value: 1100 },
   // Routing status → Outcome
-  { source: 5, target: 8, value: 4200 }, { source: 5, target: 9, value: 600 },
-  { source: 6, target: 8, value: 1400 }, { source: 6, target: 9, value: 1000 },
-  { source: 7, target: 8, value: 200 },  { source: 7, target: 9, value: 1400 },
+  { source: 6, target: 9, value: 5200 }, { source: 6, target: 10, value: 1000 },
+  { source: 7, target: 9, value: 1800 }, { source: 7, target: 10, value: 1000 },
+  { source: 8, target: 9, value: 300 },  { source: 8, target: 10, value: 1800 },
 ]
 
 const CM_STATUS_DATA = [
@@ -528,12 +485,25 @@ const CM_STATUS_SERIES = [
   { key: 'Routed',      label: 'Routed',       color: '#FF7043' },
 ]
 
+const CM_ROUTING_DATA = [
+  { week: 'Mar\n3', Agents: 130, Humans: 64,  Pending: 60  },
+  { week: '2',      Agents: 60,  Humans: 44,  Pending: 40  },
+  { week: '3',      Agents: 120, Humans: 62,  Pending: 60  },
+  { week: '4',      Agents: 110, Humans: 88,  Pending: 50  },
+  { week: '5',      Agents: 60,  Humans: 38,  Pending: 30  },
+  { week: '6',      Agents: 110, Humans: 88,  Pending: 50  },
+  { week: '7',      Agents: 120, Humans: 72,  Pending: 60  },
+  { week: '8',      Agents: 80,  Humans: 68,  Pending: 40  },
+  { week: '9',      Agents: 80,  Humans: 78,  Pending: 40  },
+  { week: '10',     Agents: 90,  Humans: 62,  Pending: 40  },
+  { week: '11',     Agents: 90,  Humans: 62,  Pending: 40  },
+  { week: '12',     Agents: 80,  Humans: 68,  Pending: 40  },
+]
+
 const CM_ROUTING_SERIES = [
-  { key: 'Missed Call', label: 'AI agent',    color: '#42A5F5' },
-  { key: 'Scheduling',  label: 'Reception',   color: '#7E57C2' },
-  { key: 'Follow-up',   label: 'Billing',     color: '#4cae3d' },
-  { key: 'Resolved',    label: 'Clinical',    color: '#F5A623' },
-  { key: 'Routed',      label: 'Humans',      color: '#FF7043' },
+  { key: 'Agents',  label: 'Agents',  color: '#42A5F5' },
+  { key: 'Humans',  label: 'Humans',  color: '#FF7043' },
+  { key: 'Pending', label: 'Pending', color: '#F5A623' },
 ]
 
 interface CmLocationRow {
@@ -607,16 +577,17 @@ function ConversationManagedPanel() {
             links={CM_SANKEY_LINKS}
             height={340}
             nodeColors={{
-              0: '#CE5ECE', // Calls — pink/magenta
-              1: '#4A2D7A', // SMS — dark purple
-              2: '#42A5F5', // Email — blue
-              3: '#4cae3d', // Tagged — green
-              4: '#BDBDBD', // Untagged — gray
-              5: '#5C6BC0', // Routed — blue
-              6: '#F5A623', // Pending — amber
-              7: '#C62828', // Missed — dark red
-              8: '#8BC34A', // Resolved — green
-              9: '#BDBDBD', // Unresolved — gray
+              0:  '#1976d2', // Voice — blue
+              1:  '#4cae3d', // Text — green
+              2:  '#9c27b0', // Chat — purple
+              3:  '#f5a623', // Email — orange
+              4:  '#4cae3d', // Tagged — green
+              5:  '#BDBDBD', // Untagged — gray
+              6:  '#5C6BC0', // Routed — indigo
+              7:  '#F5A623', // Pending — amber
+              8:  '#C62828', // Missed — dark red
+              9:  '#8BC34A', // Resolved — light green
+              10: '#BDBDBD', // Unresolved — gray
             }}
           />
         </ChartCard>
@@ -628,7 +599,7 @@ function ConversationManagedPanel() {
 
         {/* Routing distribution */}
         <ChartCard title="Routing distribution" className="h-[556px]">
-          <StackedBarChart data={CM_STATUS_DATA} series={CM_ROUTING_SERIES} xKey="week" height={430} showBarLabels wrapXLabels />
+          <StackedBarChart data={CM_ROUTING_DATA} series={CM_ROUTING_SERIES} xKey="week" height={430} showBarLabels wrapXLabels />
         </ChartCard>
 
         {/* Conversation across locations */}

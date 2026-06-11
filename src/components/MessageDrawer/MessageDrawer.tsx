@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Chip } from '../Chip/Chip'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import { MessageDrawerProps } from './MessageDrawer.types'
 
 interface Message {
@@ -56,7 +57,7 @@ export function MessageDrawer({ open, patient, status = 'Unconfirmed', onClose }
         className={`fixed right-0 top-0 z-[101] flex h-full w-[650px] flex-col bg-surface shadow-modal transition-transform duration-300 ${open ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-lg py-md">
+        <div className="flex items-center justify-between px-lg py-md">
           <div className="flex items-center gap-sm">
             <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
               <Icon name="arrow_back" size={20} />
@@ -123,11 +124,11 @@ export function MessageDrawer({ open, patient, status = 'Unconfirmed', onClose }
                 <div className="text-body text-text-primary">{MOCK_CARD.datetime}</div>
               </div>
               <div className="flex items-center gap-md">
-                <button type="button" className="flex items-center gap-xs text-small text-text-action hover:underline">
+                <Link as="button" className="flex items-center gap-xs text-small">
                   <Icon name="autorenew" size={14} />
                   Reschedule
-                </button>
-                <button type="button" className="text-small text-text-action hover:underline">Send reminder</button>
+                </Link>
+                <Link as="button" className="text-small">Send reminder</Link>
                 <button type="button" className="text-text-icon">
                   <Icon name="more_horiz" size={16} />
                 </button>

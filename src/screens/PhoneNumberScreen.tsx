@@ -1,41 +1,43 @@
 import { useEffect, useRef, useState } from 'react'
-import { Icon, DataTable, FormDrawer, SelectMenu, TopNav, type Column } from '../components'
+import { Icon, DataTable, SelectMenu, TopNav, type Column } from '../components'
+import emptyPhoneNumberUrl from '../assets/empty-phone-number.svg'
 
-interface PhoneNumberRow {
-  name: string
-  phoneNumber: string
-  connection: string
-  routingMode: string
-  assignedAgents: string
-  locations: string
-  provider: string
-  [key: string]: string
-}
-
-const DATA: PhoneNumberRow[] = [
-  { name: 'Main reception',   phoneNumber: '(202) 555-0123', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: 'Frontdesk',              locations: 'North Austin',  provider: 'Twilio'    },
-  { name: 'Schedule line',    phoneNumber: '(303) 555-0198', connection: 'Call forwarding', routingMode: 'Overflow', assignedAgents: 'Scheduling & Frontdesk', locations: 'South Austin',  provider: 'Twilio'    },
-  { name: 'Outreach',         phoneNumber: '(404) 555-0167', connection: 'SIP trunk',       routingMode: 'Overflow', assignedAgents: 'Pre-visit',              locations: 'San Francisco', provider: 'Vonage'    },
-  { name: 'Outreach',         phoneNumber: '(505) 555-0189', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: '-',                      locations: '-',             provider: 'Twilio'    },
-  { name: 'Patient services', phoneNumber: '(606) 555-0145', connection: 'Call forwarding', routingMode: 'IVR',      assignedAgents: 'Frontdesk & Waitlist',   locations: 'South Austin',  provider: 'Bandwidth' },
-  { name: 'Insurance',        phoneNumber: '(707) 555-0132', connection: 'SIP trunk',       routingMode: 'IVR',      assignedAgents: 'Frontdesk',              locations: '-',             provider: 'Bandwidth' },
-  { name: 'Night coverage',   phoneNumber: '(808) 555-0156', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: '-',                      locations: 'All locations', provider: 'Twilio'    },
-  { name: 'Toll-free main',   phoneNumber: '(909) 555-0173', connection: 'Call forwarding', routingMode: 'Overflow', assignedAgents: 'Frontdesk & Pre-vist',   locations: 'All locations', provider: 'Twilio'    },
-  { name: 'Insurance verify', phoneNumber: '(212) 555-0111', connection: 'Birdeye number',  routingMode: 'IVR',      assignedAgents: 'Scheduling',             locations: 'North Austin',  provider: 'Twilio'    },
-  { name: 'Reminder line',    phoneNumber: '(415) 555-0100', connection: 'SIP trunk',       routingMode: 'AI-first', assignedAgents: '-',                      locations: '-',             provider: 'Vonage'    },
-  { name: 'Billing',          phoneNumber: '(310) 555-0192', connection: 'Call forwarding', routingMode: 'IVR',      assignedAgents: 'Frontdesk',              locations: 'San Francisco', provider: 'Twilio'    },
-]
-
-const COLUMNS: Column<PhoneNumberRow>[] = [
-  { key: 'name',           label: 'Name',            sortable: true },
-  { key: 'phoneNumber',    label: 'Phone number',    sortable: true },
-  { key: 'connection',     label: 'Connection',      sortable: true },
-  { key: 'routingMode',    label: 'Routing mode',    sortable: true },
-  { key: 'assignedAgents', label: 'Assigned agents', sortable: true },
-  { key: 'locations',      label: 'Locations',       sortable: true },
-  { key: 'provider',       label: 'Provider',        sortable: true },
-]
-
+// --- Phone number 1 data & helpers (Abhishek's version — do not delete) ---
+// interface PhoneNumberRow {
+//   name: string
+//   phoneNumber: string
+//   connection: string
+//   routingMode: string
+//   assignedAgents: string
+//   locations: string
+//   provider: string
+//   [key: string]: string
+// }
+// 
+// const DATA: PhoneNumberRow[] = [
+//   { name: 'Main reception',   phoneNumber: '(202) 555-0123', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: 'Frontdesk',              locations: 'North Austin',  provider: 'Twilio'    },
+//   { name: 'Schedule line',    phoneNumber: '(303) 555-0198', connection: 'Call forwarding', routingMode: 'Overflow', assignedAgents: 'Scheduling & Frontdesk', locations: 'South Austin',  provider: 'Twilio'    },
+//   { name: 'Outreach',         phoneNumber: '(404) 555-0167', connection: 'SIP trunk',       routingMode: 'Overflow', assignedAgents: 'Pre-visit',              locations: 'San Francisco', provider: 'Vonage'    },
+//   { name: 'Outreach',         phoneNumber: '(505) 555-0189', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: '-',                      locations: '-',             provider: 'Twilio'    },
+//   { name: 'Patient services', phoneNumber: '(606) 555-0145', connection: 'Call forwarding', routingMode: 'IVR',      assignedAgents: 'Frontdesk & Waitlist',   locations: 'South Austin',  provider: 'Bandwidth' },
+//   { name: 'Insurance',        phoneNumber: '(707) 555-0132', connection: 'SIP trunk',       routingMode: 'IVR',      assignedAgents: 'Frontdesk',              locations: '-',             provider: 'Bandwidth' },
+//   { name: 'Night coverage',   phoneNumber: '(808) 555-0156', connection: 'Birdeye number',  routingMode: 'AI-first', assignedAgents: '-',                      locations: 'All locations', provider: 'Twilio'    },
+//   { name: 'Toll-free main',   phoneNumber: '(909) 555-0173', connection: 'Call forwarding', routingMode: 'Overflow', assignedAgents: 'Frontdesk & Pre-vist',   locations: 'All locations', provider: 'Twilio'    },
+//   { name: 'Insurance verify', phoneNumber: '(212) 555-0111', connection: 'Birdeye number',  routingMode: 'IVR',      assignedAgents: 'Scheduling',             locations: 'North Austin',  provider: 'Twilio'    },
+//   { name: 'Reminder line',    phoneNumber: '(415) 555-0100', connection: 'SIP trunk',       routingMode: 'AI-first', assignedAgents: '-',                      locations: '-',             provider: 'Vonage'    },
+//   { name: 'Billing',          phoneNumber: '(310) 555-0192', connection: 'Call forwarding', routingMode: 'IVR',      assignedAgents: 'Frontdesk',              locations: 'San Francisco', provider: 'Twilio'    },
+// ]
+// 
+// const COLUMNS: Column<PhoneNumberRow>[] = [
+//   { key: 'name',           label: 'Name',            sortable: true },
+//   { key: 'phoneNumber',    label: 'Phone number',    sortable: true },
+//   { key: 'connection',     label: 'Connection',      sortable: true },
+//   { key: 'routingMode',    label: 'Routing mode',    sortable: true },
+//   { key: 'assignedAgents', label: 'Assigned agents', sortable: true },
+//   { key: 'locations',      label: 'Locations',       sortable: true },
+//   { key: 'provider',       label: 'Provider',        sortable: true },
+// ]
+// 
 const AGENT_OPTIONS = [
   { value: 'Frontdesk', label: 'Frontdesk' },
   { value: 'Scheduling', label: 'Scheduling' },
@@ -43,8 +45,8 @@ const AGENT_OPTIONS = [
   { value: 'Waitlist', label: 'Waitlist' },
   { value: 'Reminder', label: 'Reminder' },
 ]
-
-function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNumber: string; onClose: () => void }) {
+// 
+function TestCallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [agent, setAgent] = useState('')
   const [agentMenuOpen, setAgentMenuOpen] = useState(false)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
@@ -52,34 +54,23 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[120]">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+    <>
+      <div className="fixed inset-0 z-[200] bg-black/20" onClick={onClose} />
+      <div className="fixed left-1/2 top-[72px] z-[201] w-[520px] -translate-x-1/2 rounded-sm bg-surface shadow-[0px_4px_8px_rgba(33,33,33,0.18)]">
 
-      <div className="absolute left-1/2 top-[60px] w-[590px] -translate-x-1/2 rounded-md bg-surface shadow-modal">
-        {/* Header */}
-        <div className="flex items-center justify-between px-2xl pb-lg pt-2xl">
-          <span className="text-h3 text-text-primary">Test call</span>
-          <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-            <Icon name="close" size={20} />
+        {/* Header — pt-24 pb-12 px-24 */}
+        <div className="flex items-center justify-between px-2xl pt-2xl pb-md">
+          <span className="text-[16px] leading-[24px] tracking-[-0.32px] text-text-primary">Test call</span>
+          <button type="button" onClick={onClose} className="flex size-6 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+            <Icon name="close" size={18} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="flex flex-col gap-md px-2xl pb-lg">
-          {/* Phone number */}
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">Phone number</label>
-            <div className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">
-              <Icon name="phone" size={16} className="shrink-0 text-text-icon" />
-              <span className="text-body text-text-secondary">+1</span>
-              <span className="mx-xs h-4 w-px bg-border" />
-              <span className="text-body text-text-tertiary">{phoneNumber}</span>
-            </div>
-          </div>
-
+        {/* Body — pl-24 pr-8 py-12 */}
+        <div className="flex flex-col gap-md pl-2xl pr-sm py-md">
           {/* Agent */}
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">Agent</label>
+            <label className="text-small text-text-tertiary">Agent</label>
             <button
               type="button"
               onClick={(e) => {
@@ -88,20 +79,20 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
                 setAnchor({ top: r.bottom + 4, left: r.left, width: r.width })
                 setAgentMenuOpen(true)
               }}
-              className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                agentMenuOpen ? 'border-primary' : 'border-border-selected'
+              className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-hover ${
+                agentMenuOpen ? 'border-primary' : 'border-border'
               }`}
             >
               <span className={`min-w-0 flex-1 truncate text-left text-body ${agent ? 'text-text-primary' : 'text-text-tertiary'}`}>
                 {agent || 'Select agent'}
               </span>
-              <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+              <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
             </button>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-sm border-t border-border px-2xl py-lg">
+        {/* Footer — pt-12 pb-24 px-24, gap-[10px] */}
+        <div className="flex justify-end gap-[10px] px-2xl pt-md pb-2xl">
           <button type="button" onClick={onClose} className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover">
             Cancel
           </button>
@@ -118,8 +109,8 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
       {/* Agent dropdown */}
       {agentMenuOpen && anchor && (
         <>
-          <div className="fixed inset-0 z-[125]" onClick={() => setAgentMenuOpen(false)} />
-          <div className="fixed z-[130]" style={{ top: anchor.top, left: anchor.left, width: anchor.width }}>
+          <div className="fixed inset-0 z-[202]" onClick={() => setAgentMenuOpen(false)} />
+          <div className="fixed z-[203]" style={{ top: anchor.top, left: anchor.left, width: anchor.width }}>
             <SelectMenu
               options={AGENT_OPTIONS}
               value={agent ? [agent] : []}
@@ -128,169 +119,843 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
           </div>
         </>
       )}
-    </div>
+    </>
   )
 }
+//
+// function ImportNumberButton({ onSelect }: { onSelect: (source: 'twilio' | 'sip') => void }) {
+//   const [open, setOpen] = useState(false)
+//   const ref = useRef<HTMLDivElement>(null)
+// 
+//   useEffect(() => {
+//     if (!open) return
+//     function handler(e: MouseEvent) {
+//       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+//     }
+//     document.addEventListener('mousedown', handler)
+//     return () => document.removeEventListener('mousedown', handler)
+//   }, [open])
+// 
+//   return (
+//     <div className="relative" ref={ref}>
+//       <button
+//         type="button"
+//         onClick={() => setOpen((o) => !o)}
+//         className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+//       >
+//         Import number
+//       </button>
+//       {open && (
+//         <div className="absolute right-0 top-[40px] z-50 min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+//           <button
+//             type="button"
+//             onClick={() => { onSelect('twilio'); setOpen(false) }}
+//             className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover"
+//           >
+//             From Twilio
+//           </button>
+//           <button
+//             type="button"
+//             onClick={() => { onSelect('sip'); setOpen(false) }}
+//             className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover"
+//           >
+//             From SIP Trunk
+//           </button>
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
+// 
+// const IMPORT_TWILIO_FIELDS = [
+//   { key: 'name',       label: 'Name',               type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'phone',      label: 'Phone number',       type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'twilioSid',  label: 'Twilio account SID', type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'authToken',  label: 'Auth token',         type: 'text' as const, placeholder: 'Enter input' },
+// ]
+// 
+// const IMPORT_SIP_FIELDS = [
+//   { key: 'name',       label: 'Name',               type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'phone',      label: 'Phone number',       type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'sipServer',  label: 'SIP server address',  type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'sipPort',    label: 'SIP port',            type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'username',   label: 'Username',            type: 'text' as const, placeholder: 'Enter input' },
+//   { key: 'password',   label: 'Password',            type: 'text' as const, placeholder: 'Enter input' },
+// ]
+// --- End phone number 1 data & helpers ---
 
-const EDIT_FIELDS = [
-  { key: 'name',           label: 'Name',            type: 'text'   as const },
-  { key: 'phoneNumber',    label: 'Phone number',    type: 'text'   as const },
-  { key: 'connection',     label: 'Connection',      type: 'select' as const, options: ['Birdeye number', 'Call forwarding', 'SIP trunk'] },
-  { key: 'provider',       label: 'Provider',        type: 'select' as const, options: ['Twilio', 'Vonage', 'Bandwidth'] },
-  { key: 'numberType',     label: 'Number type',     type: 'select' as const, options: ['Local', 'Toll-free', 'Mobile'] },
-  { key: 'numberId',       label: 'Number ID',       type: 'text'   as const },
-  { key: 'purchasedOn',    label: 'Purchased on',    type: 'text'   as const },
-  { key: 'routingMode',    label: 'Routing mode',    type: 'select' as const, options: ['AI-first', 'Overflow', 'IVR'] },
-  { key: 'assignedAgents', label: 'Assigned agents', type: 'select' as const, options: ['Frontdesk', 'Scheduling', 'Pre-visit', 'Scheduling & Frontdesk', 'Frontdesk & Waitlist', 'Frontdesk & Pre-vist'] },
-  { key: 'locations',      label: 'Locations',       type: 'select' as const, options: ['North Austin', 'South Austin', 'San Francisco', 'All locations'] },
+
+// ─── Phone number 2 ──────────────────────────────────────────────────────────
+
+interface PhoneNumber2Row {
+  name: string
+  phoneNumber: string
+  e164Format: string
+  terminationUri: string
+  transport: string
+  sipUsername: string
+  sipPassword: string
+  connection: string
+  routingMode: string
+  assignedAgents: string
+  locations: string
+  provider: string
+  status: string
+  [key: string]: string
+}
+
+
+const DEFAULT_ROWS: PhoneNumber2Row[] = []
+
+const COLUMNS2: Column<PhoneNumber2Row>[] = [
+  { key: 'name',        label: 'Name',         sortable: true },
+  { key: 'phoneNumber', label: 'Phone number', sortable: true },
+  {
+    key: 'locations', label: 'Locations', sortable: true,
+    render: (val) => {
+      const locs = String(val).split(', ').filter(Boolean)
+      if (locs.length === 0) return <span className="text-text-tertiary">—</span>
+      return (
+        <span>
+          {locs[0]}
+          {locs.length > 1 && <span className="text-text-tertiary">, +{locs.length - 1} more</span>}
+        </span>
+      )
+    },
+  },
 ]
 
-function ImportNumberButton({ onSelect }: { onSelect: (source: 'twilio' | 'sip') => void }) {
+
+const LOCATION_OPTIONS = [
+  { value: 'North Austin',  label: 'North Austin'  },
+  { value: 'South Austin',  label: 'South Austin'  },
+  { value: 'San Francisco', label: 'San Francisco' },
+  { value: 'All locations', label: 'All locations' },
+]
+
+
+function applySipFormat(raw: string, transport: string): string {
+  // Strip any existing sip:/sips: prefix and ;transport=* suffix to get the bare host
+  const host = raw
+    .replace(/^sips?:\/?\/?/i, '')
+    .replace(/;transport=\w+$/i, '')
+    .trim()
+  if (!host) return ''
+  if (transport === 'TLS') return `sips:${host}`
+  if (transport === 'TCP') return `sip:${host};transport=tcp`
+  return `sip:${host}` // UDP — no transport param needed
+}
+
+function applyPhoneFormat(raw: string, format: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 11) // max 11 digits (country + 10)
+  if (format === '+E.164') return digits ? `+${digits}` : ''
+  if (format === 'National') {
+    const d = digits.slice(0, 10) // national = 10 digits
+    if (d.length === 0) return ''
+    if (d.length <= 3) return `(${d}`
+    if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+  }
+  // E.164: digits only
+  return digits
+}
+
+const TRANSPORT_OPTIONS = [
+  { value: 'TCP', label: 'TCP' },
+  { value: 'UDP', label: 'UDP' },
+  { value: 'TLS', label: 'TLS' },
+]
+
+const E164_FORMAT_OPTIONS = [
+  { value: 'E.164',    label: 'E.164'    },
+  { value: '+E.164',   label: '+E.164'   },
+  { value: 'National', label: 'National' },
+]
+
+interface ImportState {
+  name: string
+  phoneNumber: string
+  e164Format: string
+  terminationUri: string
+  transport: string
+  sipUsername: string
+  sipPassword: string
+  location: string[]
+}
+
+const EMPTY_IMPORT: ImportState = {
+  name: '',
+  phoneNumber: '', e164Format: 'E.164', terminationUri: '', transport: 'TCP', sipUsername: '', sipPassword: '',
+  location: [],
+}
+
+// ── Prefix-dropdown-inside-input (e.g. format selector + phone number) ──────────
+interface PrefixDropdownInputProps {
+  prefixOptions: { value: string; label: string }[]
+  prefixValue: string
+  onPrefixChange: (v: string) => void
+  inputPlaceholder?: string
+  inputValue: string
+  inputType?: string
+  onInputChange: (v: string) => void
+}
+function PrefixDropdownInput({
+  prefixOptions, prefixValue, onPrefixChange,
+  inputPlaceholder, inputValue, inputType = 'text', onInputChange,
+}: PrefixDropdownInputProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
-    function handler(e: MouseEvent) {
+    function onDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
+  const displayLabel = prefixOptions.find(o => o.value === prefixValue)?.label ?? prefixValue
+
   return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-      >
-        Import number
-      </button>
+    <div ref={ref} className="relative">
+      <div className={`flex h-9 items-center rounded-sm border transition-colors focus-within:border-primary ${open ? 'border-primary' : 'border-border'}`}>
+        {/* Prefix dropdown trigger */}
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="flex shrink-0 items-center gap-xs px-md text-body text-text-primary hover:bg-surface-hover rounded-l-sm h-full"
+        >
+          {displayLabel}
+          <Icon name={open ? 'expand_less' : 'expand_more'} size={16} className="text-text-icon" />
+        </button>
+        {/* Divider */}
+        <span className="h-5 w-px shrink-0 bg-border" />
+        {/* Text input */}
+        <input
+          type={inputType}
+          placeholder={inputPlaceholder}
+          value={inputValue}
+          onChange={(e) => onInputChange(e.target.value)}
+          className="h-full flex-1 rounded-r-sm bg-transparent px-md text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
+        />
+      </div>
       {open && (
-        <div className="absolute right-0 top-[40px] z-50 min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-          <button
-            type="button"
-            onClick={() => { onSelect('twilio'); setOpen(false) }}
-            className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover"
-          >
-            From Twilio
-          </button>
-          <button
-            type="button"
-            onClick={() => { onSelect('sip'); setOpen(false) }}
-            className="block w-full px-md py-md text-left text-body text-text-primary hover:bg-surface-hover"
-          >
-            From SIP Trunk
-          </button>
+        <div className="absolute left-0 top-[calc(100%+4px)] z-[60] min-w-[220px]">
+          <SelectMenu
+            options={prefixOptions}
+            value={[prefixValue]}
+            onChange={(v) => { onPrefixChange(v[0] ?? prefixValue); setOpen(false) }}
+          />
         </div>
       )}
     </div>
   )
 }
 
-const IMPORT_TWILIO_FIELDS = [
-  { key: 'name',       label: 'Name',               type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'phone',      label: 'Phone number',       type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'twilioSid',  label: 'Twilio account SID', type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'authToken',  label: 'Auth token',         type: 'text' as const, placeholder: 'Enter input' },
+
+function DropdownField({ label, options, value, multi = false, placeholder = 'Select', disabled = false, onChange }: {
+  label: string; options: { value: string; label: string }[]; value: string[]
+  multi?: boolean; placeholder?: string; disabled?: boolean; onChange: (v: string[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  const displayLabel = value.length === 0
+    ? placeholder
+    : value.length === 1
+      ? (options.find(o => o.value === value[0])?.label ?? placeholder)
+      : `${value.length} selected`
+
+  return (
+    <div className="flex flex-col gap-xs">
+      <label className={`text-small ${disabled ? 'text-text-tertiary' : 'text-text-secondary'}`}>{label}</label>
+      <div ref={ref} className="relative">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => !disabled && setOpen(o => !o)}
+          className={`flex h-9 w-full items-center justify-between rounded-sm border px-md text-body transition-colors ${
+            disabled
+              ? 'cursor-not-allowed border-border bg-surface-subtle text-text-tertiary'
+              : open
+              ? 'border-primary text-text-primary hover:bg-surface-hover'
+              : 'border-border text-text-primary hover:bg-surface-hover'
+          }`}
+        >
+          <span className={value.length === 0 ? 'text-text-tertiary' : ''}>{displayLabel}</span>
+          <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="shrink-0 text-text-icon" />
+        </button>
+        {open && (
+          <div className="absolute left-0 top-[calc(100%+4px)] z-[60] w-full">
+            <SelectMenu
+              options={options}
+              value={value}
+              multi={multi}
+              onChange={(v) => { onChange(v); if (!multi) setOpen(false) }}
+              onApply={() => setOpen(false)}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; initialRow?: PhoneNumber2Row; onClose: () => void; onSave: (row: PhoneNumber2Row) => void }) {
+  const isEdit = !!initialRow
+
+  const [form, setForm] = useState<ImportState>(EMPTY_IMPORT)
+  const [verified, setVerified]   = useState(false)
+  const [verifying, setVerifying] = useState(false)
+  const [locationTooltip, setLocationTooltip] = useState<{ x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    if (!open) {
+      setForm(EMPTY_IMPORT)
+      setVerified(false)
+      setVerifying(false)
+    } else if (initialRow) {
+      setForm({
+        name:           initialRow.name,
+        phoneNumber:    initialRow.phoneNumber,
+        e164Format:     initialRow.e164Format     || 'E.164',
+        terminationUri: initialRow.terminationUri || '',
+        transport:      initialRow.transport      || 'TCP',
+        sipUsername:    initialRow.sipUsername     || '',
+        sipPassword:    initialRow.sipPassword     || '',
+        location:       initialRow.locations ? initialRow.locations.split(', ') : [],
+      })
+      setVerified(true)
+    }
+  }, [open, initialRow])
+
+  function handleVerify() {
+    setVerifying(true)
+    setTimeout(() => { setVerifying(false); setVerified(true) }, 1500)
+  }
+
+  if (!open) return null
+
+  const canVerify = form.name.trim() !== '' && form.phoneNumber.trim() !== '' && form.terminationUri.trim() !== ''
+  const canSave   = verified && form.location.length > 0
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[70] bg-black/20" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-[80] flex h-full w-[650px] flex-col bg-surface shadow-modal">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-2xl py-lg">
+          <div className="flex items-center gap-sm">
+            <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+              <Icon name="arrow_back" size={18} />
+            </button>
+            <span className="text-h3 text-text-primary">{isEdit ? 'Edit number' : 'Import number'}</span>
+          </div>
+          <button
+            type="button"
+            disabled={!canSave}
+            onClick={() => {
+              if (!canSave) return
+              onSave({
+                name:           form.name,
+                phoneNumber:    form.phoneNumber,
+                e164Format:     form.e164Format,
+                terminationUri: form.terminationUri,
+                transport:      form.transport,
+                sipUsername:    form.sipUsername,
+                sipPassword:    form.sipPassword,
+                connection:     'SIP trunk',
+                routingMode:    '—',
+                assignedAgents: '—',
+                locations:      form.location.join(', '),
+                provider:       'Twilio',
+                status:         'Active',
+              })
+              onClose()
+            }}
+            className={`flex h-9 items-center rounded-sm px-lg text-body text-white transition-colors ${
+              !canSave ? 'cursor-not-allowed bg-surface-selected text-text-tertiary' : 'bg-primary hover:bg-primary-hover'
+            }`}
+          >
+            Save
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex flex-1 flex-col gap-lg overflow-auto p-2xl">
+
+          <p className="text-body text-text-secondary">Connect to your number via SIP trunking</p>
+
+          {/* Name */}
+          <div className="flex flex-col gap-xs">
+            <label className="text-small text-text-secondary">Name <span className="text-chip-danger-text">*</span></label>
+            <input
+              type="text"
+              placeholder="e.g. Main reception"
+              value={form.name}
+              onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setVerified(false) }}
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Phone number with inline format selector */}
+          <div className="flex flex-col gap-xs">
+            <label className="text-small text-text-secondary">Phone number <span className="text-chip-danger-text">*</span></label>
+            <PrefixDropdownInput
+              prefixOptions={E164_FORMAT_OPTIONS}
+              prefixValue={form.e164Format}
+              onPrefixChange={(v) => {
+                const reformatted = applyPhoneFormat(form.phoneNumber, v)
+                setForm((f) => ({ ...f, e164Format: v, phoneNumber: reformatted }))
+                setVerified(false)
+              }}
+              inputPlaceholder={form.e164Format === 'National' ? '(415) 555-2671' : form.e164Format === '+E.164' ? '+14155552671' : '14155552671'}
+              inputValue={form.phoneNumber}
+              onInputChange={(v) => {
+                setForm((f) => ({ ...f, phoneNumber: applyPhoneFormat(v, f.e164Format) }))
+                setVerified(false)
+              }}
+            />
+          </div>
+
+          {/* Termination URI with inline transport selector */}
+          <div className="flex flex-col gap-xs">
+            <label className="text-small text-text-secondary">Termination URI <span className="text-chip-danger-text">*</span></label>
+            <PrefixDropdownInput
+              prefixOptions={TRANSPORT_OPTIONS}
+              prefixValue={form.transport}
+              onPrefixChange={(v) => {
+                const reformatted = applySipFormat(form.terminationUri, v)
+                setForm((f) => ({ ...f, transport: v, terminationUri: reformatted }))
+                setVerified(false)
+              }}
+              inputPlaceholder={
+                form.transport === 'TLS' ? 'sips:example.pstn.twilio.com'
+                : form.transport === 'TCP' ? 'sip:example.pstn.twilio.com;transport=tcp'
+                : 'sip:example.pstn.twilio.com'
+              }
+              inputValue={form.terminationUri}
+              onInputChange={(v) => {
+                setForm((f) => ({ ...f, terminationUri: applySipFormat(v, f.transport) }))
+                setVerified(false)
+              }}
+            />
+          </div>
+
+          {/* Username */}
+          <div className="flex flex-col gap-xs">
+            <label className="text-small text-text-secondary">Username <span className="text-text-tertiary">(Optional)</span></label>
+            <input
+              type="text"
+              placeholder="Enter username"
+              value={form.sipUsername}
+              onChange={(e) => setForm((f) => ({ ...f, sipUsername: e.target.value }))}
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Password */}
+          <div className="flex flex-col gap-xs">
+            <label className="text-small text-text-secondary">Password <span className="text-text-tertiary">(Optional)</span></label>
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={form.sipPassword}
+              onChange={(e) => setForm((f) => ({ ...f, sipPassword: e.target.value }))}
+              className="h-9 rounded-sm border border-border px-md text-body text-text-primary placeholder:text-text-tertiary focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Verify */}
+          <div className="flex items-center gap-sm">
+            <button
+              type="button"
+              disabled={!canVerify || verifying || verified}
+              onClick={handleVerify}
+              className={`flex h-9 items-center gap-sm rounded-sm border px-lg text-body transition-colors ${
+                verified
+                  ? 'cursor-default border-border bg-surface text-text-primary'
+                  : !canVerify || verifying
+                  ? 'cursor-not-allowed border-border bg-surface text-text-tertiary'
+                  : 'border-border bg-surface text-text-primary hover:bg-surface-hover'
+              }`}
+            >
+              {verifying ? (
+                <><span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />Verifying…</>
+              ) : verified ? (
+                <><Icon name="check_circle" size={16} fill className="text-chip-success-text" />Verified</>
+              ) : 'Verify'}
+            </button>
+            {!verified && !verifying && (
+              <span className={`text-small ${canVerify ? 'text-text-secondary' : 'text-text-tertiary'}`}>
+                {canVerify
+                  ? 'Ready to verify your SIP connection'
+                  : <><span className="text-chip-danger-text">*</span>Fill in all fields above to verify</>}
+              </span>
+            )}
+          </div>
+
+          {/* Location — unlocked after verify */}
+          <p className={`mt-[16px] text-body ${verified ? 'text-text-secondary' : 'text-text-tertiary'}`}>
+            Assign to a location to start routing calls.
+          </p>
+          <div
+            onMouseEnter={(e) => {
+              if (!verified) {
+                const r = e.currentTarget.getBoundingClientRect()
+                setLocationTooltip({ x: r.left + r.width / 2, y: r.bottom + 6 })
+              }
+            }}
+            onMouseLeave={() => setLocationTooltip(null)}
+          >
+            <DropdownField
+              label="Location"
+              options={LOCATION_OPTIONS}
+              value={form.location}
+              multi
+              placeholder="Select location"
+              disabled={!verified}
+              onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
+            />
+          </div>
+          {locationTooltip && (
+            <div
+              className="pointer-events-none fixed z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white"
+              style={{ left: locationTooltip.x, top: locationTooltip.y }}
+            >
+              Complete SIP trunking setup and verify your connection first.
+            </div>
+          )}
+
+        </div>
+      </div>
+    </>
+  )
+}
+
+
+// ── Call Forwarding modal data ────────────────────────────────────────────────
+const CF_ALL_DATA = [
+  { location: 'North Austin',       business: '(512) 555-0101', receptionist: '(512) 900-0001' },
+  { location: 'South Austin',       business: '(512) 555-0102', receptionist: '(512) 900-0002' },
+  { location: 'San Francisco',      business: '(415) 555-0103', receptionist: '(415) 900-0003' },
+  { location: 'Palo Alto',          business: '(650) 555-0104', receptionist: '(650) 900-0004' },
+  { location: 'Oakland',            business: '(510) 555-0105', receptionist: '(510) 900-0005' },
+  { location: 'Berkeley',           business: '(510) 555-0106', receptionist: '(510) 900-0006' },
+  { location: 'San Jose',           business: '(408) 555-0107', receptionist: '(408) 900-0007' },
+  { location: 'Fremont',            business: '(510) 555-0108', receptionist: '(510) 900-0008' },
+  { location: 'Santa Clara',        business: '(408) 555-0109', receptionist: '(408) 900-0009' },
+  { location: 'Sunnyvale',          business: '(408) 555-0110', receptionist: '(408) 900-0010' },
+  { location: 'Mountain View',      business: '(650) 555-0111', receptionist: '(650) 900-0011' },
+  { location: 'Cupertino',          business: '(408) 555-0112', receptionist: '(408) 900-0012' },
+  { location: 'Redwood City',       business: '(650) 555-0113', receptionist: '(650) 900-0013' },
+  { location: 'Menlo Park',         business: '(650) 555-0114', receptionist: '(650) 900-0014' },
+  { location: 'Walnut Creek',       business: '(925) 555-0115', receptionist: '(925) 900-0015' },
+  { location: 'Concord',            business: '(925) 555-0116', receptionist: '(925) 900-0016' },
+  { location: 'Richmond',           business: '(510) 555-0117', receptionist: '(510) 900-0017' },
+  { location: 'Hayward',            business: '(510) 555-0118', receptionist: '(510) 900-0018' },
+  { location: 'San Mateo',          business: '(650) 555-0119', receptionist: '(650) 900-0019' },
+  { location: 'Daly City',          business: '(415) 555-0120', receptionist: '(415) 900-0020' },
+  { location: 'South San Francisco',business: '(650) 555-0121', receptionist: '(650) 900-0021' },
+  { location: 'San Rafael',         business: '(415) 555-0122', receptionist: '(415) 900-0022' },
+  { location: 'Novato',             business: '(415) 555-0123', receptionist: '(415) 900-0023' },
+  { location: 'Petaluma',           business: '(707) 555-0124', receptionist: '(707) 900-0024' },
+  { location: 'Santa Rosa',         business: '(707) 555-0125', receptionist: '(707) 900-0025' },
 ]
 
-const IMPORT_SIP_FIELDS = [
-  { key: 'name',       label: 'Name',               type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'phone',      label: 'Phone number',       type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'sipServer',  label: 'SIP server address',  type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'sipPort',    label: 'SIP port',            type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'username',   label: 'Username',            type: 'text' as const, placeholder: 'Enter input' },
-  { key: 'password',   label: 'Password',            type: 'text' as const, placeholder: 'Enter input' },
-]
 
-export function PhoneNumberScreen() {
-  const [editRow, setEditRow] = useState<PhoneNumberRow | null>(null)
-  const [testCallRow, setTestCallRow] = useState<PhoneNumberRow | null>(null)
-  const [importSource, setImportSource] = useState<'twilio' | 'sip' | null>(null)
+function CallForwardingDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [search, setSearch] = useState('')
+
+  useEffect(() => { if (!open) setSearch('') }, [open])
+
+  if (!open) return null
+
+  const filtered = CF_ALL_DATA.filter((r) =>
+    r.location.toLowerCase().includes(search.toLowerCase()) ||
+    r.business.includes(search) ||
+    r.receptionist.includes(search)
+  )
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[70] bg-black/20" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-[80] flex h-full w-[650px] flex-col bg-surface shadow-modal">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-2xl py-lg">
+          <div className="flex items-center gap-sm">
+            <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+              <Icon name="arrow_back" size={18} />
+            </button>
+            <span className="text-h3 text-text-primary">Call forwarding</span>
+          </div>
+          <button type="button" title="Download list (XLS)" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+            <Icon name="download" size={20} />
+          </button>
+        </div>
+
+        {/* Description + search */}
+        <div className="shrink-0 flex flex-col gap-lg px-2xl pb-lg pt-2xl">
+          <p className="text-body text-text-secondary">
+            For instructions on how to forward unanswered calls from your landline number to the receptionist number, consult your phone system setup or{' '}
+            <a href="#" className="text-text-action">learn more</a>
+          </p>
+          <div className="flex h-9 items-center gap-sm rounded-sm border border-border px-md focus-within:border-primary">
+            <Icon name="search" size={16} className="shrink-0 text-text-icon" />
+            <input
+              type="text"
+              placeholder="Search by location or number"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch('')} className="text-text-icon hover:text-text-primary">
+                <Icon name="close" size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Scrollable table */}
+        <div className="flex-1 overflow-y-auto">
+          <table className="w-full text-left">
+            <thead className="sticky top-0 bg-surface">
+              <tr className="border-b border-border">
+                <th className="px-2xl pb-sm text-small text-text-secondary font-normal">Location</th>
+                <th className="px-2xl pb-sm text-small text-text-secondary font-normal">Business number</th>
+                <th className="px-2xl pb-sm text-small text-text-secondary font-normal">Receptionist number</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={3} className="px-2xl py-lg text-center text-body text-text-tertiary">No results for "{search}"</td></tr>
+              ) : filtered.map((row, i) => (
+                <tr key={i} className="border-b border-border last:border-0 hover:bg-surface-hover">
+                  <td className="px-2xl py-md text-body text-text-primary">{row.location}</td>
+                  <td className="px-2xl py-md text-body text-text-primary">{row.business}</td>
+                  <td className="px-2xl py-md text-body text-text-primary">{row.receptionist}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </>
+  )
+}
+
+export function PhoneNumber2Screen() {
+  const [rows, setRows] = useState<PhoneNumber2Row[]>(DEFAULT_ROWS)
+  const [importOpen, setImportOpen] = useState(false)
+  const [editRow, setEditRow] = useState<PhoneNumber2Row | null>(null)
+  const [testCallRow, setTestCallRow] = useState<PhoneNumber2Row | null>(null)
+  const [callForwardingOpen, setCallForwardingOpen] = useState(false)
+
 
   return (
     <div className="flex h-full flex-col">
       <TopNav initials="S" />
 
-      <div className="flex flex-1 flex-col overflow-auto">
+      <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-2xl py-xl">
           <h1 className="text-h3 text-text-primary">Phone number</h1>
-          <div className="flex items-center gap-sm">
-            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="search" size={20} />
-            </button>
-            <ImportNumberButton onSelect={setImportSource} />
-            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="view_column" size={20} />
-            </button>
-            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="filter_list" size={20} />
-            </button>
-          </div>
+          {rows.length > 0 && (
+            <div className="flex items-center gap-sm">
+              <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+                <Icon name="search" size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCallForwardingOpen(true)}
+                className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+              >
+                Call forwarding
+              </button>
+              <button
+                type="button"
+                onClick={() => setImportOpen(true)}
+                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+              >
+                Import number
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Table */}
-        <div className="px-lg py-lg">
-          <DataTable
-            columns={COLUMNS}
-            data={DATA}
-            rowActions={[
-              { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
-              { icon: 'edit',          label: 'Edit',      onClick: (row) => setEditRow(row) },
-            ]}
-          />
+        {/* Scrollable content */}
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          {rows.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center py-3xl">
+              <img src={emptyPhoneNumberUrl} alt="" className="w-[200px]" />
+              <div className="mt-lg flex flex-col items-center gap-sm text-center">
+                <span className="text-h3 text-text-primary">Import phone number</span>
+                <span className="max-w-[420px] text-body text-text-tertiary">
+                  Start adding your agent phone numbers to assign them to locations and route calls from one place.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setImportOpen(true)}
+                className="mt-2xl flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+              >
+                Import number
+              </button>
+            </div>
+          ) : (
+            <div className="px-lg">
+              <DataTable
+                columns={COLUMNS2}
+                data={rows}
+                rowActions={[
+                  { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
+                ]}
+                rowMenuItems={[
+                  { label: 'Edit',   onClick: (row) => setEditRow(row) },
+                  { label: 'Delete', onClick: (row) => setRows((prev) => prev.filter((r) => r !== row)) },
+                ]}
+              />
+            </div>
+          )}
         </div>
+
       </div>
 
+      {/* Test call modal */}
       <TestCallModal
         open={testCallRow !== null}
-        phoneNumber={testCallRow?.phoneNumber ?? ''}
         onClose={() => setTestCallRow(null)}
       />
 
-      <FormDrawer
-        open={editRow !== null}
-        title="Edit"
-        fields={EDIT_FIELDS}
-        submitLabel="Save"
-        initialValues={editRow ? {
-          name: editRow.name,
-          phoneNumber: editRow.phoneNumber,
-          connection: editRow.connection,
-          provider: editRow.provider,
-          numberType: 'Local',
-          numberId: 'phnum_29944',
-          purchasedOn: 'Apr 07, 2026',
-          routingMode: editRow.routingMode,
-          assignedAgents: editRow.assignedAgents,
-          locations: editRow.locations,
-        } : undefined}
-        onClose={() => setEditRow(null)}
-        onSubmit={() => setEditRow(null)}
-      />
+      {/* Call forwarding modal */}
+      <CallForwardingDrawer open={callForwardingOpen} onClose={() => setCallForwardingOpen(false)} />
 
-      <FormDrawer
-        open={importSource === 'twilio'}
-        title="Import from Twilio"
-        fields={IMPORT_TWILIO_FIELDS}
-        submitLabel="Import"
-        requiredKeys={['name', 'phone', 'twilioSid', 'authToken']}
-        onClose={() => setImportSource(null)}
-        onSubmit={() => setImportSource(null)}
-      />
-
-      <FormDrawer
-        open={importSource === 'sip'}
-        title="Import from SIP trunk"
-        fields={IMPORT_SIP_FIELDS}
-        submitLabel="Import"
-        requiredKeys={['name', 'phone', 'sipServer', 'sipPort', 'username', 'password']}
-        onClose={() => setImportSource(null)}
-        onSubmit={() => setImportSource(null)}
+      {/* Import / Edit drawer */}
+      <ImportDrawer
+        open={importOpen || editRow !== null}
+        initialRow={editRow ?? undefined}
+        onClose={() => { setImportOpen(false); setEditRow(null) }}
+        onSave={(row) => {
+          if (editRow) {
+            setRows((prev) => prev.map((r) => r === editRow ? row : r))
+          } else {
+            setRows((prev) => [...prev, row])
+          }
+          setEditRow(null)
+          setImportOpen(false)
+        }}
       />
     </div>
   )
 }
+
+// =============================================================================
+// PHONE NUMBER 1 — Abhishek's version (commented out, do not delete)
+// Removed from the UI. PhoneNumber2Screen is now the primary entry point.
+// To restore: uncomment lines below and update the route in App.tsx.
+// =============================================================================
+// export function PhoneNumberScreen() {
+//   const [editRow, setEditRow] = useState<PhoneNumberRow | null>(null)
+//   const [testCallRow, setTestCallRow] = useState<PhoneNumberRow | null>(null)
+//   const [importSource, setImportSource] = useState<'twilio' | 'sip' | null>(null)
+// 
+//   return (
+//     <div className="flex h-full flex-col">
+//       <TopNav initials="S" />
+// 
+//       <div className="flex flex-1 flex-col overflow-auto">
+//           {/* Header */}
+//           <div className="flex items-center justify-between px-2xl py-xl">
+//             <h1 className="text-h3 text-text-primary">Phone number</h1>
+//             <div className="flex items-center gap-sm">
+//               <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+//                 <Icon name="search" size={20} />
+//               </button>
+//               <ImportNumberButton onSelect={setImportSource} />
+//               <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+//                 <Icon name="view_column" size={20} />
+//               </button>
+//               <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+//                 <Icon name="filter_list" size={20} />
+//               </button>
+//             </div>
+//           </div>
+// 
+//           {/* Table */}
+//           <div className="px-lg py-lg">
+//             <DataTable
+//               columns={COLUMNS}
+//               data={DATA}
+//               rowActions={[
+//                 { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
+//                 { icon: 'edit',          label: 'Edit',      onClick: (row) => setEditRow(row) },
+//               ]}
+//             />
+//           </div>
+// 
+//           <TestCallModal
+//             open={testCallRow !== null}
+//             phoneNumber={testCallRow?.phoneNumber ?? ''}
+//             onClose={() => setTestCallRow(null)}
+//           />
+// 
+//           <FormDrawer
+//             open={editRow !== null}
+//             title="Edit"
+//             fields={EDIT_FIELDS}
+//             submitLabel="Save"
+//             initialValues={editRow ? {
+//               name: editRow.name,
+//               phoneNumber: editRow.phoneNumber,
+//               connection: editRow.connection,
+//               provider: editRow.provider,
+//               numberType: 'Local',
+//               numberId: 'phnum_29944',
+//               purchasedOn: 'Apr 07, 2026',
+//               routingMode: editRow.routingMode,
+//               assignedAgents: editRow.assignedAgents,
+//               locations: editRow.locations,
+//             } : undefined}
+//             onClose={() => setEditRow(null)}
+//             onSubmit={() => setEditRow(null)}
+//           />
+// 
+//           <FormDrawer
+//             open={importSource === 'twilio'}
+//             title="Import from Twilio"
+//             fields={IMPORT_TWILIO_FIELDS}
+//             submitLabel="Import"
+//             requiredKeys={['name', 'phone', 'twilioSid', 'authToken']}
+//             onClose={() => setImportSource(null)}
+//             onSubmit={() => setImportSource(null)}
+//           />
+// 
+//           <FormDrawer
+//             open={importSource === 'sip'}
+//             title="Import from SIP trunk"
+//             fields={IMPORT_SIP_FIELDS}
+//             submitLabel="Import"
+//             requiredKeys={['name', 'phone', 'sipServer', 'sipPort', 'username', 'password']}
+//             onClose={() => setImportSource(null)}
+//             onSubmit={() => setImportSource(null)}
+//           />
+//       </div>
+//     </div>
+//   )
+// }
+// =============================================================================
+

@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Icon } from '../Icon/Icon'
+import { Link } from '../Link/Link'
 import { SelectMenu } from '../SelectMenu/SelectMenu'
 import { FilterField, FilterPanelProps } from './FilterPanel.types'
 
 export function FilterPanel({
   open,
   fields,
-  onSaveView,
   onAdvancedFilters,
 }: FilterPanelProps) {
   const [openId, setOpenId] = useState<string | null>(null)
@@ -34,16 +34,8 @@ export function FilterPanel({
     >
       <div className="flex h-full w-[280px] flex-col">
         {/* Header */}
-        <div className="flex h-[68px] shrink-0 items-center justify-between px-xl py-lg">
+        <div className="flex h-[68px] shrink-0 items-center px-xl py-lg">
           <h2 className="text-h3 text-text-primary">Filter</h2>
-          <button
-            type="button"
-            onClick={onSaveView}
-            className="inline-flex h-8 items-center gap-xs rounded-sm border border-border-selected px-sm text-body text-text-secondary hover:bg-surface-l2"
-          >
-            <Icon name="bookmark_add" size={16} className="text-text-icon" />
-            Save view
-          </button>
         </div>
 
         {/* Fields */}
@@ -57,7 +49,7 @@ export function FilterPanel({
                   type="button"
                   onClick={(e) => openField(field, e)}
                   className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                    openId === field.id ? 'border-primary' : 'border-border-selected'
+                    openId === field.id ? 'border-primary' : 'border-border-input'
                   }`}
                 >
                   <span
@@ -74,13 +66,13 @@ export function FilterPanel({
             })}
           </div>
 
-          <button
-            type="button"
+          <Link
+            as="button"
             onClick={onAdvancedFilters}
-            className="self-start rounded-sm py-xs text-body font-medium text-text-action hover:underline"
+            className="self-start rounded-sm py-xs text-body font-normal text-primary"
           >
             Advanced filters
-          </button>
+          </Link>
         </div>
       </div>
 

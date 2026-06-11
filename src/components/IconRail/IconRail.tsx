@@ -60,7 +60,7 @@ export function IconRail({ logoSrc, brand, groups, activeId, onSelect, products,
   return (
     // Reserve the collapsed width in layout; the nav itself overlays and grows on hover.
     <div className="relative h-full w-14 shrink-0">
-      <nav className="group absolute inset-y-0 left-0 z-50 flex w-14 flex-col overflow-hidden border-r border-border bg-surface-selected transition-[width,box-shadow] duration-200 hover:w-[262px] hover:shadow-dropdown">
+      <nav className="group absolute inset-y-0 left-0 z-[40] flex w-14 flex-col overflow-hidden border-r border-border bg-surface-selected transition-[width,box-shadow] duration-200 hover:w-[262px] hover:shadow-dropdown">
         {/* Logo + wordmark header */}
         <div className="relative h-[52px] shrink-0" ref={switcherRef}>
           <button
@@ -83,7 +83,7 @@ export function IconRail({ logoSrc, brand, groups, activeId, onSelect, products,
 
           {/* Product switcher popover */}
           {switcherOpen && products && (
-            <div className="absolute left-0 top-[56px] z-[60] min-w-[220px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+            <div className="absolute left-0 top-[56px] z-[50] min-w-[220px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
               <p className="px-md pb-xs pt-xs text-small text-text-tertiary">Switch product</p>
               {products.map((p) => (
                 <button

@@ -15,6 +15,7 @@ export function DataTable<T extends Record<string, unknown>>({
   rowMenuItems,
   scrollOnHover = false,
   rowClassName,
+  rowHeight = 48,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -24,6 +25,7 @@ export function DataTable<T extends Record<string, unknown>>({
   const [sort, setSort] = useState<{ key: string | null; dir: SortDir }>({ key: null, dir: 'asc' })
   const [resizingKey, setResizingKey] = useState<string | null>(null)
   const [menu, setMenu] = useState<{ rowIndex: number; top: number; left: number } | null>(null)
+  const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
 
   useEffect(() => {
     setWidths((prev) => {
@@ -103,7 +105,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   <button
                     type="button"
                     onClick={() => toggleSort(col)}
-                    className={`flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
+                    className={`group/hdr flex min-w-0 items-center gap-xs ${col.sortable ? '' : 'cursor-default'}`}
                   >
                     <span className={`truncate text-small ${sorted ? 'text-text-primary' : 'text-text-secondary'}`}>
                       {col.label}
@@ -112,7 +114,7 @@ export function DataTable<T extends Record<string, unknown>>({
                       <Icon
                         name={sorted && sort.dir === 'asc' ? 'expand_less' : 'expand_more'}
                         size={16}
-                        className={`shrink-0 ${sorted ? 'text-text-primary' : 'text-text-icon'}`}
+                        className={`shrink-0 transition-opacity ${sorted ? 'text-text-primary opacity-100' : 'text-text-icon opacity-0 group-hover/hdr:opacity-100'}`}
                       />
                     )}
                   </button>
@@ -152,7 +154,8 @@ export function DataTable<T extends Record<string, unknown>>({
                 return (
                   <td
                     key={String(col.key)}
-                    className={`h-12 px-[10px] align-middle text-body text-text-primary ${
+                    style={{ height: rowHeight }}
+                  className={`px-[10px] align-middle text-body text-text-primary ${
                       isLast ? 'relative' : 'truncate'
                     }`}
                   >
@@ -164,41 +167,33 @@ export function DataTable<T extends Record<string, unknown>>({
                         {rowAction && (!rowAction.visible || rowAction.visible(row)) && (() => {
                           const tooltipText = typeof rowAction.label === 'function' ? rowAction.label(row) : rowAction.label
                           return (
-                            <div className="group/tooltip relative">
-                              <button
-                                type="button"
-                                aria-label={tooltipText}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  rowAction.onClick(row)
-                                }}
-                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-                              >
-                                <Icon name={rowAction.icon} size={20} />
-                              </button>
-                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
-                                {tooltipText}
-                              </div>
-                            </div>
+                            <button
+                              type="button"
+                              aria-label={tooltipText}
+                              onClick={(e) => { e.stopPropagation(); rowAction.onClick(row) }}
+                              onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tooltipText, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
+                              onMouseLeave={() => setTooltip(null)}
+                              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                            >
+                              {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
+                            </button>
                           )
                         })()}
                         {rowActions && rowActions.map((action, ai) => {
                           if (action.visible && !action.visible(row)) return null
                           const tip = typeof action.label === 'function' ? action.label(row) : action.label
                           return (
-                            <div key={ai} className="group/tooltip relative">
-                              <button
-                                type="button"
-                                aria-label={tip}
-                                onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
-                                className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
-                              >
-                                <Icon name={action.icon} size={20} />
-                              </button>
-                              <div className="pointer-events-none absolute right-0 top-full mt-xs whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
-                                {tip}
-                              </div>
-                            </div>
+                            <button
+                              key={ai}
+                              type="button"
+                              aria-label={tip}
+                              onClick={(e) => { e.stopPropagation(); action.onClick(row) }}
+                              onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tip, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
+                              onMouseLeave={() => setTooltip(null)}
+                              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                            >
+                              {action.iconElement ?? <Icon name={action.icon!} size={20} />}
+                            </button>
                           )
                         })}
                         {rowMenuItems && rowMenuItems.length > 0 && (
@@ -229,6 +224,16 @@ export function DataTable<T extends Record<string, unknown>>({
         </tbody>
       </table>
 
+      {/* Tooltip — fixed so it is never clipped by overflow containers */}
+      {tooltip && (
+        <div
+          className="pointer-events-none fixed z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white"
+          style={{ left: tooltip.x, top: tooltip.y }}
+        >
+          {tooltip.text}
+        </div>
+      )}
+
       {/* Three-dots menu */}
       {menu && rowMenuItems && (
         <>
@@ -250,11 +255,12 @@ export function DataTable<T extends Record<string, unknown>>({
                     item.onClick(sortedData[menu.rowIndex])
                     setMenu(null)
                   }}
-                  className={`block w-full px-md py-md text-left text-body hover:bg-surface-hover ${
+                  className={`flex w-full items-center justify-between px-md py-md text-left text-body hover:bg-surface-hover ${
                     item.variant === 'danger' ? 'text-chip-danger-text' : 'text-text-primary'
                   }`}
                 >
                   {item.label}
+                  {item.icon && <Icon name={item.icon} size={16} className="shrink-0 text-text-icon" />}
                 </button>
               ))}
           </div>

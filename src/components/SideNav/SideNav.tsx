@@ -1,6 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon } from '../Icon/Icon'
 import { NavLeaf, NavSection, SideNavProps } from './SideNav.types'
+
+function findSectionIdForItem(sections: NavSection[], itemId: string): string | null {
+  return sections.find((section) => section.items?.some((item) => item.id === itemId))?.id ?? null
+}
+
+function defaultExpandedSection(sections: NavSection[], activeId: string): string {
+  return (
+    findSectionIdForItem(sections, activeId)
+    ?? sections.find((section) => section.id === 'human-actions')?.id
+    ?? sections[0]?.id
+    ?? ''
+  )
+}
 
 function LeafRow({
   leaf,
@@ -32,20 +45,20 @@ function Section({
   section,
   activeId,
   expanded,
-  onToggle,
+  onHeaderClick,
   onSelect,
 }: {
   section: NavSection
   activeId: string
   expanded: boolean
-  onToggle: () => void
+  onHeaderClick: () => void
   onSelect?: (id: string) => void
 }) {
   return (
     <div className="flex flex-col gap-xs">
       <button
         type="button"
-        onClick={onToggle}
+        onClick={onHeaderClick}
         className="flex h-7 w-full items-center justify-between gap-sm rounded-sm px-sm py-[6px] hover:bg-surface-selected"
       >
         <span className="text-body text-text-primary">{section.label}</span>
@@ -66,11 +79,29 @@ function Section({
 }
 
 export function SideNav({ title, sections, activeId, onSelect }: SideNavProps) {
-  const defaultOpen = sections.find((s) => s.defaultExpanded)?.id ?? sections[0]?.id ?? null
-  const [expandedId, setExpandedId] = useState<string | null>(defaultOpen)
+  const [expandedId, setExpandedId] = useState(() => defaultExpandedSection(sections, activeId))
 
-  const toggle = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id))
+  useEffect(() => {
+    const sectionId = findSectionIdForItem(sections, activeId)
+    if (sectionId) {
+      setExpandedId(sectionId)
+    }
+  }, [activeId, sections])
+
+  const selectItem = (id: string) => {
+    const sectionId = findSectionIdForItem(sections, id)
+    if (sectionId) {
+      setExpandedId(sectionId)
+    }
+    onSelect?.(id)
+  }
+
+  const handleSectionHeaderClick = (section: NavSection) => {
+    if (section.items?.[0]) {
+      selectItem(section.items[0].id)
+      return
+    }
+    setExpandedId(section.id)
   }
 
   return (
@@ -85,8 +116,8 @@ export function SideNav({ title, sections, activeId, onSelect }: SideNavProps) {
             section={section}
             activeId={activeId}
             expanded={expandedId === section.id}
-            onToggle={() => toggle(section.id)}
-            onSelect={onSelect}
+            onHeaderClick={() => handleSectionHeaderClick(section)}
+            onSelect={selectItem}
           />
         ))}
       </nav>

@@ -16,16 +16,20 @@ import {
   DayCalendar,
   Tabs,
   TopNav,
+  QuickViewDrawer,
+  PatientCell,
   type AppointmentTimescale,
   type AppointmentView,
   type ChipVariant,
   type Column,
   type ColumnOption,
   type FilterField,
+  type QuickViewAppointment,
 } from '../components'
 
 interface Appointment {
   name: string
+  location: string
   status: string
   staff: string
   apptType: string
@@ -39,22 +43,22 @@ interface Appointment {
 
 const APPOINTMENTS: Appointment[] = [
   // Unconfirmed — 5
-  { name: 'Megan Harris',   status: 'Unconfirmed', staff: 'Lopez',     apptType: 'Follow Up',       insuranceStatus: 'Pending',     dateTime: 'Sep 28, 2024 03:25 AM', opCode: 'FLLWUP',  phone: '(650) 555-0144', email: 'm.harris@email.com'    },
-  { name: 'Chris Evans',    status: 'Unconfirmed', staff: 'Wilson',    apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Oct 08, 2024 02:00 PM', opCode: 'TIRRTN',  phone: '(415) 555-0132', email: 'c.evans@email.com'     },
-  { name: 'Linda Thomas',   status: 'Unconfirmed', staff: 'Carter',    apptType: 'New Consult',     insuranceStatus: 'In Progress', dateTime: 'Oct 19, 2024 11:15 AM', opCode: 'NCNSLT',  phone: '(650) 555-0177', email: 'l.thomas@email.com'    },
-  { name: 'Patricia Clark', status: 'Unconfirmed', staff: 'Adams',     apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Nov 14, 2024 08:45 AM', opCode: 'OILCHG',  phone: '(415) 555-0199', email: 'p.clark@email.com'     },
-  { name: 'William Harris', status: 'Unconfirmed', staff: 'Baker',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',     dateTime: 'Nov 15, 2024 10:45 AM', opCode: 'DIAG',    phone: '(408) 555-0166', email: 'w.harris@email.com'    },
+  { name: 'Megan Harris',   location: 'Mountain View', status: 'Unconfirmed', staff: 'Lopez',     apptType: 'Follow Up',       insuranceStatus: 'Pending',     dateTime: 'Sep 28, 2024 03:25 AM', opCode: 'FLLWUP',  phone: '(650) 555-0144', email: 'm.harris@email.com'    },
+  { name: 'Chris Evans',    location: 'Palo Alto',     status: 'Unconfirmed', staff: 'Wilson',    apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Oct 08, 2024 02:00 PM', opCode: 'TIRRTN',  phone: '(415) 555-0132', email: 'c.evans@email.com'     },
+  { name: 'Linda Thomas',   location: 'San Jose',      status: 'Unconfirmed', staff: 'Carter',    apptType: 'New Consult',     insuranceStatus: 'In Progress', dateTime: 'Oct 19, 2024 11:15 AM', opCode: 'NCNSLT',  phone: '(650) 555-0177', email: 'l.thomas@email.com'    },
+  { name: 'Patricia Clark', location: 'Sunnyvale',     status: 'Unconfirmed', staff: 'Adams',     apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Nov 14, 2024 08:45 AM', opCode: 'OILCHG',  phone: '(415) 555-0199', email: 'p.clark@email.com'     },
+  { name: 'William Harris', location: 'Mountain View', status: 'Unconfirmed', staff: 'Baker',     apptType: 'Urgent Care',     insuranceStatus: 'Pending',     dateTime: 'Nov 15, 2024 10:45 AM', opCode: 'DIAG',    phone: '(408) 555-0166', email: 'w.harris@email.com'    },
   // Cancelled — 5
-  { name: 'Michael Wilson', status: 'Cancelled',   staff: 'Jones',     apptType: 'Urgent Care',     insuranceStatus: 'Verified',    dateTime: 'Feb 20, 2024 02:00 PM', opCode: 'BRKREP',  phone: '(408) 555-0188', email: 'm.wilson@email.com'    },
-  { name: 'James Thomas',   status: 'Cancelled',   staff: 'Davis',     apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'Jun 23, 2024 01:00 PM', opCode: 'ENGDIAG', phone: '(408) 555-0166', email: 'j.thomas@email.com'    },
-  { name: 'Laura Jackson',  status: 'Cancelled',   staff: 'Martinez',  apptType: 'Annual Physical', insuranceStatus: 'In Progress', dateTime: 'Jul 30, 2024 06:40 AM', opCode: 'OILCHG',  phone: '(415) 555-0199', email: 'l.jackson@email.com'   },
-  { name: 'Daniel White',   status: 'Cancelled',   staff: 'Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', opCode: 'BATTREP', phone: '(669) 555-0101', email: 'd.white@email.com'     },
-  { name: 'Kevin Moore',    status: 'Cancelled',   staff: 'Edwards',   apptType: 'Follow Up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', opCode: 'ACREPR',  phone: '(408) 555-0188', email: 'k.moore@email.com'     },
+  { name: 'Michael Wilson', location: 'Palo Alto',     status: 'Cancelled',   staff: 'Jones',     apptType: 'Urgent Care',     insuranceStatus: 'Verified',    dateTime: 'Feb 20, 2024 02:00 PM', opCode: 'BRKREP',  phone: '(408) 555-0188', email: 'm.wilson@email.com'    },
+  { name: 'James Thomas',   location: 'San Jose',      status: 'Cancelled',   staff: 'Davis',     apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'Jun 23, 2024 01:00 PM', opCode: 'ENGDIAG', phone: '(408) 555-0166', email: 'j.thomas@email.com'    },
+  { name: 'Laura Jackson',  location: 'Sunnyvale',     status: 'Cancelled',   staff: 'Martinez',  apptType: 'Annual Physical', insuranceStatus: 'In Progress', dateTime: 'Jul 30, 2024 06:40 AM', opCode: 'OILCHG',  phone: '(415) 555-0199', email: 'l.jackson@email.com'   },
+  { name: 'Daniel White',   location: 'Mountain View', status: 'Cancelled',   staff: 'Hernandez', apptType: 'Procedure',       insuranceStatus: 'Denied',      dateTime: 'Aug 15, 2024 09:55 PM', opCode: 'BATTREP', phone: '(669) 555-0101', email: 'd.white@email.com'     },
+  { name: 'Kevin Moore',    location: 'Palo Alto',     status: 'Cancelled',   staff: 'Edwards',   apptType: 'Follow Up',       insuranceStatus: 'Verified',    dateTime: 'Oct 14, 2024 11:10 AM', opCode: 'ACREPR',  phone: '(408) 555-0188', email: 'k.moore@email.com'     },
   // No-show — 4
-  { name: 'David Martinez', status: 'No-show',     staff: 'Rodriguez', apptType: 'Follow Up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', opCode: 'FLLWUP',  phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
-  { name: 'Sarah Anderson', status: 'No-show',     staff: 'Miller',    apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', opCode: 'INSPREP', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
-  { name: 'Jessica Taylor', status: 'No-show',     staff: 'Garcia',    apptType: 'Procedure',       insuranceStatus: 'In Progress', dateTime: 'Mar 11, 2024 12:30 PM', opCode: 'TIRRTN',  phone: '(415) 555-0155', email: 'jess.t@email.com'      },
-  { name: 'Robert Brown',   status: 'No-show',     staff: 'Williams',  apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', opCode: 'TRNSMSN', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
+  { name: 'David Martinez', location: 'San Jose',      status: 'No-show',     staff: 'Rodriguez', apptType: 'Follow Up',       insuranceStatus: 'Denied',      dateTime: 'Apr 18, 2024 04:50 AM', opCode: 'FLLWUP',  phone: '(669) 555-0123', email: 'd.martinez@email.com'  },
+  { name: 'Sarah Anderson', location: 'Sunnyvale',     status: 'No-show',     staff: 'Miller',    apptType: 'New Consult',     insuranceStatus: 'Pending',     dateTime: 'May 07, 2024 10:05 PM', opCode: 'INSPREP', phone: '(650) 555-0177', email: 's.anderson@email.com'  },
+  { name: 'Jessica Taylor', location: 'Mountain View', status: 'No-show',     staff: 'Garcia',    apptType: 'Procedure',       insuranceStatus: 'In Progress', dateTime: 'Mar 11, 2024 12:30 PM', opCode: 'TIRRTN',  phone: '(415) 555-0155', email: 'jess.t@email.com'      },
+  { name: 'Robert Brown',   location: 'Palo Alto',     status: 'No-show',     staff: 'Williams',  apptType: 'Annual Physical', insuranceStatus: 'Verified',    dateTime: 'Dec 01, 2023 11:45 AM', opCode: 'TRNSMSN', phone: '(408) 555-0117', email: 'r.brown@email.com'     },
 ]
 
 const TAB_STATUS_MAP: Record<string, string> = {
@@ -92,7 +96,7 @@ interface ColumnDef extends Column<Appointment> {
 }
 
 const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'name',            label: 'Name',             sortable: true, locked: true },
+  { key: 'name',   label: 'Name',             sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.name as string} location={row.location as string} /> },
   { key: 'staff',           label: 'Staff',            sortable: true },
   { key: 'apptType',        label: 'Appointment type', sortable: true },
   { key: 'opCode',          label: 'Operation code',   sortable: true },
@@ -142,6 +146,7 @@ export function ManageAppointmentsScreen() {
   const [quickSendRow, setQuickSendRow] = useState<Appointment | null>(null)
   const [toastVisible, setToastVisible] = useState(false)
   const [activityRow, setActivityRow] = useState<Appointment | null>(null)
+  const [quickViewRow, setQuickViewRow] = useState<QuickViewAppointment | null>(null)
 
 
   const isToday = date.toDateString() === BASE_DATE.toDateString()
@@ -181,7 +186,7 @@ export function ManageAppointmentsScreen() {
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 flex-col overflow-auto">
           {/* Header — changes based on table vs calendar view */}
-          <div className="flex items-center justify-between bg-surface px-2xl py-xl">
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-surface px-2xl py-xl">
             {/* Left side */}
             {view === 'calendar' ? (
               <DateChange date={date} isToday={isToday} timescale={timescale} onPrev={prevStep} onNext={nextStep} onToday={goToToday} />
@@ -298,6 +303,7 @@ export function ManageAppointmentsScreen() {
 
               <div className="px-lg py-lg">
                 <DataTable
+                  rowHeight={56}
                   columns={columns}
                   data={filteredData}
                   rowAction={{
@@ -307,9 +313,9 @@ export function ManageAppointmentsScreen() {
                   }}
                   rowMenuItems={[
                     { label: 'Quick send',    onClick: (row) => setQuickSendRow(row) },
-                    { label: 'Quick view',    onClick: () => {} },
+                    { label: 'Quick view',    onClick: (row) => setQuickViewRow({ patient: row.patient, provider: row.provider, apptType: row.apptType, dateTime: row.dateTime, status: row.status }) },
                     { label: 'View activity', onClick: (row) => setActivityRow(row) },
-                    { label: 'View details',  onClick: () => {} },
+                    { label: 'View details',  onClick: () => {}, icon: 'open_in_new' },
                   ]}
                 />
               </div>
@@ -359,6 +365,12 @@ export function ManageAppointmentsScreen() {
         open={activityRow !== null}
         patient={activityRow?.name ?? ''}
         onClose={() => setActivityRow(null)}
+      />
+
+      <QuickViewDrawer
+        open={quickViewRow !== null}
+        appointment={quickViewRow}
+        onClose={() => setQuickViewRow(null)}
       />
 
       <Toast

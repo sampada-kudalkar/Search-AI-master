@@ -132,7 +132,7 @@ function WorkflowCanvas({ instanceName }: { instanceName: string }) {
 
 /* ── read-only logs / preview side panel (matches workflow preview panel) ── */
 function RunDetailSidePanel() {
-  const [panel, setPanel] = useState<'logs' | 'preview'>('logs')
+  const [panel, setPanel] = useState<'logs' | 'preview'>('preview')
   const previewMessages = useMemo(
     () => buildStaticPreviewMessages(),
     [],

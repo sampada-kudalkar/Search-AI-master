@@ -9,6 +9,8 @@ export interface Metric {
   positiveDown?: boolean
   /** Show an info icon after the label. */
   info?: boolean
+  /** Tooltip text shown on hover of the info icon. */
+  tooltip?: string
 }
 
 export interface MetricTilesProps {

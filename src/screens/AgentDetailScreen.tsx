@@ -18,25 +18,32 @@ import {
   type Tab,
 } from '../components'
 import { AgentInstanceScreen } from './AgentInstanceScreen'
+import { NewFrontdeskAgentSetupScreen } from './NewFrontdeskAgentSetupScreen'
+import type { WizardAgentDraft } from '../data/wizardAgentConfig.types'
 
 interface AgentDetailScreenProps {
   agentName: string
-  onEditAgent?: (agentName: string) => void
+  onEditAgent?: (agentName: string, draft?: WizardAgentDraft) => void
+  onOpenIntegrationSettings?: (integrationId: string) => void
   product?: string
 }
 
 interface AgentInstance {
   name: string
   status: string
-  interactions: string
-  fcr: string
-  aht: string
-  escalation: string
   locations: string
+  interactions?: string
+  fcr?: string
+  aht?: string
+  escalation?: string
   remindersSent?: string
   responseRate?: string
   avgResponseTime?: string
   noshowRate?: string
+  outreachSent?: string
+  slotsFilled?: string
+  fillRate?: string
+  timeSaved?: string
   [key: string]: string | undefined
 }
 
@@ -54,23 +61,27 @@ const STATUS_VARIANT: Record<string, ChipVariant> = {
 interface RegionRow {
   region: string
   status: string
-  interactions: string
-  fcr: string
-  aht: string
-  escalation: string
   locations: string
+  interactions?: string
+  fcr?: string
+  aht?: string
+  escalation?: string
   remindersSent?: string
   responseRate?: string
   avgResponseTime?: string
   noshowRate?: string
+  outreachSent?: string
+  slotsFilled?: string
+  fillRate?: string
+  timeSaved?: string
 }
 
 const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
-  'Frontdesk agent': [
-    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '90%', aht: '2m 05s', escalation: '7%',  locations: '358' },
-    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '88%', aht: '2m 20s', escalation: '9%',  locations: '212' },
-    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '86%', aht: '2m 38s', escalation: '10%', locations: '180' },
-    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '83%', aht: '3m 10s', escalation: '13%', locations: '140' },
+  'Front desk agent': [
+    { region: 'North region', status: 'Running', interactions: '8,200', fcr: '7,380', aht: '90%', escalation: '18h', locations: '358' },
+    { region: 'East region',  status: 'Running', interactions: '5,600', fcr: '4,928', aht: '88%', escalation: '12h', locations: '212' },
+    { region: 'South region', status: 'Paused',  interactions: '2,900', fcr: '2,494', aht: '86%', escalation: '6h',  locations: '180' },
+    { region: 'West region',  status: 'Draft',   interactions: '1,720', fcr: '1,428', aht: '83%', escalation: '4h',  locations: '140' },
   ],
   'Reminder agent': [
     { region: 'North region', status: 'Running', interactions: '1,680', fcr: '78%', aht: '1m 12s', escalation: '10%', locations: '358', remindersSent: '1,102', responseRate: '92%', avgResponseTime: '2 days', noshowRate: '11%' },
@@ -84,45 +95,173 @@ const REGIONS_BY_AGENT: Record<string, RegionRow[]> = {
     { region: 'South region', status: 'Paused',  interactions: '360', fcr: '35%', aht: '3m 30s', escalation: '14%', locations: '180' },
     { region: 'West region',  status: 'Draft',   interactions: '213', fcr: '30%', aht: '3m 55s', escalation: '17%', locations: '140' },
   ],
+  'Waitlist agent': [
+    // Total: 2,850 outreach | 2,760 slots filled | 92% fill rate | 37m time saved
+    { region: 'North region', status: 'Running', outreachSent: '800',  slotsFilled: '780',  fillRate: '90%', timeSaved: '20m', locations: '500' },
+    { region: 'East Region',  status: 'Running', outreachSent: '500',  slotsFilled: '400',  fillRate: '85%', timeSaved: '5m',  locations: '250' },
+    { region: 'South Region', status: 'Paused',  outreachSent: '500',  slotsFilled: '490',  fillRate: '75%', timeSaved: '10m', locations: '200' },
+    { region: 'West Region',  status: 'Draft',   outreachSent: '1050', slotsFilled: '1000', fillRate: '95%', timeSaved: '2m',  locations: '100' },
+  ],
 }
 
-const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Frontdesk agent']
+const DEFAULT_REGIONS: RegionRow[] = REGIONS_BY_AGENT['Front desk agent']
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
 type LibraryView = 'grid' | 'list'
 
-export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDetailScreenProps) {
+// ── Library template cards for the create-agent empty state ───────────────
+const LIBRARY_TEMPLATES = [
+  {
+    id: 'routing',
+    title: 'Routing and triage',
+    description: 'Handles inbound calls, identifies intent, routes urgent symptoms, and transfers to the right team with context',
+  },
+  {
+    id: 'new-patient',
+    title: 'New patient intake',
+    description: 'Guides new patients through intake, verifies their insurance, and books the right appointment',
+  },
+  {
+    id: 'established',
+    title: 'Established patient scheduling',
+    description: 'Validates existing records, checks coverage, and books or reschedules follow-up visits with preferred providers',
+  },
+  {
+    id: 'urgent',
+    title: 'Urgent escalations',
+    description: 'Detects high-risk symptoms, follows escalation policy, and hands off immediately to clinical staff or emergency guidance',
+  },
+]
+
+// ── Illustration for the create-agent empty state ──────────────────────────
+function CreateAgentEmptyState({
+  onCreateFromScratch,
+  onSelectFromLibrary,
+}: {
+  onCreateFromScratch: () => void
+  onSelectFromLibrary: (templateId: string) => void
+}) {
+  return (
+    <div className="flex w-full max-w-[980px] flex-col items-center gap-[24px] py-lg">
+      {/* Mini workflow illustration */}
+      <div className="relative shrink-0">
+        <div
+          style={{
+            width: 168,
+            background: '#fff',
+            borderRadius: 6,
+            padding: '20px 10px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            boxShadow: '0 2px 12px rgba(33,33,33,0.08)',
+          }}
+        >
+          <div style={{ background: '#ebeff6', borderRadius: 4, height: 23, width: 76, display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+            <div style={{ background: '#afbcdf', height: 4, borderRadius: 100, width: 51 }} />
+          </div>
+          <div style={{ display: 'flex', gap: 4, marginTop: 1 }}>
+            {[0, 1].map((i) => (
+              <div key={i} style={{ width: 36, height: 31, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                <svg width="36" height="31" viewBox="0 0 36 31" fill="none" style={{ position: 'absolute' }}>
+                  <path d="M18 0 L18 12 M18 12 L6 24 M18 12 L30 24" stroke="#afbcdf" strokeWidth="1" fill="none" />
+                </svg>
+                <div style={{ background: '#f4f6f7', borderRadius: 40, width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#555', lineHeight: 1 }}>add</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 4, marginTop: 1, width: '100%' }}>
+            <div style={{ background: '#ebeff6', border: '1px dashed #2b3650', borderRadius: 4, height: 23, width: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#555', lineHeight: 1 }}>add</span>
+            </div>
+            <div style={{ background: '#ebeff6', borderRadius: 4, height: 23, flex: 1, display: 'flex', alignItems: 'center', paddingLeft: 8 }}>
+              <div style={{ background: '#afbcdf', height: 4, borderRadius: 100, width: '80%' }} />
+            </div>
+          </div>
+        </div>
+        {/* AI overlay chip */}
+        <div style={{ position: 'absolute', top: -23, right: -62, background: '#ecf5fd', border: '1px solid #6834b7', borderRadius: 4, padding: '11px 7px', display: 'flex', alignItems: 'flex-end', gap: 5, width: 116 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#6834b7', lineHeight: 1 }}>auto_awesome</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ background: '#3790e7', height: 4, borderRadius: 100, width: '100%' }} />
+            <div style={{ background: '#9aceff', height: 4, borderRadius: 100, width: '60%' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Copy + CTAs */}
+      <div className="flex flex-col items-center gap-sm text-center">
+        <p style={{ fontSize: 14, lineHeight: '20px', letterSpacing: '-0.28px', color: '#212121', margin: 0 }}>
+          Build your agent.{' '}
+          <button
+            type="button"
+            onClick={onCreateFromScratch}
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#1976d2', fontSize: 14, fontFamily: 'inherit', letterSpacing: '-0.28px', lineHeight: '20px' }}
+          >
+            Set up a new agent
+          </button>
+        </p>
+        <p style={{ fontSize: 14, color: '#212121', margin: 0, letterSpacing: '-0.28px', lineHeight: '20px' }}>or</p>
+        <p style={{ fontSize: 14, color: '#212121', margin: 0, letterSpacing: '-0.28px', lineHeight: '20px' }}>
+          Select from <span style={{ color: '#1976d2' }}>library</span>
+        </p>
+      </div>
+
+      {/* Library template cards — same InfoCard component as the Library tab */}
+      <div className="grid w-full grid-cols-4 gap-md">
+        {LIBRARY_TEMPLATES.map((tpl) => (
+          <InfoCard
+            key={tpl.id}
+            title={tpl.title}
+            description={tpl.description}
+            actionLabel="Use agent"
+            onAction={() => onSelectFromLibrary(tpl.id)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSettings, product }: AgentDetailScreenProps) {
   const [activeTab, setActiveTab] = useState('agents')
   const [libraryView, setLibraryView] = useState<LibraryView>('grid')
   const [customizeOpen, setCustomizeOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null)
+  const [showCreateFlow, setShowCreateFlow] = useState(false)
+  const [showSetupWizard, setShowSetupWizard] = useState(false)
 
   const METRICS_BY_AGENT: Record<string, Metric[]> = {
-    'Frontdesk agent': [
-      // Aggregate of 4 regions: 8,200 + 5,600 + 2,900 + 1,720 = 18,420
-      { id: 'interactions', value: '18,420', label: 'Interactions handled', info: true },
-      { id: 'fcr', value: '88%', label: 'First contact resolution', info: true },
-      { id: 'aht', value: '2m 21s', label: 'Average handle time', info: true },
-      { id: 'escalation', value: '9%', label: 'Escalation rate', info: true },
+    'Front desk agent': [
+      { id: 'responded', value: '18,420', label: 'Conversations responded', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total inbound conversations handled by the agent across all channels in the selected period.' },
+      { id: 'resolved', value: '16,230', label: 'Conversations resolved', delta: '2.1%', trend: 'up', info: true, tooltip: 'Conversations closed without requiring human escalation.' },
+      { id: 'resolutionRate', value: '88%', label: 'Resolution rate', delta: '1.8%', trend: 'up', info: true, tooltip: 'Percentage of conversations fully resolved by the agent. Calculated as resolved ÷ responded.' },
+      { id: 'timeSaved', value: '40h', label: 'Time saved', delta: '12%', trend: 'up', info: true, tooltip: 'Estimated staff hours saved based on average handle time for equivalent human-handled conversations.' },
     ],
     'Reminder agent': [
-      { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true },
-      { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true },
-      { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true },
-      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true },
+      { id: 'sent', value: '2,850', label: 'Reminders sent', delta: '1.3%', trend: 'up', info: true, tooltip: 'Total appointment reminders sent by the agent via voice and chat in the selected period.' },
+      { id: 'responseRate', value: '92%', label: 'Reminder response rate', delta: '1.3%', trend: 'up', info: true, tooltip: 'Percentage of reminders that received a confirmed response from the customer.' },
+      { id: 'avgTime', value: '2 days', label: 'Average response time', delta: '1.3%', trend: 'up', info: true, tooltip: 'Average time between the reminder being sent and the customer confirming or rescheduling.' },
+      { id: 'noshow', value: '11%', label: 'No-show rate', delta: '1.3%', trend: 'down', positiveDown: true, info: true, tooltip: 'Percentage of appointments where the customer did not show up. Lower is better.' },
     ],
     'Outreach agent': [
-      // Aggregate: 920 + 610 + 360 + 213 = 2,103 leads
-      { id: 'leads', value: '2,103', label: 'Leads contacted' },
-      { id: 'response', value: '38%', label: 'Response rate' },
-      { id: 'appointments', value: '641', label: 'Appointments scheduled' },
-      { id: 'conversion', value: '11%', label: 'Conversion rate' },
+      { id: 'leads', value: '2,103', label: 'Leads contacted', info: true, tooltip: 'Total leads the agent reached out to via call or message in the selected period.' },
+      { id: 'response', value: '38%', label: 'Response rate', info: true, tooltip: 'Percentage of contacted leads that replied to the outreach.' },
+      { id: 'appointments', value: '641', label: 'Appointments scheduled', info: true, tooltip: 'Leads that confirmed a visit or test drive after being contacted.' },
+      { id: 'conversion', value: '11%', label: 'Conversion rate', info: true, tooltip: 'Percentage of contacted leads that resulted in a scheduled appointment. Calculated as appointments ÷ leads contacted.' },
     ],
   }
 
-  const DEFAULT_METRICS: Metric[] = METRICS_BY_AGENT['Frontdesk agent']
+  const DEFAULT_METRICS: Metric[] = [
+    { id: 'interactions', value: '2,850', label: 'Interactions handled', info: true, tooltip: 'Total customer interactions managed by the agent in the selected period.' },
+    { id: 'fcr', value: '92%', label: 'First contact resolution rate', info: true, tooltip: 'Percentage of interactions resolved on the first contact without follow-up.' },
+    { id: 'aht', value: '2m 34s', label: 'Average handle time', info: true, tooltip: 'Average duration of a single interaction from start to resolution.' },
+    { id: 'escalation', value: '11%', label: 'Escalation rate', info: true, tooltip: 'Percentage of interactions escalated to a human agent. Lower is generally better.' },
+  ]
 
   const metrics: Metric[] = METRICS_BY_AGENT[agentName] ?? DEFAULT_METRICS
 
@@ -139,9 +278,14 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     responseRate: r.responseRate,
     avgResponseTime: r.avgResponseTime,
     noshowRate: r.noshowRate,
+    outreachSent: r.outreachSent,
+    slotsFilled: r.slotsFilled,
+    fillRate: r.fillRate,
+    timeSaved: r.timeSaved,
   }))
 
   const isReminder = agentName === 'Reminder agent'
+  const isFrontdesk = agentName === 'Front desk agent'
   const COLUMN_DEFS: Array<Column<AgentInstance> & { locked?: boolean }> = [
     { key: 'name', label: 'Agent name', width: 280, sortable: true, locked: true },
     {
@@ -156,9 +300,14 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
       { key: 'responseRate' as keyof AgentInstance, label: 'Reminder response rate', width: 200, sortable: true },
       { key: 'avgResponseTime' as keyof AgentInstance, label: 'Average response time', width: 190, sortable: true },
       { key: 'noshowRate' as keyof AgentInstance, label: 'No-show rate', width: 150, sortable: true },
+    ] : isFrontdesk ? [
+      { key: 'interactions' as keyof AgentInstance, label: 'Conversations responded', width: 200, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'Conversations resolved', width: 200, sortable: true },
+      { key: 'aht' as keyof AgentInstance, label: 'Resolution rate', width: 150, sortable: true },
+      { key: 'escalation' as keyof AgentInstance, label: 'Time saved', width: 130, sortable: true },
     ] : [
-      { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 180, sortable: true },
-      { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution', width: 200, sortable: true },
+      { key: 'interactions' as keyof AgentInstance, label: 'Interactions handled', width: 200, sortable: true },
+      { key: 'fcr' as keyof AgentInstance, label: 'First contact resolution rate', width: 220, sortable: true },
       { key: 'aht' as keyof AgentInstance, label: 'Average handle time', width: 180, sortable: true },
       { key: 'escalation' as keyof AgentInstance, label: 'Escalation rate', width: 150, sortable: true },
     ]),
@@ -185,13 +334,59 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
     { id: 'location', label: 'Location', options: opts('Mountain View', 'Palo Alto', 'San Jose', 'Sunnyvale') },
   ]
 
-  const libraryCards = [
-    {
-      title: 'Routing and Triage',
-      description:
-        'Handles inbound calls, texts, and web chats to identify patient needs, answer questions from the knowledge base, manage appointments & verify insurance',
-    },
-  ]
+  const libraryCards = LIBRARY_TEMPLATES.map((tpl) => ({
+    title: tpl.title,
+    description: tpl.description,
+  }))
+
+  if (showSetupWizard && isFrontdesk) {
+    return (
+      <NewFrontdeskAgentSetupScreen
+        onBack={() => setShowSetupWizard(false)}
+        onCancel={() => {
+          setShowSetupWizard(false)
+          setShowCreateFlow(false)
+        }}
+        onComplete={(draft) => {
+          setShowSetupWizard(false)
+          setShowCreateFlow(false)
+          onEditAgent?.(draft.agentName, draft)
+        }}
+        onOpenIntegrationSettings={onOpenIntegrationSettings}
+      />
+    )
+  }
+
+
+  if (showCreateFlow && isFrontdesk) {
+    return (
+      <div className="flex h-full flex-col">
+        <TopNav initials="S" />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Header */}
+          <div className="flex h-16 items-center justify-between bg-surface px-2xl">
+            <div className="flex items-center gap-sm">
+              <button
+                type="button"
+                onClick={() => setShowCreateFlow(false)}
+                className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+                aria-label="Back"
+              >
+                <Icon name="arrow_back" size={20} />
+              </button>
+              <h1 className="text-h3 text-text-primary">New front desk agent</h1>
+            </div>
+          </div>
+          <div className="flex flex-1 items-center justify-center overflow-auto p-lg">
+            <CreateAgentEmptyState
+              onCreateFromScratch={() => setShowSetupWizard(true)}
+              onSelectFromLibrary={(_templateId) => { setShowCreateFlow(false); onEditAgent?.('') }}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (selectedInstance) {
     return (
@@ -199,6 +394,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
         instanceName={selectedInstance}
         onBack={() => setSelectedInstance(null)}
         onEditAgent={onEditAgent}
+        onOpenIntegrationSettings={onOpenIntegrationSettings}
         product={product}
       />
     )
@@ -219,7 +415,11 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
               </button>
               {activeTab === 'agents' ? (
                 <>
-                  <button type="button" className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
+                  <button
+                    type="button"
+                    onClick={() => isFrontdesk ? setShowCreateFlow(true) : onEditAgent?.('')}
+                    className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+                  >
                     Create agent
                   </button>
                   <button type="button" aria-label="Customize columns" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
@@ -294,7 +494,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, product }: AgentDeta
               </div>
             </>
           ) : libraryView === 'grid' ? (
-            <div className="grid grid-cols-1 gap-lg px-2xl py-lg md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-lg px-2xl py-lg md:grid-cols-2 xl:grid-cols-4">
               {libraryCards.map((card) => (
                 <InfoCard key={card.title} {...card} />
               ))}
