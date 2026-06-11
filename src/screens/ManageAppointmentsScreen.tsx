@@ -95,8 +95,9 @@ interface ColumnDef extends Column<Appointment> {
   locked?: boolean
 }
 
-const COLUMN_DEFS: ColumnDef[] = [
-  { key: 'name',   label: 'Name',             sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.name as string} location={row.location as string} /> },
+// Automotive columns
+const AUTO_COLUMN_DEFS: ColumnDef[] = [
+  { key: 'name',            label: 'Name',             sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.name as string} location={row.location as string} /> },
   { key: 'staff',           label: 'Staff',            sortable: true },
   { key: 'apptType',        label: 'Appointment type', sortable: true },
   { key: 'opCode',          label: 'Operation code',   sortable: true },
@@ -105,10 +106,31 @@ const COLUMN_DEFS: ColumnDef[] = [
   { key: 'phone',           label: 'Phone',            sortable: true },
   { key: 'email',           label: 'Email',            sortable: true },
 ]
+const AUTO_DEFAULT_VISIBLE = ['name', 'staff', 'apptType', 'opCode', 'insuranceStatus', 'dateTime']
 
-const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
-const DEFAULT_VISIBLE = ['name', 'staff', 'apptType', 'opCode', 'insuranceStatus', 'dateTime']
-const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
+// Healthcare / Dental columns (no opCode; Patient + Provider labels)
+const HC_COLUMN_DEFS: ColumnDef[] = [
+  { key: 'name',            label: 'Patient',          sortable: true, locked: true, render: (_val, row) => <PatientCell name={row.name as string} location={row.location as string} /> },
+  { key: 'staff',           label: 'Provider',         sortable: true },
+  { key: 'apptType',        label: 'Appt type',        sortable: true },
+  { key: 'insuranceStatus', label: 'Insurance status', sortable: true },
+  { key: 'dateTime',        label: 'Appt time',        sortable: true },
+  { key: 'phone',           label: 'Phone',            sortable: true },
+  { key: 'email',           label: 'Email',            sortable: true },
+]
+const HC_DEFAULT_VISIBLE = ['name', 'staff', 'apptType', 'insuranceStatus', 'dateTime']
+
+// Shared helpers — resolved at render time based on product
+const COLUMN_DEFS_BY_PRODUCT: Record<string, ColumnDef[]> = {
+  automotive: AUTO_COLUMN_DEFS,
+  healthcare:  HC_COLUMN_DEFS,
+  dental:      HC_COLUMN_DEFS,
+}
+const DEFAULT_VISIBLE_BY_PRODUCT: Record<string, string[]> = {
+  automotive: AUTO_DEFAULT_VISIBLE,
+  healthcare:  HC_DEFAULT_VISIBLE,
+  dental:      HC_DEFAULT_VISIBLE,
+}
 
 const opts = (...labels: string[]) => labels.map((l) => ({ value: l, label: l }))
 
@@ -129,7 +151,12 @@ const FILTER_FIELDS: FilterField[] = [
 
 const BASE_DATE = new Date(2026, 4, 25)
 
-export function ManageAppointmentsScreen() {
+export function ManageAppointmentsScreen({ product = 'healthcare' }: { product?: string }) {
+  const COLUMN_DEFS = COLUMN_DEFS_BY_PRODUCT[product] ?? HC_COLUMN_DEFS
+  const DEFAULT_VISIBLE = DEFAULT_VISIBLE_BY_PRODUCT[product] ?? HC_DEFAULT_VISIBLE
+  const DEFAULT_ORDER = COLUMN_DEFS.map((c) => String(c.key))
+  const DEF_BY_KEY = new Map(COLUMN_DEFS.map((c) => [String(c.key), c]))
+
   const [date, setDate] = useState(new Date(BASE_DATE))
   const [view, setView] = useState<AppointmentView>('table')
   const [timescale, setTimescale] = useState<AppointmentTimescale>('day')

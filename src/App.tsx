@@ -443,7 +443,7 @@ export function App() {
             product={activeProduct}
           />
         ) : (
-          <ManageAppointmentsScreen />
+          <ManageAppointmentsScreen product={activeProduct} />
         )}
       </main>
     </div>
