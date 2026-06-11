@@ -122,9 +122,10 @@ interface DropdownFieldProps {
   value: string[]
   multi?: boolean
   placeholder?: string
+  disabled?: boolean
   onChange: (v: string[]) => void
 }
-function DropdownField({ label, required, infoIcon, options, value, multi = false, placeholder = 'Select', onChange }: DropdownFieldProps) {
+function DropdownField({ label, required, infoIcon, options, value, multi = false, placeholder = 'Select', disabled = false, onChange }: DropdownFieldProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -154,8 +155,15 @@ function DropdownField({ label, required, infoIcon, options, value, multi = fals
       <div ref={ref} className="relative">
         <button
           type="button"
-          onClick={() => setOpen(o => !o)}
-          className={`flex h-9 w-full items-center justify-between rounded-sm border px-md text-body text-text-primary transition-colors hover:bg-surface-hover ${open ? 'border-primary' : 'border-border'}`}
+          disabled={disabled}
+          onClick={() => !disabled && setOpen(o => !o)}
+          className={`flex h-9 w-full items-center justify-between rounded-sm border px-md text-body transition-colors ${
+            disabled
+              ? 'cursor-not-allowed border-border bg-surface-subtle text-text-tertiary'
+              : open
+              ? 'border-primary text-text-primary hover:bg-surface-hover'
+              : 'border-border text-text-primary hover:bg-surface-hover'
+          }`}
         >
           <span className={value.length === 0 ? 'text-text-tertiary' : ''}>{displayLabel}</span>
           <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="shrink-0 text-text-icon" />

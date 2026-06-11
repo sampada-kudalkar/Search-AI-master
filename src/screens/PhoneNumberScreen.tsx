@@ -236,7 +236,19 @@ const DEFAULT_ROWS: PhoneNumber2Row[] = [
 const COLUMNS2: Column<PhoneNumber2Row>[] = [
   { key: 'name',        label: 'Name',         sortable: true },
   { key: 'phoneNumber', label: 'Phone number', sortable: true },
-  { key: 'locations',   label: 'Locations',    sortable: true },
+  {
+    key: 'locations', label: 'Locations', sortable: true,
+    render: (val) => {
+      const locs = String(val).split(', ').filter(Boolean)
+      if (locs.length === 0) return <span className="text-text-tertiary">—</span>
+      return (
+        <span>
+          {locs[0]}
+          {locs.length > 1 && <span className="text-text-tertiary">, +{locs.length - 1} more</span>}
+        </span>
+      )
+    },
+  },
 ]
 
 
@@ -294,13 +306,13 @@ interface ImportState {
   transport: string
   sipUsername: string
   sipPassword: string
-  location: string
+  location: string[]
 }
 
 const EMPTY_IMPORT: ImportState = {
   name: '',
   phoneNumber: '', e164Format: 'E.164', terminationUri: '', transport: 'TCP', sipUsername: '', sipPassword: '',
-  location: '',
+  location: [],
 }
 
 // ── Prefix-dropdown-inside-input (e.g. format selector + phone number) ──────────
@@ -367,18 +379,11 @@ function PrefixDropdownInput({
   )
 }
 
-// ── Reusable dropdown field (mirrors ATDropdownField in AppointmentTypeScreen) ──
-interface SIPDropdownFieldProps {
-  label: string
-  required?: boolean
-  options: { value: string; label: string }[]
-  value: string
-  placeholder?: string
-  disabled?: boolean
-  upward?: boolean
-  onChange: (v: string) => void
-}
-function SIPDropdownField({ label, required, options, value, placeholder = 'Select', disabled, upward, onChange }: SIPDropdownFieldProps) {
+
+function DropdownField({ label, options, value, multi = false, placeholder = 'Select', disabled = false, onChange }: {
+  label: string; options: { value: string; label: string }[]; value: string[]
+  multi?: boolean; placeholder?: string; disabled?: boolean; onChange: (v: string[]) => void
+}) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -391,13 +396,15 @@ function SIPDropdownField({ label, required, options, value, placeholder = 'Sele
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
-  const displayLabel = options.find(o => o.value === value)?.label ?? placeholder
+  const displayLabel = value.length === 0
+    ? placeholder
+    : value.length === 1
+      ? (options.find(o => o.value === value[0])?.label ?? placeholder)
+      : `${value.length} selected`
 
   return (
     <div className="flex flex-col gap-xs">
-      <label className={`text-small ${disabled ? 'text-text-tertiary' : 'text-text-secondary'}`}>
-        {label}{required && <span className="text-chip-danger-text"> *</span>}
-      </label>
+      <label className={`text-small ${disabled ? 'text-text-tertiary' : 'text-text-secondary'}`}>{label}</label>
       <div ref={ref} className="relative">
         <button
           type="button"
@@ -411,15 +418,17 @@ function SIPDropdownField({ label, required, options, value, placeholder = 'Sele
               : 'border-border text-text-primary hover:bg-surface-hover'
           }`}
         >
-          <span className={!value ? 'text-text-tertiary' : ''}>{displayLabel}</span>
+          <span className={value.length === 0 ? 'text-text-tertiary' : ''}>{displayLabel}</span>
           <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="shrink-0 text-text-icon" />
         </button>
         {open && (
-          <div className={`absolute left-0 z-[60] w-full ${upward ? 'bottom-[calc(100%+4px)]' : 'top-[calc(100%+4px)]'}`}>
+          <div className="absolute left-0 top-[calc(100%+4px)] z-[60] w-full">
             <SelectMenu
               options={options}
-              value={value ? [value] : []}
-              onChange={(v) => { onChange(v[0] ?? ''); setOpen(false) }}
+              value={value}
+              multi={multi}
+              onChange={(v) => { onChange(v); if (!multi) setOpen(false) }}
+              onApply={() => setOpen(false)}
             />
           </div>
         )}
@@ -449,7 +458,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
         transport:      initialRow.transport      || 'TCP',
         sipUsername:    initialRow.sipUsername     || '',
         sipPassword:    initialRow.sipPassword     || '',
-        location:       initialRow.locations,
+        location:       initialRow.locations ? initialRow.locations.split(', ') : [],
       })
       setVerified(true)
     }
@@ -463,12 +472,12 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
   if (!open) return null
 
   const canVerify = form.name.trim() !== '' && form.phoneNumber.trim() !== '' && form.terminationUri.trim() !== ''
-  const canSave   = verified && form.location !== ''
+  const canSave   = verified && form.location.length > 0
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
-      <div className="fixed right-0 top-0 z-50 flex h-full w-[650px] flex-col bg-surface shadow-modal">
+      <div className="fixed inset-0 z-[70] bg-black/20" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-[80] flex h-full w-[650px] flex-col bg-surface shadow-modal">
 
         {/* Header */}
         <div className="flex items-center justify-between px-2xl py-lg">
@@ -494,7 +503,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
                 connection:     'SIP trunk',
                 routingMode:    '—',
                 assignedAgents: '—',
-                locations:      form.location,
+                locations:      form.location.join(', '),
                 provider:       'Twilio',
                 status:         'Active',
               })
@@ -601,7 +610,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
               onClick={handleVerify}
               className={`flex h-9 items-center gap-sm rounded-sm border px-lg text-body transition-colors ${
                 verified
-                  ? 'cursor-default border-success bg-surface text-success'
+                  ? 'cursor-default border-border bg-surface text-text-primary'
                   : !canVerify || verifying
                   ? 'cursor-not-allowed border-border bg-surface text-text-tertiary'
                   : 'border-border bg-surface text-text-primary hover:bg-surface-hover'
@@ -610,7 +619,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
               {verifying ? (
                 <><span className="size-4 animate-spin rounded-full border-2 border-border border-t-primary" />Verifying…</>
               ) : verified ? (
-                <><Icon name="check_circle" size={16} className="text-success" />Verified</>
+                <><Icon name="check_circle" size={16} fill className="text-chip-success-text" />Verified</>
               ) : 'Verify'}
             </button>
             {!verified && !verifying && (
@@ -627,18 +636,19 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
             Assign to a location to start routing calls.
           </p>
           <div className="group/tooltip relative">
-            <SIPDropdownField
+            <DropdownField
               label="Location"
               options={LOCATION_OPTIONS}
               value={form.location}
+              multi
               placeholder="Select location"
               disabled={!verified}
-              upward
-              onChange={(v) => setForm((f) => ({ ...f, location: v }))}
+              onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
             />
             {!verified && (
-              <div className="pointer-events-none absolute bottom-[calc(100%+6px)] left-0 z-[70] whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
+              <div className="pointer-events-none absolute bottom-[calc(100%+10px)] left-0 z-[70] w-[374px] rounded-lg bg-[#1c1c1c] px-md py-sm text-body text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
                 Complete SIP trunking setup and verify your connection before assigning a location.
+                <span className="absolute -bottom-[6px] left-md h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-[#1c1c1c]" />
               </div>
             )}
           </div>
@@ -651,106 +661,116 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
 
 
 // ── Call Forwarding modal data ────────────────────────────────────────────────
-const CF_DATA = [
-  { location: 'North Austin',    business: '(512) 555-0101', receptionist: '(512) 900-0001' },
-  { location: 'South Austin',    business: '(512) 555-0102', receptionist: '(512) 900-0002' },
-  { location: 'San Francisco',   business: '(415) 555-0103', receptionist: '(415) 900-0003' },
-  { location: 'Palo Alto',       business: '(650) 555-0104', receptionist: '(650) 900-0004' },
-  { location: 'Oakland',         business: '(510) 555-0105', receptionist: '(510) 900-0005' },
+const CF_ALL_DATA = [
+  { location: 'North Austin',       business: '(512) 555-0101', receptionist: '(512) 900-0001' },
+  { location: 'South Austin',       business: '(512) 555-0102', receptionist: '(512) 900-0002' },
+  { location: 'San Francisco',      business: '(415) 555-0103', receptionist: '(415) 900-0003' },
+  { location: 'Palo Alto',          business: '(650) 555-0104', receptionist: '(650) 900-0004' },
+  { location: 'Oakland',            business: '(510) 555-0105', receptionist: '(510) 900-0005' },
+  { location: 'Berkeley',           business: '(510) 555-0106', receptionist: '(510) 900-0006' },
+  { location: 'San Jose',           business: '(408) 555-0107', receptionist: '(408) 900-0007' },
+  { location: 'Fremont',            business: '(510) 555-0108', receptionist: '(510) 900-0008' },
+  { location: 'Santa Clara',        business: '(408) 555-0109', receptionist: '(408) 900-0009' },
+  { location: 'Sunnyvale',          business: '(408) 555-0110', receptionist: '(408) 900-0010' },
+  { location: 'Mountain View',      business: '(650) 555-0111', receptionist: '(650) 900-0011' },
+  { location: 'Cupertino',          business: '(408) 555-0112', receptionist: '(408) 900-0012' },
+  { location: 'Redwood City',       business: '(650) 555-0113', receptionist: '(650) 900-0013' },
+  { location: 'Menlo Park',         business: '(650) 555-0114', receptionist: '(650) 900-0014' },
+  { location: 'Walnut Creek',       business: '(925) 555-0115', receptionist: '(925) 900-0015' },
+  { location: 'Concord',            business: '(925) 555-0116', receptionist: '(925) 900-0016' },
+  { location: 'Richmond',           business: '(510) 555-0117', receptionist: '(510) 900-0017' },
+  { location: 'Hayward',            business: '(510) 555-0118', receptionist: '(510) 900-0018' },
+  { location: 'San Mateo',          business: '(650) 555-0119', receptionist: '(650) 900-0019' },
+  { location: 'Daly City',          business: '(415) 555-0120', receptionist: '(415) 900-0020' },
+  { location: 'South San Francisco',business: '(650) 555-0121', receptionist: '(650) 900-0021' },
+  { location: 'San Rafael',         business: '(415) 555-0122', receptionist: '(415) 900-0022' },
+  { location: 'Novato',             business: '(415) 555-0123', receptionist: '(415) 900-0023' },
+  { location: 'Petaluma',           business: '(707) 555-0124', receptionist: '(707) 900-0024' },
+  { location: 'Santa Rosa',         business: '(707) 555-0125', receptionist: '(707) 900-0025' },
 ]
 
-function CallForwardingModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+
+function CallForwardingDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [search, setSearch] = useState('')
+
+  useEffect(() => { if (!open) setSearch('') }, [open])
+
   if (!open) return null
+
+  const filtered = CF_ALL_DATA.filter((r) =>
+    r.location.toLowerCase().includes(search.toLowerCase()) ||
+    r.business.includes(search) ||
+    r.receptionist.includes(search)
+  )
+
   return (
-    <div className="fixed inset-0 z-[120]">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="absolute left-1/2 top-[60px] w-[720px] -translate-x-1/2 rounded-md bg-surface shadow-modal">
+    <>
+      <div className="fixed inset-0 z-[70] bg-black/20" onClick={onClose} />
+      <div className="fixed right-0 top-0 z-[80] flex h-full w-[650px] flex-col bg-surface shadow-modal">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-2xl pb-lg pt-2xl">
-          <div className="flex items-center gap-md">
-            <span className="text-h3 text-text-primary">Setup forwarding for unanswered calls</span>
-            <button
-              type="button"
-              className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
-            >
-              Download this list (XLS)
+        <div className="flex items-center justify-between px-2xl py-lg">
+          <div className="flex items-center gap-sm">
+            <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+              <Icon name="arrow_back" size={18} />
             </button>
+            <span className="text-h3 text-text-primary">Call forwarding</span>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-          >
-            <Icon name="close" size={20} />
+          <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
+            <Icon name="download" size={16} className="text-text-icon" />
+            Download list (XLS)
           </button>
         </div>
 
-        {/* Description */}
-        <div className="px-2xl pb-lg">
+        {/* Description + search */}
+        <div className="shrink-0 flex flex-col gap-lg px-2xl pb-lg pt-2xl">
           <p className="text-body text-text-secondary">
             For instructions on how to forward unanswered calls from your landline number to the receptionist number, consult your phone system setup or{' '}
-            <a href="#" className="text-text-action hover:underline">learn more</a>
+            <a href="#" className="text-text-action">learn more</a>
           </p>
+          <div className="flex h-9 items-center gap-sm rounded-sm border border-border px-md focus-within:border-primary">
+            <Icon name="search" size={16} className="shrink-0 text-text-icon" />
+            <input
+              type="text"
+              placeholder="Search by location or number"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 bg-transparent text-body text-text-primary placeholder:text-text-tertiary focus:outline-none"
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch('')} className="text-text-icon hover:text-text-primary">
+                <Icon name="close" size={16} />
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Table */}
-        <div className="px-2xl pb-2xl">
+        {/* Scrollable table */}
+        <div className="flex-1 overflow-y-auto">
           <table className="w-full text-left">
-            <thead>
+            <thead className="sticky top-0 bg-surface">
               <tr className="border-b border-border">
-                <th className="pb-sm text-body text-text-secondary font-normal">
-                  <div className="flex items-center gap-xs">
-                    Location <Icon name="expand_more" size={18} className="text-text-icon" />
-                  </div>
-                </th>
-                <th className="pb-sm text-body text-text-secondary font-normal">Business number</th>
-                <th className="pb-sm text-body text-text-secondary font-normal">Receptionist number</th>
+                <th className="px-2xl pb-sm text-small text-text-secondary font-normal">Location</th>
+                <th className="px-2xl pb-sm text-small text-text-secondary font-normal">Business number</th>
+                <th className="px-2xl pb-sm text-small text-text-secondary font-normal">Receptionist number</th>
               </tr>
             </thead>
             <tbody>
-              {CF_DATA.map((row) => (
-                <tr key={row.location} className="border-b border-border last:border-0">
-                  <td className="py-md text-body text-text-primary">{row.location}</td>
-                  <td className="py-md text-body text-text-primary">{row.business}</td>
-                  <td className="py-md text-body text-text-primary">{row.receptionist}</td>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={3} className="px-2xl py-lg text-center text-body text-text-tertiary">No results for "{search}"</td></tr>
+              ) : filtered.map((row, i) => (
+                <tr key={i} className="border-b border-border last:border-0 hover:bg-surface-hover">
+                  <td className="px-2xl py-md text-body text-text-primary">{row.location}</td>
+                  <td className="px-2xl py-md text-body text-text-primary">{row.business}</td>
+                  <td className="px-2xl py-md text-body text-text-primary">{row.receptionist}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination footer */}
-        <div className="flex items-center justify-between border-t border-border px-2xl py-md">
-          <div className="flex items-center gap-xs">
-            <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-              <Icon name="chevron_left" size={20} />
-            </button>
-            {[1, 2, 3].map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={`flex size-8 items-center justify-center rounded-sm text-body ${n === 1 ? 'border border-primary text-primary' : 'text-text-secondary hover:bg-surface-hover'}`}
-              >
-                {n}
-              </button>
-            ))}
-            <span className="px-xs text-text-tertiary">···</span>
-            <button type="button" className="flex size-8 items-center justify-center rounded-sm text-body text-text-secondary hover:bg-surface-hover">65</button>
-            <button type="button" className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-              <Icon name="chevron_right" size={20} />
-            </button>
-          </div>
-          <button
-            type="button"
-            className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
-          >
-            Show 25 <Icon name="expand_more" size={18} className="text-text-icon" />
-          </button>
-        </div>
-
       </div>
-    </div>
+    </>
   )
 }
 
@@ -815,7 +835,7 @@ export function PhoneNumber2Screen() {
       />
 
       {/* Call forwarding modal */}
-      <CallForwardingModal open={callForwardingOpen} onClose={() => setCallForwardingOpen(false)} />
+      <CallForwardingDrawer open={callForwardingOpen} onClose={() => setCallForwardingOpen(false)} />
 
       {/* Import / Edit drawer */}
       <ImportDrawer
