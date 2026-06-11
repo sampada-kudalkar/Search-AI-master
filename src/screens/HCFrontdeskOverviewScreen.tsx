@@ -31,20 +31,21 @@ const SUMMARY_STATS = [
 
 // Funnel: Website/Voice/Text/Email → Agent-driven/Human-driven → Confirmed/Booking/Reschedule/Cancel
 // Removed No-show per design direction
+// 0-3: channels, 4-5: handled by, 6-10: outcomes
 const FUNNEL_NODES: SankeyNode[] = [
   { name: 'Website 38%' }, { name: 'Voice 20%' }, { name: 'Text 23%' }, { name: 'Email 19%' },
-  { name: 'Agent-driven 72%' }, { name: 'Human-driven 28%' },
-  { name: 'Confirmed 60%' }, { name: 'Booking 18%' }, { name: 'Reschedule 10%' }, { name: 'Cancel 4%' },
+  { name: 'Frontdesk agents 72%' }, { name: 'Transfer to human 28%' },
+  { name: 'Answered 48%' }, { name: 'Bookings 18%' }, { name: 'Rescheduled 10%' }, { name: 'Cancellations 4%' }, { name: 'Pending 20%' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   { source: 0, target: 4, value: 28 }, { source: 0, target: 5, value: 10 },
   { source: 1, target: 4, value: 20 }, { source: 1, target: 5, value: 8  },
   { source: 2, target: 4, value: 18 }, { source: 2, target: 5, value: 5  },
   { source: 3, target: 4, value: 6  }, { source: 3, target: 5, value: 5  },
-  { source: 4, target: 6, value: 51 }, { source: 4, target: 7, value: 13 },
-  { source: 4, target: 8, value: 7  }, { source: 4, target: 9, value: 1  },
-  { source: 5, target: 6, value: 9  }, { source: 5, target: 7, value: 5  },
-  { source: 5, target: 8, value: 3  }, { source: 5, target: 9, value: 4  },
+  { source: 4, target: 6, value: 38 }, { source: 4, target: 7, value: 13 },
+  { source: 4, target: 8, value: 7  }, { source: 4, target: 9, value: 1  }, { source: 4, target: 10, value: 13 },
+  { source: 5, target: 6, value: 10 }, { source: 5, target: 7, value: 5  },
+  { source: 5, target: 8, value: 3  }, { source: 5, target: 9, value: 3  }, { source: 5, target: 10, value: 7  },
 ]
 
 const OVERTIME_DATA = [
@@ -152,8 +153,8 @@ export function HCFrontdeskOverviewScreen() {
             <SankeyChart
               nodes={FUNNEL_NODES}
               links={FUNNEL_LINKS}
-              height={360}
-              columnHeaders={['Total inquiries', 'Handler', 'Outcome']}
+              height={400}
+              columnHeaders={['Channels', 'Handled by', 'Outcome']}
             />
           </HCCard>
 
