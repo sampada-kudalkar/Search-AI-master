@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Icon, DataTable, SelectMenu, TopNav, type Column } from '../components'
+import emptyPhoneNumberUrl from '../assets/empty-phone-number.svg'
 
 // --- Phone number 1 data & helpers (Abhishek's version — do not delete) ---
 // interface PhoneNumberRow {
@@ -45,7 +46,7 @@ const AGENT_OPTIONS = [
   { value: 'Reminder', label: 'Reminder' },
 ]
 // 
-function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNumber: string; onClose: () => void }) {
+function TestCallModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [agent, setAgent] = useState('')
   const [agentMenuOpen, setAgentMenuOpen] = useState(false)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
@@ -53,34 +54,23 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[120]">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+    <>
+      <div className="fixed inset-0 z-[200] bg-black/20" onClick={onClose} />
+      <div className="fixed left-1/2 top-[72px] z-[201] w-[520px] -translate-x-1/2 rounded-sm bg-surface shadow-[0px_4px_8px_rgba(33,33,33,0.18)]">
 
-      <div className="absolute left-1/2 top-[60px] w-[590px] -translate-x-1/2 rounded-md bg-surface shadow-modal">
-        {/* Header */}
-        <div className="flex items-center justify-between px-2xl pb-lg pt-2xl">
-          <span className="text-h3 text-text-primary">Test call</span>
-          <button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-            <Icon name="close" size={20} />
+        {/* Header — pt-24 pb-12 px-24 */}
+        <div className="flex items-center justify-between px-2xl pt-2xl pb-md">
+          <span className="text-[16px] leading-[24px] tracking-[-0.32px] text-text-primary">Test call</span>
+          <button type="button" onClick={onClose} className="flex size-6 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
+            <Icon name="close" size={18} />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="flex flex-col gap-md px-2xl pb-lg">
-          {/* Phone number */}
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">Phone number</label>
-            <div className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-md">
-              <Icon name="phone" size={16} className="shrink-0 text-text-icon" />
-              <span className="text-body text-text-secondary">+1</span>
-              <span className="mx-xs h-4 w-px bg-border" />
-              <span className="text-body text-text-tertiary">{phoneNumber}</span>
-            </div>
-          </div>
-
+        {/* Body — pl-24 pr-8 py-12 */}
+        <div className="flex flex-col gap-md pl-2xl pr-sm py-md">
           {/* Agent */}
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">Agent</label>
+            <label className="text-small text-text-tertiary">Agent</label>
             <button
               type="button"
               onClick={(e) => {
@@ -89,20 +79,20 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
                 setAnchor({ top: r.bottom + 4, left: r.left, width: r.width })
                 setAgentMenuOpen(true)
               }}
-              className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-l2 ${
-                agentMenuOpen ? 'border-primary' : 'border-border-input'
+              className={`flex h-9 w-full items-center gap-sm rounded-sm border bg-surface pl-md pr-sm hover:bg-surface-hover ${
+                agentMenuOpen ? 'border-primary' : 'border-border'
               }`}
             >
               <span className={`min-w-0 flex-1 truncate text-left text-body ${agent ? 'text-text-primary' : 'text-text-tertiary'}`}>
                 {agent || 'Select agent'}
               </span>
-              <Icon name="expand_more" size={20} className="shrink-0 text-text-icon" />
+              <Icon name="expand_more" size={18} className="shrink-0 text-text-icon" />
             </button>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-sm border-t border-border px-2xl py-lg">
+        {/* Footer — pt-12 pb-24 px-24, gap-[10px] */}
+        <div className="flex justify-end gap-[10px] px-2xl pt-md pb-2xl">
           <button type="button" onClick={onClose} className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover">
             Cancel
           </button>
@@ -119,8 +109,8 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
       {/* Agent dropdown */}
       {agentMenuOpen && anchor && (
         <>
-          <div className="fixed inset-0 z-[125]" onClick={() => setAgentMenuOpen(false)} />
-          <div className="fixed z-[130]" style={{ top: anchor.top, left: anchor.left, width: anchor.width }}>
+          <div className="fixed inset-0 z-[202]" onClick={() => setAgentMenuOpen(false)} />
+          <div className="fixed z-[203]" style={{ top: anchor.top, left: anchor.left, width: anchor.width }}>
             <SelectMenu
               options={AGENT_OPTIONS}
               value={agent ? [agent] : []}
@@ -129,7 +119,7 @@ function TestCallModal({ open, phoneNumber, onClose }: { open: boolean; phoneNum
           </div>
         </>
       )}
-    </div>
+    </>
   )
 }
 //
@@ -215,23 +205,7 @@ interface PhoneNumber2Row {
 }
 
 
-const DEFAULT_ROWS: PhoneNumber2Row[] = [
-  {
-    name:           'Main reception',
-    phoneNumber:    '+14155552671',
-    e164Format:     '+E.164',
-    terminationUri: 'sip:mainreception.pstn.twilio.com;transport=tcp',
-    transport:      'TCP',
-    sipUsername:    'myna_user',
-    sipPassword:    'p@ssw0rd',
-    connection:     'SIP trunk',
-    routingMode:    '—',
-    assignedAgents: '—',
-    locations:      'San Francisco',
-    provider:       'Twilio',
-    status:         'Active',
-  },
-]
+const DEFAULT_ROWS: PhoneNumber2Row[] = []
 
 const COLUMNS2: Column<PhoneNumber2Row>[] = [
   { key: 'name',        label: 'Name',         sortable: true },
@@ -443,6 +417,7 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
   const [form, setForm] = useState<ImportState>(EMPTY_IMPORT)
   const [verified, setVerified]   = useState(false)
   const [verifying, setVerifying] = useState(false)
+  const [locationTooltip, setLocationTooltip] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     if (!open) {
@@ -635,7 +610,15 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
           <p className={`mt-[16px] text-body ${verified ? 'text-text-secondary' : 'text-text-tertiary'}`}>
             Assign to a location to start routing calls.
           </p>
-          <div className="group/tooltip relative">
+          <div
+            onMouseEnter={(e) => {
+              if (!verified) {
+                const r = e.currentTarget.getBoundingClientRect()
+                setLocationTooltip({ x: r.left + r.width / 2, y: r.bottom + 6 })
+              }
+            }}
+            onMouseLeave={() => setLocationTooltip(null)}
+          >
             <DropdownField
               label="Location"
               options={LOCATION_OPTIONS}
@@ -645,13 +628,15 @@ function ImportDrawer({ open, initialRow, onClose, onSave }: { open: boolean; in
               disabled={!verified}
               onChange={(v: string[]) => setForm((f) => ({ ...f, location: v }))}
             />
-            {!verified && (
-              <div className="pointer-events-none absolute bottom-[calc(100%+10px)] left-0 z-[70] w-[374px] rounded-lg bg-[#1c1c1c] px-md py-sm text-body text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100">
-                Complete SIP trunking setup and verify your connection before assigning a location.
-                <span className="absolute -bottom-[6px] left-md h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-[#1c1c1c]" />
-              </div>
-            )}
           </div>
+          {locationTooltip && (
+            <div
+              className="pointer-events-none fixed z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white"
+              style={{ left: locationTooltip.x, top: locationTooltip.y }}
+            >
+              Complete SIP trunking setup and verify your connection first.
+            </div>
+          )}
 
         </div>
       </div>
@@ -716,9 +701,8 @@ function CallForwardingDrawer({ open, onClose }: { open: boolean; onClose: () =>
             </button>
             <span className="text-h3 text-text-primary">Call forwarding</span>
           </div>
-          <button type="button" className="flex h-9 items-center gap-sm rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2">
-            <Icon name="download" size={16} className="text-text-icon" />
-            Download list (XLS)
+          <button type="button" title="Download list (XLS)" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+            <Icon name="download" size={20} />
           </button>
         </div>
 
@@ -790,39 +774,63 @@ export function PhoneNumber2Screen() {
         {/* Header */}
         <div className="flex items-center justify-between px-2xl py-xl">
           <h1 className="text-h3 text-text-primary">Phone number</h1>
-          <div className="flex items-center gap-sm">
-            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="search" size={20} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setCallForwardingOpen(true)}
-              className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
-            >
-              Call forwarding
-            </button>
-            <button
-              type="button"
-              onClick={() => setImportOpen(true)}
-              className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-            >
-              Import number
-            </button>
-          </div>
+          {rows.length > 0 && (
+            <div className="flex items-center gap-sm">
+              <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+                <Icon name="search" size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCallForwardingOpen(true)}
+                className="flex h-9 items-center rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+              >
+                Call forwarding
+              </button>
+              <button
+                type="button"
+                onClick={() => setImportOpen(true)}
+                className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+              >
+                Import number
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Scrollable content */}
         <div className="flex flex-1 flex-col overflow-y-auto">
-          <div className="px-lg">
-            <DataTable
-              columns={COLUMNS2}
-              data={rows}
-              rowActions={[
-                { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
-                { icon: 'edit',          label: 'Edit',      onClick: (row) => setEditRow(row) },
-              ]}
-            />
-          </div>
+          {rows.length === 0 ? (
+            <div className="flex flex-1 flex-col items-center justify-center py-3xl">
+              <img src={emptyPhoneNumberUrl} alt="" className="w-[200px]" />
+              <div className="mt-lg flex flex-col items-center gap-sm text-center">
+                <span className="text-h3 text-text-primary">Import phone number</span>
+                <span className="max-w-[420px] text-body text-text-tertiary">
+                  Start adding your agent phone numbers to assign them to locations and route calls from one place.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setImportOpen(true)}
+                className="mt-2xl flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
+              >
+                Import number
+              </button>
+            </div>
+          ) : (
+            <div className="px-lg">
+              <DataTable
+                columns={COLUMNS2}
+                data={rows}
+                rowActions={[
+                  { icon: 'phone_in_talk', label: 'Test call', onClick: (row) => setTestCallRow(row) },
+                ]}
+                rowMenuItems={[
+                  { label: 'Edit',   onClick: (row) => setEditRow(row) },
+                  { label: 'Delete', onClick: (row) => setRows((prev) => prev.filter((r) => r !== row)) },
+                ]}
+              />
+            </div>
+          )}
         </div>
 
       </div>
@@ -830,7 +838,6 @@ export function PhoneNumber2Screen() {
       {/* Test call modal */}
       <TestCallModal
         open={testCallRow !== null}
-        phoneNumber={testCallRow?.phoneNumber ?? ''}
         onClose={() => setTestCallRow(null)}
       />
 
