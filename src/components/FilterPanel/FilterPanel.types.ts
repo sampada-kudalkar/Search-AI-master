@@ -15,4 +15,5 @@ export interface FilterPanelProps {
   onClose?: () => void
   onSaveView?: () => void
   onAdvancedFilters?: () => void
+  onSelectionChange?: (selections: Record<string, string[]>) => void
 }

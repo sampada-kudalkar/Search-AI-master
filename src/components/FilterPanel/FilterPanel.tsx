@@ -8,10 +8,16 @@ export function FilterPanel({
   open,
   fields,
   onAdvancedFilters,
+  onSelectionChange,
 }: FilterPanelProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
   const [selections, setSelections] = useState<Record<string, string[]>>({})
+
+  function updateSelections(next: Record<string, string[]>) {
+    setSelections(next)
+    onSelectionChange?.(next)
+  }
 
   function openField(field: FilterField, e: React.MouseEvent<HTMLButtonElement>) {
     if (openId === field.id) {
@@ -91,7 +97,7 @@ export function FilterPanel({
               options={activeField.options ?? []}
               value={selections[activeField.id] ?? []}
               multi={activeField.multi ?? true}
-              onChange={(val) => setSelections((s) => ({ ...s, [activeField.id]: val }))}
+              onChange={(val) => updateSelections({ ...selections, [activeField.id]: val })}
               onApply={() => setOpenId(null)}
             />
           </div>
