@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Chip, Icon, RefChip } from '../components'
 
@@ -44,6 +44,7 @@ interface Recommendation {
   changeType: string
   diff?: DiffChange
   conversations: ConversationItem[]
+  sim?: { before: Turn[]; after: Turn[] }
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -98,6 +99,21 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Marcus Williams', message: 'What are my payment options for the repair?',      channel: 'Voice', date: 'Jun 7', location: 'Sunnyvale' },
       { name: 'Priya Patel',     message: 'Can I split the payment across two cards?',        channel: 'Chat',  date: 'Jun 6', location: 'Mountain View' },
     ],
+    sim: {
+      before: [
+        { role: 'user' as const,  text: 'Hi, I just picked up my car and I got an invoice. How do I make a payment?', time: '10:12 AM' },
+        { role: 'agent' as const, text: "I'm sorry, I don't have information about payment options available. You may want to call the dealership directly.", time: '10:12 AM' },
+        { role: 'user' as const,  text: "Really? There's no way to pay online? That's frustrating.", time: '10:13 AM' },
+        { role: 'agent' as const, text: "I completely understand. Unfortunately I can't help with this right now. Please contact our billing team.", time: '10:13 AM' },
+      ],
+      after: [
+        { role: 'user' as const,  text: 'Hi, I just picked up my car and I got an invoice. How do I make a payment?', time: '10:12 AM' },
+        { role: 'agent' as const, text: "Of course! I can help with that. Would you prefer to pay online, by phone, or in person?", time: '10:12 AM' },
+        { role: 'user' as const,  text: 'Online would be easiest.', time: '10:13 AM' },
+        { role: 'agent' as const, text: "I'll send you a secure link to our payment portal right now. Shall I send it to the email on file?", time: '10:13 AM' },
+        { role: 'user' as const,  text: 'Yes please, that works great. Thank you!', time: '10:14 AM' },
+      ],
+    },
   },
   {
     id: 'r2',
@@ -145,6 +161,21 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Tom Okafor',      message: 'Can I reschedule for the same day?',                         channel: 'Chat',  date: 'Jun 8', location: 'San Jose' },
       { name: 'Rachel Gomez',    message: 'The agent told me same-day changes aren\'t allowed.',         channel: 'Text',  date: 'Jun 7', location: 'Mountain View' },
     ],
+    sim: {
+      before: [
+        { role: 'user' as const,  text: "My car is making a noise — can I move my appointment to today?", time: '09:05 AM' },
+        { role: 'agent' as const, text: "I understand, but same-day rescheduling isn't something I'm set up to handle. You'd need to call the service desk.", time: '09:05 AM' },
+        { role: 'user' as const,  text: "The noise sounds serious. I'm worried it's not safe.", time: '09:06 AM' },
+        { role: 'agent' as const, text: "I'm sorry I can't do more — please call us directly as soon as possible.", time: '09:06 AM' },
+      ],
+      after: [
+        { role: 'user' as const,  text: "My car is making a noise — can I move my appointment to today?", time: '09:05 AM' },
+        { role: 'agent' as const, text: "Absolutely, let me check today's availability right now.", time: '09:05 AM' },
+        { role: 'user' as const,  text: "The noise sounds serious. I'm worried it's not safe.", time: '09:06 AM' },
+        { role: 'agent' as const, text: "I've found an opening at 11:30 AM today. I've moved your appointment and added a note about the noise so the technician can prioritize. You'll receive a confirmation shortly.", time: '09:06 AM' },
+        { role: 'user' as const,  text: "That's a relief. Thank you so much!", time: '09:07 AM' },
+      ],
+    },
     diff: {
       location: 'Step 2 — Check availability',
       before: 'Search for available slots on the requested date.',
@@ -189,6 +220,20 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Aisha Johnson',  message: 'There\'s smoke coming from my engine right now.',   channel: 'Voice', date: 'Jun 7', location: 'Mountain View' },
       { name: 'Carlos Rivera',  message: 'This is an emergency, my car won\'t stop.',         channel: 'Chat',  date: 'Jun 6', location: 'Palo Alto' },
     ],
+    sim: {
+      before: [
+        { role: 'user' as const,  text: "My brakes feel completely wrong — grinding noise, soft pedal. I need help now!", time: '08:55 AM' },
+        { role: 'agent' as const, text: "I'm sorry to hear that. Can you describe the issue further so I can help?", time: '08:55 AM' },
+        { role: 'user' as const,  text: "This is a safety emergency. I'm not safe to drive.", time: '08:57 AM' },
+        { role: 'agent' as const, text: "I understand. Let me try to find an available advisor for you. Please stay on the line.", time: '08:58 AM' },
+      ],
+      after: [
+        { role: 'user' as const,  text: "My brakes feel completely wrong — grinding noise, soft pedal. I need help now!", time: '08:55 AM' },
+        { role: 'agent' as const, text: "This is a safety concern — I'm connecting you to our on-call service advisor right now. Please stay on the line.", time: '08:55 AM' },
+        { role: 'user' as const,  text: "This is a safety emergency. I'm not safe to drive.", time: '08:57 AM' },
+        { role: 'agent' as const, text: "I've alerted the team with your name and concern. They will call you back within 30 seconds. If you feel unsafe, please pull over immediately.", time: '08:57 AM' },
+      ],
+    },
     diff: {
       location: 'Transfer time target',
       before: 'Escalate to a live agent within 2 minutes.',
@@ -225,6 +270,20 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Hannah Lee',      message: 'Are you open on Memorial Day?',                      channel: 'Text',  date: 'Jun 8', location: 'Sunnyvale' },
       { name: 'Omar Farouk',     message: 'What are your weekend service hours?',               channel: 'Chat',  date: 'Jun 7', location: 'Palo Alto' },
     ],
+    sim: {
+      before: [
+        { role: 'user' as const,  text: "Hi, are you open on Saturdays? I can only come in on weekends.", time: '06:45 PM' },
+        { role: 'agent' as const, text: "I'm sorry, I don't have our current business hours available. I'd suggest checking the website or calling directly.", time: '06:45 PM' },
+        { role: 'user' as const,  text: "The website doesn't list it. Can't you just tell me yes or no?", time: '06:46 PM' },
+        { role: 'agent' as const, text: "I understand your frustration. Unfortunately I don't have that information right now.", time: '06:46 PM' },
+      ],
+      after: [
+        { role: 'user' as const,  text: "Hi, are you open on Saturdays? I can only come in on weekends.", time: '06:45 PM' },
+        { role: 'agent' as const, text: "Yes! Our service department is open on Saturdays from 8 AM to 5 PM. Would you like to schedule a Saturday appointment?", time: '06:45 PM' },
+        { role: 'user' as const,  text: "That works perfectly. Can I book for this Saturday?", time: '06:46 PM' },
+        { role: 'agent' as const, text: "Absolutely. I have openings at 9 AM and 11 AM this Saturday — which would you prefer?", time: '06:46 PM' },
+      ],
+    },
   },
   {
     id: 'r5',
@@ -256,6 +315,20 @@ const RECOMMENDATIONS: Recommendation[] = [
       { name: 'Brett Simmons',  message: 'I need to book a service but I don\'t know my VIN.', channel: 'Voice', date: 'Jun 8', location: 'Mountain View' },
       { name: 'Yuki Tanaka',    message: 'Can I book without the vehicle number?',              channel: 'Chat',  date: 'Jun 7', location: 'San Jose' },
     ],
+    sim: {
+      before: [
+        { role: 'user' as const,  text: "I need to book a service but I don't have my VIN handy.", time: '11:00 AM' },
+        { role: 'agent' as const, text: "I need the VIN to create a booking. I'm not able to proceed without it.", time: '11:00 AM' },
+        { role: 'user' as const,  text: "Can I give you my name and license plate instead?", time: '11:01 AM' },
+        { role: 'agent' as const, text: "I'm sorry, I'm only able to search by VIN in this system. Please call the service desk.", time: '11:01 AM' },
+      ],
+      after: [
+        { role: 'user' as const,  text: "I need to book a service but I don't have my VIN handy.", time: '11:00 AM' },
+        { role: 'agent' as const, text: "No problem! You can find the VIN on your dashboard near the windshield, or on your registration. Could you check either of those?", time: '11:00 AM' },
+        { role: 'user' as const,  text: "Found it on the dashboard — it's 1HGCM82633A004352.", time: '11:01 AM' },
+        { role: 'agent' as const, text: "Got it — that's a 2003 Honda Accord EX. I've pre-filled your service record. What service do you need today?", time: '11:01 AM' },
+      ],
+    },
   },
 ]
 
@@ -653,19 +726,16 @@ const CONV_THREADS: Record<string, Turn[]> = {
 
 // ── Conversation thread view ───────────────────────────────────────────────────
 
-function ConversationThread({ conv, onBack }: { conv: ConversationItem; onBack: () => void }) {
+function ConversationThread({ conv, sim, onBack }: { conv: ConversationItem; sim?: { before: Turn[]; after: Turn[] }; onBack: () => void }) {
+  const [simActive, setSimActive] = useState(false)
   const turns = CONV_THREADS[conv.message] ?? [
     { role: 'user' as const,  text: conv.message, time: '10:12 AM' },
     { role: 'agent' as const, text: "Thank you for reaching out. Let me look into that for you.", time: '10:12 AM' },
   ]
+  const improvedAgentReplies = (sim?.after ?? []).filter(t => t.role === 'agent')
   const startTime    = turns[0]?.time ?? '10:12 AM'
   const endTime      = turns[turns.length - 1]?.time ?? '10:15 AM'
   const channelLabel = conv.channel === 'Voice' ? 'Voice call' : conv.channel === 'Chat' ? 'Chatbot AI' : 'Text message'
-
-  const agentInitials = conv.channel === 'Voice' ? 'RK' : conv.channel === 'Chat' ? 'SA' : 'ML'
-  const agentDisplayName = conv.channel === 'Voice' ? 'Robin K.' : conv.channel === 'Chat' ? 'Savannah A.' : 'Mia L.'
-  const agentBg    = conv.channel === 'Voice' ? '#fde68a' : conv.channel === 'Chat' ? '#fcd5ce' : '#c7d2fe'
-  const agentColor = conv.channel === 'Voice' ? '#92400e' : conv.channel === 'Chat' ? '#9d174d' : '#3730a3'
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -686,65 +756,96 @@ function ConversationThread({ conv, onBack }: { conv: ConversationItem; onBack: 
           <Icon name={channelIcon(conv.channel)} size={15} className="shrink-0 text-text-tertiary" />
         </div>
 
-        <div className="flex shrink-0 items-center gap-sm">
-          <div className="flex items-center gap-xs">
-            <div
-              className="flex size-7 shrink-0 items-center justify-center rounded-full text-[11px]"
-              style={{ background: agentBg, color: agentColor }}
-            >
-              {agentInitials}
-            </div>
-            <span className="text-[13px] text-text-primary">{agentDisplayName}</span>
-            <Icon name="expand_more" size={16} className="text-text-icon" />
-          </div>
-          <button
-            type="button"
-            className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
-          >
-            <Icon name="more_vert" size={18} />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="flex size-7 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+        >
+          <Icon name="more_vert" size={18} />
+        </button>
       </div>
 
       {/* Thread body */}
       <div className="flex flex-1 flex-col overflow-y-auto bg-white px-[28px] py-lg">
+
+        {/* Warning banner — top */}
+        <div className="mb-[20px] flex items-start gap-sm rounded-sm border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
+          <Icon name="warning" size={14} className="mt-[2px] shrink-0 text-warning" />
+          <div className="flex min-w-0 flex-1 flex-col gap-[4px]">
+            <p className="text-[12px] leading-[18px] text-text-secondary">
+              The agent could not fully resolve this request. This conversation contributed to the recommendation.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSimActive(v => !v)}
+              className="flex w-fit items-center gap-[4px] text-[12px] text-text-action "
+            >
+              <Icon name={simActive ? 'visibility_off' : 'auto_awesome'} size={13} />
+              {simActive ? 'Hide simulation' : 'Simulate with the new procedure'}
+            </button>
+          </div>
+        </div>
 
         <p className="mb-[20px] text-center text-[13px] text-text-tertiary">{conv.date}</p>
         <p className="mb-[20px] text-center text-[13px] text-text-tertiary">
           {channelLabel} conversation started · {startTime}
         </p>
 
-        {turns.map((turn, i) =>
-          turn.role === 'user' ? (
-            <div key={i} className="mb-[16px] flex max-w-[72%] flex-col gap-[6px] self-start">
-              <div className="rounded-[18px] rounded-tl-[4px] bg-[#f1f3f4] px-[16px] py-[10px]">
-                <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+        {(() => {
+          let agentIdx = 0
+          return turns.map((turn, i) => {
+            if (turn.role === 'user') {
+              return (
+                <div key={i} className="mb-[16px] flex max-w-[72%] flex-col gap-[6px] self-start">
+                  <div className="rounded-[18px] rounded-tl-[4px] bg-[#f1f3f4] px-[16px] py-[10px]">
+                    <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+                  </div>
+                  <div className="flex items-center gap-[6px]">
+                    <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
+                    <Icon name="link" size={12} className="text-[#9aa0a6]" />
+                  </div>
+                </div>
+              )
+            }
+            const improved = improvedAgentReplies[agentIdx] ?? turn
+            agentIdx++
+            return (
+              <div key={i} className="mb-[16px] flex max-w-[72%] flex-col items-end gap-[10px] self-end">
+                {simActive ? (
+                  <>
+                    {/* Improved — green */}
+                    <div className="flex flex-col items-end gap-[4px]">
+                      <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
+                        <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{improved.text}</p>
+                      </div>
+                      <span className="flex items-center gap-[3px] text-[11px] text-text-action">
+                        <Icon name="auto_awesome" size={11} />
+                        With new procedure
+                      </span>
+                    </div>
+                    {/* Original — pink */}
+                    <div className="flex flex-col items-end gap-[4px]">
+                      <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px] opacity-40">
+                        <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+                      </div>
+                      <span className="text-[11px] text-[#9aa0a6]">Original · {turn.time}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
+                      <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
+                    </div>
+                    <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
+                  </>
+                )}
               </div>
-              <div className="flex items-center gap-[6px]">
-                <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
-                <Icon name="link" size={12} className="text-[#9aa0a6]" />
-              </div>
-            </div>
-          ) : (
-            <div key={i} className="mb-[16px] flex max-w-[72%] flex-col items-end gap-[6px] self-end">
-              <div className="rounded-[18px] rounded-tr-[4px] bg-[#e8f0fe] px-[16px] py-[10px]">
-                <p className="text-[15px] leading-[22px] text-[#1a1a1a]">{turn.text}</p>
-              </div>
-              <span className="text-[12px] text-[#9aa0a6]">{turn.time}</span>
-            </div>
-          )
-        )}
+            )
+          })
+        })()}
 
         <p className="mb-[20px] mt-[8px] text-center text-[13px] text-text-tertiary">
           {conv.name} is inactive on {channelLabel.toLowerCase()} · {endTime}
         </p>
-
-        <div className="mt-auto flex items-start gap-sm rounded-sm border border-[#fde68a] bg-[#fffbeb] px-md py-sm">
-          <Icon name="warning" size={14} className="mt-[2px] shrink-0 text-warning" />
-          <p className="text-[12px] leading-[18px] text-text-secondary">
-            The agent could not fully resolve this request. This conversation contributed to the recommendation.
-          </p>
-        </div>
 
       </div>
     </div>
@@ -769,7 +870,7 @@ function ConversationsDrawer({ rec, open, onClose }: { rec: Recommendation; open
       <div className="fixed bottom-0 right-0 top-0 z-[210] flex w-[650px] flex-col bg-surface shadow-modal">
 
         {selected ? (
-          <ConversationThread conv={selected} onBack={() => setSelected(null)} />
+          <ConversationThread conv={selected} sim={rec.sim} onBack={() => setSelected(null)} />
         ) : (
           <>
             {/* Header */}
@@ -834,9 +935,56 @@ function ConversationsDrawer({ rec, open, onClose }: { rec: Recommendation; open
   )
 }
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
+
+type ToastData = { message: string; onUndo?: () => void }
+
+function Toast({ data, onDismiss }: { data: ToastData; onDismiss: () => void }) {
+  return createPortal(
+    <div
+      className="fixed left-1/2 top-[24px] z-[500] flex -translate-x-1/2 items-center gap-[12px] rounded-[8px] bg-white px-[16px] py-[12px]"
+      style={{ minWidth: 360, maxWidth: 520, boxShadow: '0 4px 16px 0 rgba(0,0,0,0.14), 0 1px 4px 0 rgba(0,0,0,0.08)' }}
+    >
+      {/* green stroke-only checkmark */}
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
+        <path d="M4 10.5l4.5 4.5 7.5-9" stroke="#4CAF50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+
+      <span className="flex-1 text-[13px] leading-[20px] text-[#111827]">{data.message}</span>
+
+      {data.onUndo && (
+        <button
+          type="button"
+          onClick={() => { data.onUndo?.(); onDismiss() }}
+          className="shrink-0 text-[13px] leading-[20px] text-[#2563EB]"
+        >
+          Undo
+        </button>
+      )}
+
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="ml-[4px] flex size-[20px] shrink-0 items-center justify-center text-[#6B7280] hover:text-[#111827]"
+      >
+        <Icon name="close" size={16} />
+      </button>
+    </div>,
+    document.body
+  )
+}
+
 // ── Detail panel ──────────────────────────────────────────────────────────────
 
-function DetailPanel({ rec }: { rec: Recommendation }) {
+function DetailPanel({
+  rec,
+  onReject,
+  onToast,
+}: {
+  rec: Recommendation
+  onReject: (id: string) => void
+  onToast: (data: ToastData) => void
+}) {
   const [expanded, setExpanded] = useState(false)
   const [applyOpen, setApplyOpen] = useState(false)
   const [convsOpen, setConvsOpen] = useState(false)
@@ -851,6 +999,8 @@ function DetailPanel({ rec }: { rec: Recommendation }) {
         applyOpen={applyOpen}
         setApplyOpen={setApplyOpen}
         setConvsOpen={setConvsOpen}
+        onReject={onReject}
+        onToast={onToast}
       />
     </>
   )
@@ -863,6 +1013,8 @@ function DetailPanelInner({
   applyOpen,
   setApplyOpen,
   setConvsOpen,
+  onReject,
+  onToast,
 }: {
   rec: Recommendation
   expanded: boolean
@@ -870,6 +1022,8 @@ function DetailPanelInner({
   applyOpen: boolean
   setApplyOpen: (v: boolean | ((prev: boolean) => boolean)) => void
   setConvsOpen: (v: boolean) => void
+  onReject: (id: string) => void
+  onToast: (data: ToastData) => void
 })
 
 {
@@ -900,7 +1054,10 @@ function DetailPanelInner({
                 <div className="flex h-9 overflow-hidden rounded-sm">
                   <button
                     className="flex h-9 items-center bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover"
-                    onClick={() => setApplyOpen(false)}
+                    onClick={() => {
+                      setApplyOpen(false)
+                      onToast({ message: `"${rec.title}" has been applied to this agent and is now active.` })
+                    }}
                   >
                     Apply changes
                   </button>
@@ -919,14 +1076,20 @@ function DetailPanelInner({
                     <div className="absolute right-0 top-full z-[110] mt-xs min-w-[220px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
                       <button
                         type="button"
-                        onClick={() => setApplyOpen(false)}
+                        onClick={() => {
+                          setApplyOpen(false)
+                          onToast({ message: `"${rec.title}" has been applied to this agent and is now active.` })
+                        }}
                         className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
                       >
                         Apply to this agent
                       </button>
                       <button
                         type="button"
-                        onClick={() => setApplyOpen(false)}
+                        onClick={() => {
+                          setApplyOpen(false)
+                          onToast({ message: `"${rec.title}" has been applied to this agent and saved to the procedure library.` })
+                        }}
                         className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
                       >
                         Apply and add to library
@@ -934,7 +1097,10 @@ function DetailPanelInner({
                       <div className="my-xs border-t border-border" />
                       <button
                         type="button"
-                        onClick={() => setApplyOpen(false)}
+                        onClick={() => {
+                          setApplyOpen(false)
+                          onReject(rec.id)
+                        }}
                         className="block w-full px-md py-sm text-left text-body text-chip-danger-text hover:bg-surface-hover"
                       >
                         Reject
@@ -954,7 +1120,7 @@ function DetailPanelInner({
               <button
                 type="button"
                 onClick={() => setConvsOpen(true)}
-                className="flex w-fit items-center gap-xs text-small text-text-action hover:underline"
+                className="flex w-fit items-center gap-xs text-small text-text-action "
               >
                 <Icon name="chat_bubble_outline" size={13} />
                 View {rec.conversationCount} conversations
@@ -1007,7 +1173,7 @@ function DetailPanelInner({
           <div>
             <button
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-xs text-small text-text-action hover:underline"
+              className="flex items-center gap-xs text-small text-text-action "
             >
               <Icon name={expanded ? 'expand_less' : 'expand_more'} size={14} />
               {expanded ? 'Hide' : 'Show'} what changes
@@ -1037,9 +1203,34 @@ export function RecommendationsTab() {
   const [selected, setSelected] = useState(RECOMMENDATIONS[0].id)
   const [sortBy, setSortBy] = useState<SortOption>('impact')
   const [gapFilter, setGapFilter] = useState<GapType | 'all'>('all')
+  const [rejected, setRejected] = useState<Set<string>>(new Set())
+  const [toast, setToast] = useState<ToastData | null>(null)
+  const rejectTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = (data: ToastData) => {
+    setToast(data)
+    setTimeout(() => setToast(null), 5000)
+  }
+
+  const handleReject = (id: string) => {
+    // Show toast immediately — actual removal happens after delay
+    showToast({
+      message: `Recommendation removed. This won't show up again.`,
+      onUndo: () => {
+        if (rejectTimerRef.current) clearTimeout(rejectTimerRef.current)
+        rejectTimerRef.current = null
+      },
+    })
+    // Remove from list after 5s unless undo is clicked
+    rejectTimerRef.current = setTimeout(() => {
+      setRejected(prev => new Set(prev).add(id))
+      setSelected(s => s === id ? '' : s)
+      rejectTimerRef.current = null
+    }, 5000)
+  }
 
   const visibleRecommendations = sortRecommendations(
-    RECOMMENDATIONS.filter((rec) => gapFilter === 'all' || rec.gapType === gapFilter),
+    RECOMMENDATIONS.filter((rec) => (gapFilter === 'all' || rec.gapType === gapFilter) && !rejected.has(rec.id)),
     sortBy,
   )
   const rec = visibleRecommendations.find((r) => r.id === selected) ?? visibleRecommendations[0]
@@ -1078,12 +1269,14 @@ export function RecommendationsTab() {
 
       {/* Right panel */}
       {rec ? (
-        <DetailPanel key={rec.id} rec={rec} />
+        <DetailPanel key={rec.id} rec={rec} onReject={handleReject} onToast={showToast} />
       ) : (
         <div className="flex flex-1 items-center justify-center text-small text-text-tertiary">
           No recommendations match these filters.
         </div>
       )}
+
+      {toast && <Toast data={toast} onDismiss={() => setToast(null)} />}
     </div>
   )
 }
