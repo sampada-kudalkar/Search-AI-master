@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CustomizeColumnsDrawer, DataTable, FilterPanel, Icon, SelectMenu, Tabs, Toast, TopNav, type Column, type FilterField, type SelectOption } from '../components'
+import { CustomizeColumnsDrawer, DataTable, FilterPanel, Icon, SelectMenu, Toast, TopNav, type Column, type FilterField, type SelectOption } from '../components'
 
 // ── Toggle ────────────────────────────────────────────────────────────────────
 interface ToggleProps { value: boolean; onChange: (v: boolean) => void }
@@ -350,19 +350,6 @@ function ServiceTypeDrawer({ open, mode, onClose }: { open: boolean; mode: 'crea
   )
 }
 
-// ── Department tabs ───────────────────────────────────────────────────────────
-const deptMap: Record<string, Department> = {
-  service: 'Service', sales: 'Sales', parts: 'Parts', bodyshop: 'Body shop',
-}
-
-const DEPT_TABS = [
-  { id: 'service',  label: 'Service',   count: SERVICE_TYPES.filter(r => r.department === 'Service').length   },
-  { id: 'sales',    label: 'Sales',     count: SERVICE_TYPES.filter(r => r.department === 'Sales').length     },
-  { id: 'parts',    label: 'Parts',     count: SERVICE_TYPES.filter(r => r.department === 'Parts').length     },
-  { id: 'bodyshop', label: 'Body shop', count: SERVICE_TYPES.filter(r => r.department === 'Body shop').length },
-  { id: 'all',      label: 'All',       count: SERVICE_TYPES.length },
-]
-
 // ── Column definitions ────────────────────────────────────────────────────────
 interface STColumnDef extends Column<ServiceTypeRow> { locked?: boolean }
 
@@ -408,7 +395,6 @@ export function AutoAppointmentTypeScreen() {
   const [toastVisible,     setToastVisible]     = useState(false)
   const [locationFilter,   setLocationFilter]   = useState<string[]>([])
   const [locationOpen,     setLocationOpen]     = useState(false)
-  const [deptTab,          setDeptTab]          = useState('service')
   const [colOrder,   setColOrder]   = useState<string[]>(ST_DEFAULT_ORDER)
   const [colVisible, setColVisible] = useState<string[]>(ST_DEFAULT_VISIBLE)
   const [filterOpen,     setFilterOpen]     = useState(false)
@@ -421,12 +407,12 @@ export function AutoAppointmentTypeScreen() {
   // setFilterValues is called via FilterPanel's onSelectionChange
 
   const filtered = useMemo(() => {
-    let rows = deptTab === 'all' ? SERVICE_TYPES : SERVICE_TYPES.filter(r => r.department === deptMap[deptTab])
+    let rows = SERVICE_TYPES
     if (filterValues['department']?.length) rows = rows.filter(r => filterValues['department'].includes(r.department))
     if (filterValues['duration']?.length)   rows = rows.filter(r => filterValues['duration'].includes(r.duration))
     if (filterValues['active']?.length)     rows = rows.filter(r => filterValues['active'].includes(String(r.active)))
     return rows
-  }, [deptTab, filterValues])
+  }, [filterValues])
 
   const columnOptions = useMemo(
     () => colOrder.map(k => ({ key: k, label: ST_DEF_BY_KEY.get(k)!.label, locked: ST_DEF_BY_KEY.get(k)!.locked })),
@@ -435,7 +421,7 @@ export function AutoAppointmentTypeScreen() {
 
   const COLUMNS = useMemo<Column<ServiceTypeRow>[]>(() =>
     colOrder
-      .filter(k => colVisible.includes(k) && (deptTab === 'all' || k !== 'department'))
+      .filter(k => colVisible.includes(k))
       .map(k => {
         const def = ST_DEF_BY_KEY.get(k)!
         if (k === 'name') return { ...def, render: (_v: unknown, row: ServiceTypeRow) => (
@@ -468,7 +454,7 @@ export function AutoAppointmentTypeScreen() {
         }}
         return def as Column<ServiceTypeRow>
       }),
-    [colOrder, colVisible, activeMap, deptTab],
+    [colOrder, colVisible, activeMap],
   )
 
   const rowMenuItems = [
@@ -521,18 +507,10 @@ export function AutoAppointmentTypeScreen() {
             <button type="button" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="view_column" size={20} />
             </button>
-            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="more_vert" size={20} />
-            </button>
             <button type="button" onClick={() => setFilterOpen(o => !o)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="filter_list" size={20} />
             </button>
           </div>
-        </div>
-
-        {/* Department filter tabs */}
-        <div className="px-2xl">
-          <Tabs tabs={DEPT_TABS} activeTab={deptTab} onChange={setDeptTab} />
         </div>
 
         <div className="px-2xl pb-2xl pt-lg">
