@@ -32,7 +32,7 @@ interface FunnelConversation {
 }
 
 const CONVERSATIONS_BY_NODE: Record<string, FunnelConversation[]> = {
-  'Website': [
+  'Webchat': [
     { id: 'w1', name: 'Marcus Thompson',  verified: true,  message: 'Interested in scheduling a test drive for the 2024 F-150', location: 'North Austin',  assignee: 'Frontdesk AI', date: '09:14 AM', unread: true },
     { id: 'w2', name: 'Priya Nair',                        message: 'Can I book a service appointment for this Saturday?',       location: 'South Austin',  assignee: 'Frontdesk AI', date: '08:52 AM', unread: true },
     { id: 'w3', name: 'Derek Okafor',                      message: 'What are your current lease offers on the Tacoma?',         location: 'San Francisco', assignee: 'USA - Sales',  date: 'Jun 10, 2025' },
@@ -45,7 +45,7 @@ const CONVERSATIONS_BY_NODE: Record<string, FunnelConversation[]> = {
     { id: 'v3', name: 'Tasha Winters',                     message: 'Spoke with agent — scheduled for tire rotation Thu.',       location: 'San Francisco', assignee: 'Kelsy Hiltz',  date: 'Jun 10, 2025' },
     { id: 'v4', name: 'Omar Farouk',                       message: 'Robin: Was your question answered?',                        location: 'North Austin',  assignee: 'Frontdesk AI', date: 'Jun 9, 2025' },
   ],
-  'SMS': [
+  'Text': [
     { id: 't1', name: 'Brianna Cole',                      message: 'Hey, can I reschedule my 2pm to Friday instead?',           location: 'South Austin',  assignee: 'Frontdesk AI', date: '11:22 AM', unread: true },
     { id: 't2', name: 'Nathan Cruz',                       message: 'Texted back — confirmed appointment for Mon at 10am.',      location: 'North Austin',  assignee: 'Kelsy Hiltz',  date: '10:58 AM' },
     { id: 't3', name: 'Alicia Park',    verified: true,    message: 'Is the 2023 Civic still available? Saw it on your site.',   location: 'San Francisco', assignee: 'USA - Sales',  date: 'Jun 10, 2025' },
@@ -56,7 +56,7 @@ const CONVERSATIONS_BY_NODE: Record<string, FunnelConversation[]> = {
     { id: 'e2', name: 'Todd Bergman',                      message: 'Inquiry about extended warranty options for my Silverado.', location: 'North Austin',  assignee: 'Frontdesk AI', date: 'Jun 9, 2025' },
     { id: 'e3', name: 'Yvonne Santos',                     message: 'Can you email me the full service history for my vehicle?', location: 'South Austin',  assignee: 'Kelsy Hiltz',  date: 'Jun 8, 2025' },
   ],
-  'AI-driven': [
+  'AI agents': [
     { id: 'ai1', name: 'Marcus Thompson', verified: true,  message: 'AI scheduled test drive for Jun 14 at 11am.',              location: 'North Austin',  assignee: 'Frontdesk AI', date: '09:14 AM', unread: true },
     { id: 'ai2', name: 'Priya Nair',                       message: 'Service appointment booked for Sat 9am — confirmed.',      location: 'South Austin',  assignee: 'Frontdesk AI', date: '08:52 AM', unread: true },
     { id: 'ai3', name: 'Brianna Cole',                     message: 'AI handled rescheduling — new slot: Fri 2pm.',             location: 'South Austin',  assignee: 'Frontdesk AI', date: '11:22 AM' },
@@ -64,7 +64,7 @@ const CONVERSATIONS_BY_NODE: Record<string, FunnelConversation[]> = {
     { id: 'ai5', name: 'Nathan Cruz',                      message: 'Appointment reminder sent and acknowledged by customer.',  location: 'North Austin',  assignee: 'Frontdesk AI', date: 'Jun 10, 2025' },
     { id: 'ai6', name: 'Omar Farouk',                      message: 'AI resolved inquiry — FAQ response delivered.',            location: 'North Austin',  assignee: 'Frontdesk AI', date: 'Jun 9, 2025' },
   ],
-  'Human-driven': [
+  'Human agents': [
     { id: 'h1', name: 'Ray Castellano',                    message: 'Transferred — financing pre-approval requires human.',     location: 'South Austin',  assignee: 'USA - Sales',  date: '09:41 AM', unread: true },
     { id: 'h2', name: 'Grace Liu',                         message: 'Escalated — invoice discrepancy needs manager review.',    location: 'San Francisco', assignee: 'Kelsy Hiltz',  date: 'Jun 10, 2025', unread: true },
     { id: 'h3', name: 'Derek Okafor',                      message: 'Lease negotiation in progress with sales advisor.',        location: 'San Francisco', assignee: 'USA - Sales',  date: 'Jun 10, 2025' },
@@ -117,23 +117,21 @@ const SUMMARY_STATS = [
   { id: 'verified',   value: '1.5K', label: 'Insurances verified', delta: '10%',   trend: 'down' as const },
 ]
 
-// Funnel: Website/Voice/Text/Email → Agent-driven/Human-driven → Confirmed/Booking/Reschedule/Cancel
-// Removed No-show per design direction
-// 0-3: channels, 4-5: handled by, 6-10: outcomes
+// Funnel: Webchat/Voice/Text → AI agents/Human agents → Answered/Bookings/Rescheduled/Cancellations/Pending
+// 0-2: channels, 3-4: handled by, 5-9: outcomes
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Website 38%' }, { name: 'Voice 20%' }, { name: 'SMS 23%' }, { name: 'Email 19%' },
-  { name: 'AI-driven 72%' }, { name: 'Human-driven 28%' },
+  { name: 'Webchat 44%' }, { name: 'Voice 28%' }, { name: 'Text 28%' },
+  { name: 'AI agents 72%' }, { name: 'Human agents 28%' },
   { name: 'Answered 48%' }, { name: 'Bookings 18%' }, { name: 'Rescheduled 10%' }, { name: 'Cancellations 4%' }, { name: 'Pending 20%' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
-  { source: 0, target: 4, value: 28 }, { source: 0, target: 5, value: 10 },
-  { source: 1, target: 4, value: 20 }, { source: 1, target: 5, value: 8  },
-  { source: 2, target: 4, value: 18 }, { source: 2, target: 5, value: 5  },
-  { source: 3, target: 4, value: 6  }, { source: 3, target: 5, value: 5  },
-  { source: 4, target: 6, value: 38 }, { source: 4, target: 7, value: 13 },
-  { source: 4, target: 8, value: 7  }, { source: 4, target: 9, value: 1  }, { source: 4, target: 10, value: 13 },
-  { source: 5, target: 6, value: 10 }, { source: 5, target: 7, value: 5  },
-  { source: 5, target: 8, value: 3  }, { source: 5, target: 9, value: 3  }, { source: 5, target: 10, value: 7  },
+  { source: 0, target: 3, value: 32 }, { source: 0, target: 4, value: 12 },
+  { source: 1, target: 3, value: 22 }, { source: 1, target: 4, value: 8  },
+  { source: 2, target: 3, value: 18 }, { source: 2, target: 4, value: 8  },
+  { source: 3, target: 5, value: 38 }, { source: 3, target: 6, value: 13 },
+  { source: 3, target: 7, value: 7  }, { source: 3, target: 8, value: 1  }, { source: 3, target: 9, value: 13 },
+  { source: 4, target: 5, value: 10 }, { source: 4, target: 6, value: 5  },
+  { source: 4, target: 7, value: 3  }, { source: 4, target: 8, value: 3  }, { source: 4, target: 9, value: 7  },
 ]
 
 const OVERTIME_DATA = [
@@ -171,10 +169,9 @@ const CONV_OVERTIME_SERIES = [
 
 // Added Email as 4th segment
 const CHANNEL_DONUT = [
-  { name: 'Website', value: 32.5, color: '#9c27b0' },
-  { name: 'Voice',   value: 43.2, color: '#3f51b5' },
-  { name: 'SMS',    value: 14.3, color: '#f59e0b' },
-  { name: 'Email',   value: 10.0, color: '#4cae3d' },
+  { name: 'Webchat', value: 36.0, color: '#9c27b0' },
+  { name: 'Voice',   value: 48.0, color: '#3f51b5' },
+  { name: 'Text',    value: 16.0, color: '#f59e0b' },
 ]
 
 const INSURANCE_DATA = [
@@ -282,11 +279,11 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'conversation-status',   label: 'Conversation status',         options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
   { id: 'assigned-to',           label: 'Assigned to',                 options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
   { id: 'time-period',           label: 'Time period',                 options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
-  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'SMS', 'Email', 'Website', 'Chat') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
 ]
 
 export function HCFrontdeskOverviewScreen() {
-  const [dateRange, setDateRange] = useState('Last 6 months')
+  const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
   const [nodeDrawer, setNodeDrawer] = useState<string | null>(null)
   const [selectedConvo, setSelectedConvo] = useState<FunnelConversation | null>(null)
@@ -384,10 +381,9 @@ export function HCFrontdeskOverviewScreen() {
           <div className="grid grid-cols-2 gap-lg">
             <HCCard title="Conversations by channel" tooltip="Shows the last channel used in each unique conversation, broken down by channel type.">
               <ChartStatRow stats={[
-                { value: '4.4K', label: 'Website' },
+                { value: '4.4K', label: 'Webchat' },
                 { value: '2.4K', label: 'Voice'   },
-                { value: '1.4K', label: 'SMS'    },
-                { value: '974',  label: 'Email'   },
+                { value: '1.4K', label: 'Text'    },
               ]} />
               <DonutChart data={CHANNEL_DONUT} centerValue="6.8k" centerLabel="Total responses" />
             </HCCard>

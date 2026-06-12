@@ -22,6 +22,8 @@ export interface SankeyChartProps {
   columnHeaderTooltips?: Record<number, string>
   /** Per-node color overrides keyed by node index */
   nodeColors?: Record<number, string>
+  /** Node indices that should stay in a middle column (not jump to last). A hidden phantom node is added to anchor them. */
+  terminalNodes?: number[]
   /** Called when a node label is clicked, with the node name (without percentage) */
   onNodeClick?: (name: string) => void
 }
@@ -34,6 +36,7 @@ function makeNode(overrides?: Record<number, string>, onHover?: (idx: number | n
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function Node({ x, y, width, height, index, payload, containerWidth }: any) {
     const [hovered, setHovered] = useState(false)
+    if (payload?.name === '__phantom__') return null
     const cw = measuredWidth || containerWidth || 800
     const onRightEdge = x > cw - 60
     const fill = colorAt(index, overrides)
@@ -64,6 +67,7 @@ function makeNode(overrides?: Record<number, string>, onHover?: (idx: number | n
 function makeLink(overrides?: Record<number, string>, nameToIndex?: Map<string, number>) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function Link({ sourceX, sourceY, targetX, targetY, sourceControlX, targetControlX, linkWidth, payload }: any) {
+    if (payload?.target?.name === '__phantom__' || linkWidth < 0.5) return null
     const src = payload?.source
     // Recharts passes source as a node object — resolve to index via name lookup
     let srcIdx = 0
@@ -115,7 +119,7 @@ function BreakdownTooltip({ x, y, items }: BreakdownTooltipProps) {
   )
 }
 
-export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnHeaderTooltips, nodeColors, onNodeClick }: SankeyChartProps) {
+export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnHeaderTooltips, nodeColors, terminalNodes, onNodeClick }: SankeyChartProps) {
   const [hoverState, setHoverState] = useState<{ idx: number; x: number; y: number } | null>(null)
   const [headerTooltip, setHeaderTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
   const [measuredWidth, setMeasuredWidth] = useState(0)
@@ -134,7 +138,17 @@ export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnH
     else setHoverState(null)
   }, [nodes])
 
-  const nameToIndex = new Map(nodes.map((n, i) => [n.name, i]))
+  // Inject a hidden phantom node so terminalNodes don't jump to the last column.
+  // Recharts forces any node with no outgoing links to maxDepth — adding a tiny
+  // link to a phantom sink keeps them in their intended middle column.
+  const PHANTOM = '__phantom__'
+  const phantomIndex = nodes.length
+  const sankeyNodes: SankeyNode[] = terminalNodes?.length ? [...nodes, { name: PHANTOM }] : nodes
+  const sankeyLinks: SankeyLink[] = terminalNodes?.length
+    ? [...links, ...terminalNodes.map((i) => ({ source: i, target: phantomIndex, value: 0.001 }))]
+    : links
+
+  const nameToIndex = new Map(sankeyNodes.map((n, i) => [n.name, i]))
   const NodeComponent = makeNode(nodeColors, handleHover, measuredWidth, onNodeClick)
   const LinkComponent = makeLink(nodeColors, nameToIndex)
 
@@ -190,9 +204,9 @@ export function SankeyChart({ nodes, links, height = 360, columnHeaders, columnH
       })()}
       <ResponsiveContainer width="100%" height={height}>
         <Sankey
-          data={{ nodes, links: links.map((l) => {
-            const si = typeof l.source === 'string' ? nodes.findIndex((n) => n.name === l.source) : l.source
-            const ti = typeof l.target === 'string' ? nodes.findIndex((n) => n.name === l.target) : l.target
+          data={{ nodes: sankeyNodes, links: sankeyLinks.map((l) => {
+            const si = typeof l.source === 'string' ? sankeyNodes.findIndex((n) => n.name === l.source) : l.source
+            const ti = typeof l.target === 'string' ? sankeyNodes.findIndex((n) => n.name === l.target) : l.target
             return { ...l, source: si, target: ti }
           }) }}
           nodePadding={10}

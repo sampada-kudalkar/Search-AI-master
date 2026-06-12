@@ -37,7 +37,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
   { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
   { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
-  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'SMS', 'Email', 'Website', 'Chat') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
 ]
 
 // Healthcare chart card — uses the tune icon for the left action button
@@ -53,34 +53,31 @@ const SUMMARY_STATS = [
   { id: 'confirmRate',value: '23.7%', label: 'Appointment confirmation rate', delta: '20%',  trend: 'up'   as const },
 ]
 
-// 0=SMS, 1=Email, 2=Voice                           (channel)
+// 0=Text, 1=Voice, 2=Webchat                        (channel)
 // 3=Confirmed, 4=Declined & rescheduled, 5=Pending  (outcome)
 // 6=<1hr, 7=1-4hrs, 8=4-24hrs, 9=>24hrs            (time to confirm)
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'SMS (50.5%)' }, { name: 'Email (37.5%)' }, { name: 'Voice (12%)' },
+  { name: 'Text (56%)' }, { name: 'Voice (26%)' }, { name: 'Webchat (18%)' },
   { name: 'Confirmed (52.4%)' }, { name: 'Declined & rescheduled (21.8%)' }, { name: 'Pending (25.8%)' },
   { name: '<1hr (41.7%)' }, { name: '1-4hrs (31.3%)' }, { name: '4-24hrs (17.2%)' }, { name: '>24hrs (9.9%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   // channel → outcome
-  { source: 0, target: 3, value: 27 }, { source: 0, target: 4, value: 11 }, { source: 0, target: 5, value: 12 },
-  { source: 1, target: 3, value: 20 }, { source: 1, target: 4, value: 8  }, { source: 1, target: 5, value: 9  },
-  { source: 2, target: 3, value: 6  }, { source: 2, target: 4, value: 3  }, { source: 2, target: 5, value: 3  },
-  // outcome → time to confirm
+  { source: 0, target: 3, value: 30 }, { source: 0, target: 4, value: 13 }, { source: 0, target: 5, value: 14 },
+  { source: 1, target: 3, value: 15 }, { source: 1, target: 4, value: 6  }, { source: 1, target: 5, value: 7  },
+  { source: 2, target: 3, value: 8  }, { source: 2, target: 4, value: 3  }, { source: 2, target: 5, value: 5  },
+  // outcome → time to confirm (only Confirmed connects — Declined & rescheduled and Pending do not)
   { source: 3, target: 6, value: 22 }, { source: 3, target: 7, value: 17 }, { source: 3, target: 8, value: 9  }, { source: 3, target: 9, value: 5  },
-  { source: 4, target: 6, value: 9  }, { source: 4, target: 7, value: 7  }, { source: 4, target: 8, value: 4  }, { source: 4, target: 9, value: 2  },
-  { source: 5, target: 6, value: 11 }, { source: 5, target: 7, value: 8  }, { source: 5, target: 8, value: 4  }, { source: 5, target: 9, value: 3  },
 ]
-// same colors as previous version
 const FUNNEL_NODE_COLORS: Record<number, string> = {
-  0: '#1976d2', 1: '#00bcd4', 2: '#fbbf24',
+  0: '#1976d2', 1: '#fbbf24', 2: '#9c27b0',
   3: '#4cae3d', 4: '#de1b0c', 5: '#f59e0b',
 }
 
 const CHANNEL_DONUT = [
-  { name: 'Voice', value: 43.2, color: '#3f51b5' },
-  { name: 'Email', value: 32.5, color: '#e91e63' },
-  { name: 'SMS',   value: 24.3, color: '#f59e0b' },
+  { name: 'Text',    value: 56.0, color: '#1976d2' },
+  { name: 'Voice',   value: 26.0, color: '#fbbf24' },
+  { name: 'Webchat', value: 18.0, color: '#9c27b0' },
 ]
 
 const REMINDERS_DATA = [
@@ -135,7 +132,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
 ]
 
 export function HCNoShowsScreen() {
-  const [dateRange, setDateRange] = useState('Last 6 months')
+  const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 
   return (
@@ -145,8 +142,8 @@ export function HCNoShowsScreen() {
       <div className="flex flex-1 overflow-hidden">
       <div className="flex flex-1 flex-col overflow-auto bg-surface">
         <ReportHeader
-          title="Appointment confirmation"
-          subtitle="Insights into appointment confirmations across different channels and locations."
+          title="No-shows prevented"
+          subtitle="Insights into no-shows prevented across different channels and locations."
           rightSlot={
             <div className="flex items-center gap-sm">
               <DateRangeSelector
@@ -171,15 +168,22 @@ export function HCNoShowsScreen() {
           <SummaryStats stats={SUMMARY_STATS} />
 
           <HCCard title="Appointment confirmation funnel">
-            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Reminders sent by channel', 'Outcome', 'Time to confirm the appointment']} />
+            <SankeyChart
+              nodes={FUNNEL_NODES}
+              links={FUNNEL_LINKS}
+              height={400}
+              nodeColors={FUNNEL_NODE_COLORS}
+              terminalNodes={[4, 5]}
+              columnHeaders={['Reminders sent by channel', 'Outcome', 'Time to confirm the appointment']}
+            />
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">
             <HCCard title="Appointment confirmation by channel" tooltip="Shows the channel that sent the last reminder resulting in a confirmed appointment. Each conversation is counted once.">
               <ChartStatRow stats={[
-                { value: '4.4K', label: 'Voice' },
-                { value: '2.4K', label: 'Email' },
-                { value: '1.4K', label: 'SMS'   },
+                { value: '4.4K', label: 'Text'    },
+                { value: '2.4K', label: 'Voice'   },
+                { value: '1.4K', label: 'Webchat' },
               ]} />
               <DonutChart
                 data={CHANNEL_DONUT}
