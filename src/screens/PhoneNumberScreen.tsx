@@ -705,7 +705,7 @@ export function PhoneNumber2Screen() {
               <div className="mt-lg flex flex-col items-center gap-sm text-center">
                 <span className="text-h3 text-text-primary">Add phone number</span>
                 <span className="max-w-[420px] text-body text-text-tertiary">
-                  Add phone numbers and assign them to agents to start routing calls across your locations.
+                  Add phone numbers to start routing calls across your locations.
                 </span>
               </div>
               <button

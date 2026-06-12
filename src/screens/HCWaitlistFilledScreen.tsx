@@ -37,7 +37,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
   { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
   { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
-  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'SMS', 'Email', 'Website', 'Chat') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
 ]
 
 // Healthcare chart card — uses the tune icon for the left action button
@@ -54,23 +54,21 @@ const SUMMARY_STATS = [
   { id: 'avgTime',  value: '2.5 hrs',label: 'Avg fill time', delta: '20%', trend: 'down' as const },
 ]
 
-// 0=Voice, 1=SMS, 2=Chat, 3=Email       (channel)
-// 4=Confirmed, 5=Pending               (outcome)
-// 6=1-4hrs, 7=<1hr, 8=>24hr, 9=4-24hr (time to confirm)
+// 0=Voice, 1=Webchat, 2=Text             (channel)
+// 3=Confirmed, 4=Pending               (outcome)
+// 5=1-4hrs, 6=<1hr, 7=>24hr, 8=4-24hr (time to confirm)
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Voice (45.0%)' }, { name: 'Website (28.0%)' }, { name: 'SMS (17.0%)' }, { name: 'Email (10.0%)' },
+  { name: 'Voice (50.0%)' }, { name: 'Webchat (31.0%)' }, { name: 'Text (19.0%)' },
   { name: 'Confirmed (62.8%)' }, { name: 'Pending (37.2%)' },
   { name: '1-4hrs (31.3%)' }, { name: '<1hr (41.7%)' }, { name: '>24hr (9.9%)' }, { name: '4-24hr (17.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   // channel → outcome
-  { source: 0, target: 4, value: 28 }, { source: 0, target: 5, value: 17 },
-  { source: 1, target: 4, value: 18 }, { source: 1, target: 5, value: 10 },
-  { source: 2, target: 4, value: 11 }, { source: 2, target: 5, value: 6  },
-  { source: 3, target: 4, value: 6  }, { source: 3, target: 5, value: 4  },
+  { source: 0, target: 3, value: 32 }, { source: 0, target: 4, value: 19 },
+  { source: 1, target: 3, value: 20 }, { source: 1, target: 4, value: 12 },
+  { source: 2, target: 3, value: 11 }, { source: 2, target: 4, value: 6  },
   // outcome → time to confirm
-  { source: 4, target: 6, value: 20 }, { source: 4, target: 7, value: 26 }, { source: 4, target: 8, value: 6  }, { source: 4, target: 9, value: 11 },
-  { source: 5, target: 6, value: 10 }, { source: 5, target: 7, value: 13 }, { source: 5, target: 8, value: 4  }, { source: 5, target: 9, value: 10 },
+  { source: 3, target: 5, value: 20 }, { source: 3, target: 6, value: 26 }, { source: 3, target: 7, value: 6  }, { source: 3, target: 8, value: 11 },
 ]
 // outcome overrides — channels inherit categorical defaults
 const FUNNEL_NODE_COLORS: Record<number, string> = { 4: '#4cae3d', 5: '#f59e0b' }
@@ -109,9 +107,8 @@ interface ChannelRow {
 }
 const CHANNEL_DATA: ChannelRow[] = [
   { channel: 'Voice',   outreachSent: 986, responded: 562, responseRate: '57.0%', responseDelta: '+4%', slotsFilled: 312, fillRate: '31.6%', fillDelta: '+4%' },
-  { channel: 'Website', outreachSent: 748, responded: 390, responseRate: '52.1%', responseDelta: '+2%', slotsFilled: 218, fillRate: '29.1%', fillDelta: '+2%' },
-  { channel: 'SMS',     outreachSent: 612, responded: 298, responseRate: '48.7%', responseDelta: '-2%', slotsFilled: 164, fillRate: '26.8%', fillDelta: '-2%' },
-  { channel: 'Email',   outreachSent: 484, responded: 148, responseRate: '30.6%', responseDelta: '+1%', slotsFilled: 78,  fillRate: '16.1%', fillDelta: '+1%' },
+  { channel: 'Webchat', outreachSent: 748, responded: 390, responseRate: '52.1%', responseDelta: '+2%', slotsFilled: 218, fillRate: '29.1%', fillDelta: '+2%' },
+  { channel: 'Text',     outreachSent: 612, responded: 298, responseRate: '48.7%', responseDelta: '-2%', slotsFilled: 164, fillRate: '26.8%', fillDelta: '-2%' },
 ]
 const CHANNEL_COLUMNS: Column<ChannelRow>[] = [
   { key: 'channel',      label: 'Channel',       width: 140, sortable: true },
@@ -165,7 +162,7 @@ const WAITLIST_LOCATION_COLUMNS: Column<WaitlistLocationRow>[] = [
 ]
 
 export function HCWaitlistFilledScreen() {
-  const [dateRange, setDateRange] = useState('Last 6 months')
+  const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 
   return (
@@ -201,7 +198,14 @@ export function HCWaitlistFilledScreen() {
           <SummaryStats stats={SUMMARY_STATS} />
 
           <HCCard title="Waitlist funnel">
-            <SankeyChart nodes={FUNNEL_NODES} links={FUNNEL_LINKS} height={400} nodeColors={FUNNEL_NODE_COLORS} columnHeaders={['Waitlist reminders sent by channel', 'Outcome', 'Time to confirm']} />
+            <SankeyChart
+              nodes={FUNNEL_NODES}
+              links={FUNNEL_LINKS}
+              height={400}
+              nodeColors={FUNNEL_NODE_COLORS}
+              terminalNodes={[4]}
+              columnHeaders={['Waitlist reminders sent by channel', 'Outcome', 'Time to confirm']}
+            />
           </HCCard>
 
           <div className="grid grid-cols-2 gap-lg">

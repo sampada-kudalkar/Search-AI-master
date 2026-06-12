@@ -163,7 +163,7 @@ const HEALTHCARE_NAV_SECTIONS: NavSection[] = [
     label: 'Outcomes',
     items: [
       { id: 'hc-frontdesk-overview', label: 'Frontdesk overview' },
-      { id: 'hc-no-shows',           label: 'Appointment confirmation' },
+      { id: 'hc-no-shows',           label: 'No-shows prevented'      },
       { id: 'hc-waitlist',           label: 'Waitlist filled'    },
       { id: 'hc-intakes',            label: 'Intakes completed'  },
     ],

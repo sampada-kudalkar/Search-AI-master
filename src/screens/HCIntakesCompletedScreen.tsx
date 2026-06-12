@@ -37,7 +37,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'conversation-status',   label: 'Conversation status',             options: opts('Open', 'Closed', 'Pending', 'Escalated', 'Unread') },
   { id: 'assigned-to',           label: 'Assigned to',                     options: opts('Frontdesk AI', 'Kelsy Hiltz', 'USA - Sales', 'Marcus Webb', 'Ana Reyes', 'Unassigned') },
   { id: 'time-period',           label: 'Time period',                     options: opts('Today', 'Yesterday', 'Last 7 days', 'Last 30 days', 'Last 3 months', 'Last 6 months', 'Last 12 months') },
-  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'SMS', 'Email', 'Website', 'Chat') },
+  { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
 ]
 
 // Healthcare chart card — uses the tune icon for the left action button
@@ -54,23 +54,22 @@ const SUMMARY_STATS = [
   { id: 'avgTime',     value: '8.5 m', label: 'Avg completion time',  delta: '20%',   trend: 'down' as const },
 ]
 
-// 0=Website, 1=Voice, 2=SMS, 3=Email           (channel)
-// 4=New patient, 5=Returning patient           (patient type)
-// 6=Completed, 7=In-progress, 8=Pending        (outcome)
+// 0=Webchat, 1=Voice, 2=Text             (channel)
+// 3=New patient, 4=Returning patient   (patient type)
+// 5=Completed, 6=In-progress, 7=Pending (outcome)
 const FUNNEL_NODES: SankeyNode[] = [
-  { name: 'Website (28.4%)' }, { name: 'Voice (35.2%)' }, { name: 'SMS (22.1%)' }, { name: 'Email (14.3%)' },
+  { name: 'Webchat (33.0%)' }, { name: 'Voice (41.0%)' }, { name: 'Text (26.0%)' },
   { name: 'New patient (57.4%)' }, { name: 'Returning patient (42.6%)' },
   { name: 'Completed (52.4%)' }, { name: 'In-progress (13.4%)' }, { name: 'Pending (34.2%)' },
 ]
 const FUNNEL_LINKS: SankeyLink[] = [
   // channel → patient type
-  { source: 0, target: 4, value: 16 }, { source: 0, target: 5, value: 12 },
-  { source: 1, target: 4, value: 20 }, { source: 1, target: 5, value: 15 },
-  { source: 2, target: 4, value: 13 }, { source: 2, target: 5, value: 9  },
-  { source: 3, target: 4, value: 7  }, { source: 3, target: 5, value: 6  },
+  { source: 0, target: 3, value: 19 }, { source: 0, target: 4, value: 14 },
+  { source: 1, target: 3, value: 24 }, { source: 1, target: 4, value: 17 },
+  { source: 2, target: 3, value: 14 }, { source: 2, target: 4, value: 10 },
   // patient type → outcome
-  { source: 4, target: 6, value: 30 }, { source: 4, target: 7, value: 8  }, { source: 4, target: 8, value: 18 },
-  { source: 5, target: 6, value: 21 }, { source: 5, target: 7, value: 6  }, { source: 5, target: 8, value: 15 },
+  { source: 3, target: 5, value: 30 }, { source: 3, target: 6, value: 8  }, { source: 3, target: 7, value: 18 },
+  { source: 4, target: 5, value: 21 }, { source: 4, target: 6, value: 6  }, { source: 4, target: 7, value: 15 },
 ]
 // outcome overrides only — channels and patient type inherit categorical defaults
 const FUNNEL_NODE_COLORS: Record<number, string> = { 7: '#f5a623', 8: '#de1b0c' }
@@ -95,9 +94,9 @@ const PATIENT_TYPE_DONUT = [
 ]
 
 const CHANNEL_DONUT = [
-  { name: 'SMS',   value: 43.2, color: '#3f51b5' },
-  { name: 'Email', value: 32.5, color: '#e91e63' },
-  { name: 'Call',  value: 24.3, color: '#f59e0b' },
+  { name: 'Voice',   value: 41.0, color: '#3f51b5' },
+  { name: 'Webchat', value: 33.0, color: '#e91e63' },
+  { name: 'Text',    value: 26.0, color: '#f59e0b' },
 ]
 
 function deltaSpan(delta: string) {
@@ -138,7 +137,7 @@ const LOCATION_COLUMNS: Column<LocationRow>[] = [
 ]
 
 export function HCIntakesCompletedScreen() {
-  const [dateRange, setDateRange] = useState('Last 6 months')
+  const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 
   return (
@@ -203,9 +202,9 @@ export function HCIntakesCompletedScreen() {
             <HCCard title="Completion by channel">
               <ChartStatRow stats={[
                 { value: '4.4K', label: 'Forms sent' },
-                { value: '2.4K', label: 'SMS'        },
-                { value: '1.4K', label: 'Email'      },
-                { value: '974',  label: 'Call'       },
+                { value: '2.4K', label: 'Voice'      },
+                { value: '1.8K', label: 'Webchat'    },
+                { value: '1.4K', label: 'Text'       },
               ]} />
               <DonutChart
                 data={CHANNEL_DONUT}
