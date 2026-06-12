@@ -491,12 +491,6 @@ export function AutoAppointmentTypeScreen() {
             <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
               <Icon name="search" size={20} />
             </button>
-            <button type="button" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="view_column" size={20} />
-            </button>
-            <button type="button" onClick={() => setFilterOpen(o => !o)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
-              <Icon name="filter_list" size={20} />
-            </button>
             <div className="relative w-[200px]">
               <button
                 type="button"
@@ -523,6 +517,15 @@ export function AutoAppointmentTypeScreen() {
             </button>
             <button type="button" onClick={() => setCreateDrawerOpen(true)} className="flex h-9 items-center rounded-sm bg-primary px-lg text-body text-white transition-colors hover:bg-primary-hover">
               Create new
+            </button>
+            <button type="button" onClick={() => setCustomizeOpen(true)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="view_column" size={20} />
+            </button>
+            <button type="button" className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="more_vert" size={20} />
+            </button>
+            <button type="button" onClick={() => setFilterOpen(o => !o)} className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2">
+              <Icon name="filter_list" size={20} />
             </button>
           </div>
         </div>
