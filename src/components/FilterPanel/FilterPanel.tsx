@@ -9,6 +9,7 @@ export function FilterPanel({
   fields,
   selections: controlledSelections,
   onSelectionsChange,
+  onClose,
   onAdvancedFilters,
   onSelectionChange,
 }: FilterPanelProps) {
@@ -20,10 +21,6 @@ export function FilterPanel({
   function updateSelections(next: Record<string, string[]>) {
     if (onSelectionsChange) onSelectionsChange(next)
     else setInternalSelections(next)
-  }
-
-  function updateSelections(next: Record<string, string[]>) {
-    setSelections(next)
     onSelectionChange?.(next)
   }
 
@@ -41,15 +38,25 @@ export function FilterPanel({
 
   return (
     <div
-      className={`h-full shrink-0 overflow-hidden border-l border-border bg-surface transition-[width] duration-200 ${
+      className={`flex h-full min-h-0 shrink-0 flex-col self-stretch overflow-hidden border-l border-border bg-surface transition-[width] duration-200 ${
         open ? 'w-[280px]' : 'w-0 border-l-0'
       }`}
       aria-hidden={!open}
     >
       <div className="flex h-full w-[280px] flex-col">
         {/* Header */}
-        <div className="flex h-[68px] shrink-0 items-center px-xl py-lg">
+        <div className="flex h-[68px] shrink-0 items-center justify-between px-xl py-lg">
           <h2 className="text-h3 text-text-primary">Filter</h2>
+          {onClose && (
+            <button
+              type="button"
+              aria-label="Close filter"
+              onClick={onClose}
+              className="flex size-7 items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover"
+            >
+              <Icon name="close" size={20} />
+            </button>
+          )}
         </div>
 
         {/* Fields — scrollable, padded bottom so content clears the sticky footer */}
@@ -108,8 +115,8 @@ export function FilterPanel({
               options={activeField.options ?? []}
               value={selections[activeField.id] ?? []}
               multi={activeField.multi ?? true}
+              searchable={false}
               onChange={(val) => updateSelections({ ...selections, [activeField.id]: val })}
-              onApply={() => setOpenId(null)}
             />
           </div>
         </>
