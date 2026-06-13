@@ -519,7 +519,7 @@ function GapLegend() {
               className="size-2 shrink-0 rounded-full"
               style={{ backgroundColor: GAP_COLOR[t] }}
             />
-            <span className="text-small text-text-tertiary">{GAP_LABEL[t]}</span>
+            <span className="text-small text-text-tertiary">{GAP_LABEL[t]} ({counts[t]})</span>
           </div>
         ))}
       </div>
@@ -1054,11 +1054,13 @@ function Toast({ data, onDismiss }: { data: ToastData; onDismiss: () => void }) 
 
 function DetailPanel({
   rec,
+  recStatus,
   onReject,
   onAccept,
   onToast,
 }: {
   rec: Recommendation
+  recStatus: RecStatus
   onReject: (id: string) => void
   onAccept: (id: string) => void
   onToast: (data: ToastData) => void
@@ -1077,6 +1079,7 @@ function DetailPanel({
       <ConversationsDrawer rec={rec} open={convsOpen} onClose={() => setConvsOpen(false)} />
       <DetailPanelInner
         rec={rec}
+        recStatus={recStatus}
         expanded={expanded}
         setExpanded={setExpanded}
         applyOpen={applyOpen}
@@ -1095,6 +1098,7 @@ function DetailPanel({
 
 function DetailPanelInner({
   rec,
+  recStatus,
   expanded,
   setExpanded,
   applyOpen,
@@ -1108,6 +1112,7 @@ function DetailPanelInner({
   onToast,
 }: {
   rec: Recommendation
+  recStatus: RecStatus
   expanded: boolean
   setExpanded: (v: boolean) => void
   applyOpen: boolean
@@ -1129,16 +1134,13 @@ function DetailPanelInner({
         {/* Title + CTAs */}
         <div>
           <div className="flex items-start justify-between gap-md">
-            <div className="flex items-center gap-sm">
+            <div className="flex min-w-0 flex-wrap items-center gap-sm">
               <Icon name={GAP_ICON[rec.gapType]} size={20} className="mt-0.5 shrink-0 text-text-icon" />
-              <h2 className="text-h2 text-text-primary">{rec.title}</h2>
-              <span className={`inline-flex items-center rounded-sm px-sm py-[2px] text-small ${
-                rec.isNew
-                  ? 'bg-chip-success-bg text-chip-success-text'
-                  : 'bg-chip-neutral-bg text-chip-neutral-text'
-              }`}>
-                {rec.isNew ? 'New' : 'Modified'}
-              </span>
+              <h2 className="text-h2 text-text-primary">
+                {rec.title}
+                <span className="text-text-tertiary"> · {rec.isNew ? 'New' : 'Modified'}</span>
+              </h2>
+              <Chip label={rec.priority} variant={PRIORITY_VARIANT[rec.priority]} />
             </div>
             <div className="flex shrink-0 items-center gap-sm">
               <button
@@ -1149,6 +1151,15 @@ function DetailPanelInner({
                 <Icon name="play_arrow" size={16} className="text-text-icon" />
                 Test
               </button>
+              {recStatus === 'accepted' ? (
+                <button
+                  type="button"
+                  onClick={() => onToast({ message: `"${rec.title}" has been added to the procedure library.` })}
+                  className="flex h-9 items-center gap-xs rounded-sm border border-border-selected bg-surface px-lg text-body text-text-primary hover:bg-surface-l2"
+                >
+                  Add to library
+                </button>
+              ) : (
               <div className="relative">
                 <div className="flex h-9 overflow-hidden rounded-sm">
                   <button
@@ -1211,6 +1222,7 @@ function DetailPanelInner({
                   </>
                 )}
               </div>
+              )}
             </div>
           </div>
 
@@ -1408,7 +1420,7 @@ export function RecommendationsTab() {
 
       {/* Right panel */}
       {rec ? (
-        <DetailPanel key={rec.id} rec={rec} onReject={handleReject} onAccept={handleAccept} onToast={showToast} />
+        <DetailPanel key={rec.id} rec={rec} recStatus={getRecStatus(rec.id, rejected, accepted)} onReject={handleReject} onAccept={handleAccept} onToast={showToast} />
       ) : (
         <div className="flex flex-1 items-center justify-center text-small text-text-tertiary">
           No recommendations match these filters.
