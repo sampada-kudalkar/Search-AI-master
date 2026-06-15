@@ -258,7 +258,7 @@ export function AgentInstanceScreen({
   const isWorkflowTab = activeTab === 'workflow'
   const isRecommendationTab = activeTab === 'recommendation'
   const showHealthcareLogs =
-    activeTab === 'logs' && product === 'healthcare' && agentName === 'Front desk agent'
+    activeTab === 'logs' && agentName === 'Front desk agent'
 
   return (
     <div className="flex h-full flex-col">

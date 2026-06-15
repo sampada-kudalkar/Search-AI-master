@@ -320,7 +320,7 @@ function WebChatSettings() {
       <div className="flex flex-col gap-sm">
         <CheckboxRow
           label="Resolve button"
-          description="A quick reply button patients can tap when their question is answered"
+          description="A quick reply button customers can tap when their question is answered"
           checked={resolvedEnabled}
           onChange={setResolvedEnabled}
         />
@@ -341,7 +341,7 @@ function WebChatSettings() {
       <div className="flex flex-col gap-sm">
         <CheckboxRow
           label="Escalation button"
-          description="A quick reply button patients can tap to reach a team member"
+          description="A quick reply button customers can tap to reach a team member"
           checked={escalationEnabled}
           onChange={setEscalationEnabled}
         />
@@ -655,7 +655,7 @@ type RecordingMode = 'off' | 'announced'
 export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTabProps) {
   const [voice, setVoice] = useState('Andrea (warm, clear, reassuring)')
   const [greeting, setGreeting] = useState(
-    'Thank you for calling Rock Dental Brands — my name is Myna, your virtual assistant. How can I help you today?'
+    'Thank you for calling — my name is Myna, your virtual assistant. How can I help you today?'
   )
   const [recording, setRecording] = useState<RecordingMode>('announced')
   const [consent, setConsent] = useState(
