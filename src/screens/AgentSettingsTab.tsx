@@ -1,11 +1,11 @@
 import { useState, useRef, type MouseEvent } from 'react'
 import { Icon, IntegrationsPickerDrawer, RefChip } from '../components'
 import {
-  DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
-  DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
-  getHealthcareIntegration,
-  HEALTHCARE_INTEGRATION_CATALOG,
-} from '../data/healthcareIntegrations'
+  DEFAULT_AUTO_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+  DEFAULT_AUTO_AGENT_SELECTED_INTEGRATION_ID,
+  getAutomotiveIntegration,
+  AUTOMOTIVE_INTEGRATION_CATALOG,
+} from '../data/automotiveIntegrations'
 
 interface AgentSettingsTabProps {
   product?: string
@@ -662,10 +662,10 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
     'This call may be recorded for quality and training purposes.'
   )
   const [accountConnectedIntegrationIds, setAccountConnectedIntegrationIds] = useState<string[]>(
-    DEFAULT_ACCOUNT_CONNECTED_INTEGRATION_IDS,
+    DEFAULT_AUTO_ACCOUNT_CONNECTED_INTEGRATION_IDS,
   )
   const [agentSelectedIntegrationId, setAgentSelectedIntegrationId] = useState<string | null>(
-    DEFAULT_AGENT_SELECTED_INTEGRATION_ID,
+    DEFAULT_AUTO_AGENT_SELECTED_INTEGRATION_ID,
   )
   const [voiceCallEnabled, setVoiceCallEnabled] = useState(true)
   const [webChatEnabled, setWebChatEnabled] = useState(true)
@@ -673,7 +673,7 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
   const [integrationDrawerOpen, setIntegrationDrawerOpen] = useState(false)
 
   const agentIntegration = agentSelectedIntegrationId
-    ? getHealthcareIntegration(agentSelectedIntegrationId)
+    ? getAutomotiveIntegration(agentSelectedIntegrationId)
     : undefined
 
   const removeAgentIntegration = () => {
@@ -825,7 +825,7 @@ export function AgentSettingsTab({ onOpenIntegrationSettings }: AgentSettingsTab
           )}
           <IntegrationsPickerDrawer
             open={integrationDrawerOpen}
-            integrations={HEALTHCARE_INTEGRATION_CATALOG}
+            integrations={AUTOMOTIVE_INTEGRATION_CATALOG}
             connectedIds={accountConnectedIntegrationIds}
             selectedId={agentSelectedIntegrationId}
             onClose={() => setIntegrationDrawerOpen(false)}
