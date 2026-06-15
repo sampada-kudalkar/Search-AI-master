@@ -97,6 +97,7 @@ export function VoicemailMessage({ variant = 'voicemail', transcript, summary, d
       normalize: true,
       interact: true,
     })
+    ws.setMuted(true)
 
     ws.load(audioUrl)
     ws.on('ready', () => setWsReady(true))

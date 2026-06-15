@@ -49,6 +49,7 @@ export function VoiceChatDrawer({ open, messages, summary, audioUrl, durationSec
       normalize: true,
       interact: true,
     })
+    ws.setMuted(true)
 
     ws.load(audioUrl)
     ws.on('ready', () => setWsReady(true))
