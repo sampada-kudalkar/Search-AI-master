@@ -161,7 +161,7 @@ const WAITLIST_LOCATION_COLUMNS: Column<WaitlistLocationRow>[] = [
   { key: 'avgFillTime', label: 'Avg fill time', width: 160, sortable: true },
 ]
 
-export function HCWaitlistFilledScreen() {
+export function HCWaitlistFilledScreen(_props: { isDental?: boolean }) {
   const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
 

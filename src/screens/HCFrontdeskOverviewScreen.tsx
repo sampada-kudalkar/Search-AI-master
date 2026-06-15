@@ -282,7 +282,7 @@ const FILTER_FIELDS: FilterField[] = [
   { id: 'last-incoming-channel', label: 'Last incoming message (Channel)', options: opts('Voice', 'Text', 'Webchat', 'Chat') },
 ]
 
-export function HCFrontdeskOverviewScreen() {
+export function HCFrontdeskOverviewScreen(_props: { isDental?: boolean }) {
   const [dateRange, setDateRange] = useState('Last 3 months')
   const [filterOpen, setFilterOpen] = useState(false)
   const [nodeDrawer, setNodeDrawer] = useState<string | null>(null)
