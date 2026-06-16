@@ -228,11 +228,11 @@ export function HCWaitlistFilledScreen({ isDental }: HCWaitlistFilledScreenProps
           </div>
 
           <HCCard title="Outreach channel performance" tooltip="Shows performance metrics per outreach channel, using the most recent channel for each unique appointment.">
-            <DataTable columns={CHANNEL_COLUMNS} data={CHANNEL_DATA} />
+            <DataTable columns={CHANNEL_COLUMNS} data={CHANNEL_DATA} scrollOnHover={isDental} />
           </HCCard>
 
           <HCCard title="Waitlist by location">
-            <DataTable columns={WAITLIST_LOCATION_COLUMNS} data={WAITLIST_LOCATION_DATA} />
+            <DataTable columns={WAITLIST_LOCATION_COLUMNS} data={WAITLIST_LOCATION_DATA} scrollOnHover={isDental} />
           </HCCard>
 
         </div>
