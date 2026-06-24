@@ -156,11 +156,16 @@ If a component exists here, import it — do not recreate it.
 | DonutChart | components/charts/DonutChart.tsx | data[] ({name,value,color}), centerValue?, centerLabel?, height? — Recharts donut |
 | SankeyChart | components/charts/SankeyChart.tsx | nodes[], links[] ({source,target,value}), height? — Recharts Sankey flow |
 | Heatmap | components/charts/Heatmap.tsx | rowLabels[], colLabels[], values[][] — CSS-grid intensity heatmap |
+| CardHeader | components/CardHeader/CardHeader.tsx | title, subtitle?, toolbar?: ReactNode — shared card header (title text-text-secondary 16px, subtitle text-small 12px, toolbar slot for icon buttons) |
+| CardTabs | components/CardTabs/CardTabs.tsx | same props as Tabs — wraps Tabs with border-b separator; use instead of bare Tabs inside cards |
+| TrendLineChart | components/charts/TrendLineChart.tsx | data: TrendPoint[], series?: SeriesConfig[], height?, color?, yDomain?, yTickFormatter? — single or multi-series Recharts line chart |
 | chartColors | components/charts/chartColors.ts | shared on-brand chart palette (import as `chartColors`) |
 | InfoCard | components/InfoCard/InfoCard.tsx | title, description, actionLabel?, onAction? — library grid card; layout spec in `InfoCard.types.ts` (`INFO_CARD_LAYOUT`: 192px height, p-lg/16px padding, title line-clamp-2, description line-clamp-3, CTA fades in on hover) |
 | InfoCardListItem | components/InfoCard/InfoCardListItem.tsx | title, description, actionLabel?, onAction?, first? — library list row; title text-text-primary, description line-clamp-2, three-dot menu + "Use agent" on row hover (`INFO_CARD_LIST_ITEM_LAYOUT`) |
 | RefChip | components/RefChip/RefChip.tsx | kind ('tool'\|'context'\|'subagent'\|'procedure'\|'file'\|'link'), label, onRemove?, className? — reference chip that **reuses the workflow editor's `VariableChip.module.css`** (left colored swatch + divider, white body, per-type border) so procedure Tools/Context chips match the workflow variable fields. Maps kind→workflow chip type: context→variable (blue brackets), tool→Tool, file→Attachment, link→Link, subagent→Address, procedure→Product. Used inline in the Steps editor and in the Tools/Context side panels |
 | ContextModal | components/ContextModal/ContextModal.tsx | open, onClose, onSave(result) — centered 1200px modal for adding LLM context: Fields (search + Business accordion with Name/Source/Sample/Anonymize/Show-in-output), Knowledge (files/links), Brand (checkbox list), Industry (toggle); Save commits enabled selections |
+| CompetitorMetricsCard | components/CompetitorMetricsCard/CompetitorMetricsCard.tsx | rows: CompetitorRowData[] — card with platform tabs (ChatGPT/Gemini/Perplexity), comparison table (visibility score, citation share, avg rank), "You" teal pill badge, external link on competitor hover |
+| CompetitorRankingCard | components/CompetitorRankingCard/CompetitorRankingCard.tsx | rows: PromptRankingRow[] — platform-tabbed card (7 AI platforms) showing Rank 1–5 per prompt/theme; expandable rows with chevron; "You" teal pill badge; reuses CardHeader + CardTabs |
 
 ### How to add a component to this registry
 
@@ -603,6 +608,7 @@ Before calling any screen done, verify:
 | Copy Figma Title Case into labels ("Intake Details") | Sentence case — first word only ("Intake details") — see §6.8 |
 | Invent a new header / button / switcher / menu look | Copy the exact shared-chrome classes (§6.7) from the Human-actions pages |
 | Build the full screen at once without checking components | Audit registry → build missing components → compose screen |
+| Create a new component without checking if an existing one covers the need | Check the Component Registry (§5) and explore whether existing components handle it via `render`, `rowAction`, props, etc. If a new component is genuinely needed, **ask the user for approval before building it** |
 
 ---
 

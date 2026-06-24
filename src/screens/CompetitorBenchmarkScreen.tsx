@@ -1,10 +1,42 @@
 import { useState, useRef, useEffect } from 'react'
-import { Icon } from '../components'
+import { Icon, CompetitorRankingCard } from '../components'
+import { CardTabs } from '../components/CardTabs/CardTabs'
 import { CompetitorMetricsCard } from '../components/CompetitorMetricsCard'
-import { COMPETITORS, COMPETITOR_BRAND_DATA, DEFAULT_SELECTED, REPORT_DATE, type Competitor } from '../data/competitorData'
+import { ChartCard } from '../components/charts/ChartCard'
+import { ChartCardButton } from '../components/charts/ChartCardButton'
+import { TrendLineChart, type SeriesConfig } from '../components/charts/TrendLineChart'
+import {
+  COMPETITORS,
+  COMPETITOR_BRAND_DATA,
+  DEFAULT_SELECTED,
+  REPORT_DATE,
+  PLATFORMS,
+  TREND_DATA,
+  TREND_SERIES_COLORS,
+  PROMPT_RANKING_DATA,
+  type Competitor,
+  type CompetitorRowData,
+  type Platform,
+} from '../data/competitorData'
 
-export function CompetitorBenchmarkScreen(): JSX.Element {
+const SERIES_KEYS = ['comp1', 'comp2', 'comp3', 'comp4', 'comp5'] as const
+
+export function CompetitorBenchmarkScreen({
+  onCompetitorClick,
+}: {
+  onCompetitorClick?: (row: CompetitorRowData) => void
+}): JSX.Element {
   const [selected, setSelected] = useState<string[]>(DEFAULT_SELECTED)
+  const [trendPlatform, setTrendPlatform] = useState<Platform>('ChatGPT')
+
+  const trendSeries: SeriesConfig[] = [
+    { key: 'you', label: 'You', color: TREND_SERIES_COLORS['you'] },
+    ...SERIES_KEYS.slice(0, selected.length).map((key, i) => ({
+      key,
+      label: selected[i],
+      color: TREND_SERIES_COLORS[key],
+    })),
+  ]
 
   return (
     <div className="flex flex-col bg-[#f5f5f5] h-full w-full overflow-y-auto">
@@ -58,7 +90,45 @@ export function CompetitorBenchmarkScreen(): JSX.Element {
           rows={COMPETITOR_BRAND_DATA.filter(
             (r) => r.isYou || selected.includes(r.name)
           )}
+          onRowClick={onCompetitorClick}
         />
+
+        <CompetitorRankingCard rows={PROMPT_RANKING_DATA} />
+
+        {/* Trend chart card */}
+        <ChartCard
+          title="How are your key Search AI metrics compared to competitors"
+          subtitle="Track how your Search AI metrics like visibility, citation share and ranking changes against competitors"
+          toolbar={<ChartCardButton icon="auto_awesome" label="AI insights" iconClassName="text-[#6834b7]" />}
+          showActions
+        >
+          <CardTabs
+            tabs={PLATFORMS.map((p) => ({ id: p, label: p }))}
+            activeTab={trendPlatform}
+            onChange={(id) => setTrendPlatform(id as Platform)}
+          />
+          <div className="mt-xl">
+            <TrendLineChart
+              data={TREND_DATA[trendPlatform as keyof typeof TREND_DATA]}
+              series={trendSeries}
+              height={300}
+              yDomain={[0, 100]}
+              yTickFormatter={(v) => `${v}%`}
+            />
+          </div>
+          {/* Legend */}
+          <div className="mt-xl flex flex-wrap items-center gap-xl">
+            {trendSeries.map((s) => (
+              <div key={s.key} className="flex items-center gap-xs">
+                <span
+                  className="inline-block size-3 rounded-full"
+                  style={{ backgroundColor: s.color }}
+                />
+                <span className="text-[12px] text-text-secondary">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </ChartCard>
       </div>
     </div>
   )

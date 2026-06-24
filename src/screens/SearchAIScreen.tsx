@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Icon, TopNav, type NavSection } from '../components'
 import { CompetitorBenchmarkScreen } from './CompetitorBenchmarkScreen'
+import { CompetitorDetailScreen } from './CompetitorDetailScreen'
+import type { CompetitorRowData } from '../data/competitorData'
 
 const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
   {
@@ -154,15 +156,35 @@ function SearchAISideNav({
 
 export function SearchAIScreen() {
   const [navActive, setNavActive] = useState('overview')
+  const [competitorDetail, setCompetitorDetail] = useState<CompetitorRowData | null>(null)
+
+  function handleNavSelect(id: string) {
+    setNavActive(id)
+    setCompetitorDetail(null)
+  }
+
+  if (competitorDetail) {
+    return (
+      <div className="flex h-full w-full">
+        <SearchAISideNav activeId={navActive} onSelect={handleNavSelect} />
+        <main className="flex flex-1 flex-col overflow-hidden">
+          <CompetitorDetailScreen
+            initialCompetitor={competitorDetail}
+            onBack={() => setCompetitorDetail(null)}
+          />
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full w-full">
-      <SearchAISideNav activeId={navActive} onSelect={setNavActive} />
+      <SearchAISideNav activeId={navActive} onSelect={handleNavSelect} />
       <main className="flex flex-1 flex-col overflow-hidden">
         <div className="flex h-full flex-col">
           <TopNav initials="S" />
           {navActive === 'by-brand' ? (
-            <CompetitorBenchmarkScreen />
+            <CompetitorBenchmarkScreen onCompetitorClick={setCompetitorDetail} />
           ) : (
             <div className="flex flex-1 items-center justify-center text-body text-text-secondary">
               {LABEL_MAP[navActive] ?? navActive}

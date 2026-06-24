@@ -4,17 +4,18 @@ export interface ChartCardButtonProps {
   icon: string
   label: string
   onClick?: () => void
+  iconClassName?: string
 }
 
-export function ChartCardButton({ icon, label, onClick }: ChartCardButtonProps) {
+export function ChartCardButton({ icon, label, onClick, iconClassName = 'text-text-icon' }: ChartCardButtonProps) {
   return (
     <button
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex size-8 shrink-0 items-center justify-center rounded-sm border border-border-chart-btn bg-surface text-text-icon transition-colors hover:bg-surface-hover"
+      className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-l2 transition-colors"
     >
-      <Icon name={icon} size={18} />
+      <Icon name={icon} size={16} className={iconClassName} />
     </button>
   )
 }

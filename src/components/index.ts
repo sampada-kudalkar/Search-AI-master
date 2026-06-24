@@ -1,3 +1,8 @@
+export { CompetitorRankingCard } from './CompetitorRankingCard/CompetitorRankingCard'
+export type { CompetitorRankingCardProps } from './CompetitorRankingCard/CompetitorRankingCard.types'
+export { CardHeader } from './CardHeader/CardHeader'
+export type { CardHeaderProps } from './CardHeader/CardHeader'
+export { CardTabs } from './CardTabs/CardTabs'
 export { Chip } from './Chip/Chip'
 export { InfoTooltip } from './InfoTooltip/InfoTooltip'
 export { TestCallModal } from './TestCallModal/TestCallModal'
@@ -115,3 +120,4 @@ export type { DateRangeSelectorProps } from './DateRangeSelector/DateRangeSelect
 export type { ReportHeaderProps } from './ReportHeader/ReportHeader.types'
 export type { InfoCardProps, InfoCardListItemProps } from './InfoCard/InfoCard.types'
 export { INFO_CARD_LAYOUT, INFO_CARD_LIST_ITEM_LAYOUT } from './InfoCard/InfoCard.types'
+export { CompetitorMetricsCard } from './CompetitorMetricsCard'
