@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Icon } from '../components'
 import { CompetitorMetricsCard } from '../components/CompetitorMetricsCard'
 import { COMPETITORS, COMPETITOR_BRAND_DATA, DEFAULT_SELECTED, REPORT_DATE, type Competitor } from '../data/competitorData'
@@ -75,6 +75,19 @@ function CompetitorSelector({
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+        setQuery('')
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [open])
 
   function removeChip(name: string) {
     onChange(selected.filter((s) => s !== name))
@@ -93,7 +106,7 @@ function CompetitorSelector({
   )
 
   return (
-    <div className="relative w-full">
+    <div ref={containerRef} className="relative w-full">
       {/* Card */}
       <div className="bg-surface rounded-md border border-border p-xl w-full">
         <p className="text-small text-text-secondary mb-xs">Competitor</p>
@@ -167,7 +180,7 @@ function CompetitorDropdown({
   onToggle: (name: string) => void
 }) {
   return (
-    <div className="absolute left-0 top-full z-50 mt-xs w-full rounded-sm bg-surface p-xl shadow-dropdown">
+    <div className="absolute left-0 top-full z-50 mt-xs w-[630px] rounded-sm bg-surface p-xl shadow-dropdown">
       {/* Search input */}
       <div className="flex h-9 items-center gap-sm rounded-sm border border-primary px-sm">
         <Icon name="search" size={16} className="text-text-tertiary shrink-0" />
@@ -180,16 +193,20 @@ function CompetitorDropdown({
         />
       </div>
 
-      {/* Competitor rows */}
-      <div className="mt-xl flex flex-col gap-xl">
+      {/* Competitor rows — max 5 visible, rest scrollable */}
+      <div className="mt-xl max-h-[280px] overflow-y-auto flex flex-col gap-xl pr-xs">
         {competitors.map((c) => {
           const isChecked = selected.includes(c.name)
+          const atLimit = selected.length >= 5
+          const isDisabled = !isChecked && atLimit
           return (
             <button
               key={c.name}
               type="button"
-              onClick={() => onToggle(c.name)}
-              className="flex items-center gap-sm w-full text-left hover:bg-surface-hover rounded-sm px-xs"
+              onClick={() => !isDisabled && onToggle(c.name)}
+              disabled={isDisabled}
+              title={isDisabled ? 'Only 5 competitors can be added. Please remove one to add another.' : undefined}
+              className={`flex items-center gap-sm w-full text-left rounded-sm px-xs ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-surface-hover cursor-pointer'}`}
             >
               {/* Avatar */}
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-chip-neutral-bg text-small text-text-secondary">
@@ -208,7 +225,7 @@ function CompetitorDropdown({
                   <Icon name="check" size={16} className="text-white" />
                 </span>
               ) : (
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border border-control-border" />
+                <span className={`flex size-6 shrink-0 items-center justify-center rounded-sm border ${isDisabled ? 'border-control-disabled bg-surface' : 'border-control-border'}`} />
               )}
             </button>
           )
