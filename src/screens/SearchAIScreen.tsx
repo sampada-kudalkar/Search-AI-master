@@ -139,7 +139,7 @@ function SearchAISideNav({
                       activeId === leaf.id ? 'bg-surface-selected' : 'hover:bg-surface-selected'
                     }`}
                   >
-                    <span className="min-w-0 flex-1 truncate text-body font-light text-text-primary">
+                    <span className="min-w-0 flex-1 truncate text-body text-text-primary">
                       {leaf.label}
                     </span>
                   </button>
