@@ -198,7 +198,7 @@ function CompetitorDropdown({
 
               {/* Name + hint */}
               <span className="flex flex-1 flex-col">
-                <span className="text-[13px] text-text-primary">{c.name}</span>
+                <span className="text-small text-text-primary">{c.name}</span>
                 <span className="text-small text-text-tertiary">{c.hint}</span>
               </span>
 
