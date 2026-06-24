@@ -203,10 +203,8 @@ function CompetitorDropdown({
             <button
               key={c.name}
               type="button"
-              onClick={() => !isDisabled && onToggle(c.name)}
-              disabled={isDisabled}
-              title={isDisabled ? 'Only 5 competitors can be added. Please remove one to add another.' : undefined}
-              className={`flex items-center gap-sm w-full text-left rounded-sm px-xs ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-surface-hover cursor-pointer'}`}
+              onClick={() => { if (!isDisabled) onToggle(c.name) }}
+              className="flex items-center gap-sm w-full text-left rounded-sm px-xs hover:bg-surface-hover"
             >
               {/* Avatar */}
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-chip-neutral-bg text-small text-text-secondary">
@@ -219,13 +217,16 @@ function CompetitorDropdown({
                 <span className="text-small text-text-tertiary">{c.hint}</span>
               </span>
 
-              {/* Checkbox */}
+              {/* Checkbox — only this is disabled when limit reached */}
               {isChecked ? (
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-sm bg-primary">
                   <Icon name="check" size={16} className="text-white" />
                 </span>
               ) : (
-                <span className={`flex size-6 shrink-0 items-center justify-center rounded-sm border ${isDisabled ? 'border-control-disabled bg-surface' : 'border-control-border'}`} />
+                <span
+                  className={`flex size-6 shrink-0 items-center justify-center rounded-sm border ${isDisabled ? 'border-control-disabled bg-surface opacity-50 cursor-not-allowed' : 'border-control-border'}`}
+                  title={isDisabled ? 'Only 5 competitors can be added. Please remove one to add another.' : undefined}
+                />
               )}
             </button>
           )
