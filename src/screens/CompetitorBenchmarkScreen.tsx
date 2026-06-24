@@ -106,7 +106,7 @@ function CompetitorSelector({
                   type="button"
                   aria-label={`Remove ${name}`}
                   onClick={() => removeChip(name)}
-                  className="flex items-center"
+                  className="flex items-center rounded-sm"
                 >
                   <Icon name="close" size={16} className="text-text-icon" />
                 </button>
@@ -122,7 +122,7 @@ function CompetitorSelector({
               setOpen((o) => !o)
               setQuery('')
             }}
-            className="flex shrink-0 items-center"
+            className="flex shrink-0 items-center rounded-sm"
           >
             <Icon
               name={open ? 'expand_less' : 'expand_more'}
