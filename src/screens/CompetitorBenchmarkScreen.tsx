@@ -58,11 +58,102 @@ export function CompetitorBenchmarkScreen(): JSX.Element {
   )
 }
 
-// Placeholder — implemented in Task 3
-function CompetitorSelector(_props: {
+function CompetitorSelector({
+  competitors,
+  selected,
+  onChange,
+}: {
   competitors: Competitor[]
   selected: string[]
   onChange: (next: string[]) => void
-}): null {
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+
+  function removeChip(name: string) {
+    onChange(selected.filter((s) => s !== name))
+  }
+
+  function toggleItem(name: string) {
+    if (selected.includes(name)) {
+      onChange(selected.filter((s) => s !== name))
+    } else {
+      onChange([...selected, name])
+    }
+  }
+
+  const filtered = competitors.filter((c) =>
+    c.name.toLowerCase().includes(query.toLowerCase())
+  )
+
+  return (
+    <div className="relative w-full">
+      {/* Card */}
+      <div className="bg-surface rounded-md border border-border p-xl w-full">
+        <p className="text-small text-text-secondary mb-xs">Competitor</p>
+
+        {/* Chip input row */}
+        <div className="flex items-center gap-sm rounded-sm border border-border min-h-9 px-sm py-xs">
+          {/* Chips */}
+          <div className="flex flex-1 flex-wrap gap-xs">
+            {selected.map((name) => (
+              <span
+                key={name}
+                className="flex items-center gap-xs rounded-sm bg-chip-neutral-bg px-sm py-xs text-small text-text-primary"
+              >
+                {name}
+                <button
+                  type="button"
+                  aria-label={`Remove ${name}`}
+                  onClick={() => removeChip(name)}
+                  className="flex items-center"
+                >
+                  <Icon name="close" size={16} className="text-text-icon" />
+                </button>
+              </span>
+            ))}
+          </div>
+
+          {/* Toggle chevron */}
+          <button
+            type="button"
+            aria-label={open ? 'Close competitor list' : 'Open competitor list'}
+            onClick={() => {
+              setOpen((o) => !o)
+              setQuery('')
+            }}
+            className="flex shrink-0 items-center"
+          >
+            <Icon
+              name={open ? 'expand_less' : 'expand_more'}
+              size={20}
+              className="text-text-icon"
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Dropdown panel — rendered in Task 4 */}
+      {open && (
+        <CompetitorDropdown
+          competitors={filtered}
+          selected={selected}
+          query={query}
+          onQueryChange={setQuery}
+          onToggle={toggleItem}
+        />
+      )}
+    </div>
+  )
+}
+
+// Placeholder — implemented in Task 4
+function CompetitorDropdown(_props: {
+  competitors: Competitor[]
+  selected: string[]
+  query: string
+  onQueryChange: (q: string) => void
+  onToggle: (name: string) => void
+}) {
   return null
 }
