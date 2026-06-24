@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Icon } from '../components'
-import { COMPETITORS, DEFAULT_SELECTED, REPORT_DATE, type Competitor } from '../data/competitorData'
+import { CompetitorMetricsCard } from '../components/CompetitorMetricsCard'
+import { COMPETITORS, COMPETITOR_BRAND_DATA, DEFAULT_SELECTED, REPORT_DATE, type Competitor } from '../data/competitorData'
 
 export function CompetitorBenchmarkScreen(): JSX.Element {
   const [selected, setSelected] = useState<string[]>(DEFAULT_SELECTED)
@@ -20,6 +21,7 @@ export function CompetitorBenchmarkScreen(): JSX.Element {
           {/* Month selector — static display */}
           <button
             type="button"
+            aria-label="Select report month"
             className="flex items-center gap-sm rounded-sm border border-border bg-surface px-md py-sm text-body text-text-primary hover:bg-surface-hover"
           >
             {REPORT_DATE}
@@ -46,12 +48,16 @@ export function CompetitorBenchmarkScreen(): JSX.Element {
         </div>
       </div>
 
-      {/* Competitor selector + cards will be added below */}
-      <div className="flex flex-col gap-xl px-2xl">
+      <div className="flex flex-col gap-xl px-2xl pb-2xl">
         <CompetitorSelector
           competitors={COMPETITORS}
           selected={selected}
           onChange={setSelected}
+        />
+        <CompetitorMetricsCard
+          rows={COMPETITOR_BRAND_DATA.filter(
+            (r) => r.isYou || selected.includes(r.name)
+          )}
         />
       </div>
     </div>
@@ -147,13 +153,71 @@ function CompetitorSelector({
   )
 }
 
-// Placeholder — implemented in Task 4
-function CompetitorDropdown(_props: {
+function CompetitorDropdown({
+  competitors,
+  selected,
+  query,
+  onQueryChange,
+  onToggle,
+}: {
   competitors: Competitor[]
   selected: string[]
   query: string
   onQueryChange: (q: string) => void
   onToggle: (name: string) => void
 }) {
-  return null
+  return (
+    <div className="absolute left-0 top-full z-50 mt-xs w-full rounded-sm bg-surface p-xl shadow-dropdown">
+      {/* Search input */}
+      <div className="flex h-9 items-center gap-sm rounded-sm border border-primary px-sm">
+        <Icon name="search" size={16} className="text-text-tertiary shrink-0" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder="Search for competitors"
+          className="flex-1 bg-transparent text-body text-text-primary placeholder:text-text-tertiary outline-none"
+        />
+      </div>
+
+      {/* Competitor rows */}
+      <div className="mt-xl flex flex-col gap-xl">
+        {competitors.map((c) => {
+          const isChecked = selected.includes(c.name)
+          return (
+            <button
+              key={c.name}
+              type="button"
+              onClick={() => onToggle(c.name)}
+              className="flex items-center gap-sm w-full text-left hover:bg-surface-hover rounded-sm px-xs"
+            >
+              {/* Avatar */}
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-chip-neutral-bg text-small text-text-secondary">
+                {c.name.charAt(0).toUpperCase()}
+              </span>
+
+              {/* Name + hint */}
+              <span className="flex flex-1 flex-col">
+                <span className="text-[13px] text-text-primary">{c.name}</span>
+                <span className="text-small text-text-tertiary">{c.hint}</span>
+              </span>
+
+              {/* Checkbox */}
+              {isChecked ? (
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-sm bg-primary">
+                  <Icon name="check" size={16} className="text-white" />
+                </span>
+              ) : (
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-sm border border-control-border" />
+              )}
+            </button>
+          )
+        })}
+
+        {competitors.length === 0 && (
+          <p className="text-body text-text-tertiary text-center py-sm">No competitors found</p>
+        )}
+      </div>
+    </div>
+  )
 }

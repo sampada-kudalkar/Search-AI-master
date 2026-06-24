@@ -98,8 +98,8 @@ function SearchAISideNav({
   }
 
   return (
-    <aside className="flex h-full w-[222px] flex-col border-r border-border bg-surface-l2">
-      <div className="flex h-[52px] shrink-0 flex-col justify-center px-2xl">
+    <aside className="flex h-full w-56 flex-col border-r border-border bg-surface-l2">
+      <div className="flex h-14 shrink-0 flex-col justify-center px-2xl">
         <h1 className="text-h3 text-text-primary">Search AI</h1>
       </div>
       <nav className="flex flex-1 flex-col gap-xs overflow-y-auto px-lg py-sm">
@@ -108,7 +108,7 @@ function SearchAISideNav({
           type="button"
           aria-current={activeId === 'overview' ? 'page' : undefined}
           onClick={() => onSelect('overview')}
-          className={`flex h-7 w-full items-center rounded-sm px-sm py-[6px] text-left transition-colors ${
+          className={`flex h-7 w-full items-center rounded-sm px-sm py-xs text-left transition-colors ${
             activeId === 'overview' ? 'bg-surface-selected' : 'hover:bg-surface-selected'
           }`}
         >
@@ -123,7 +123,7 @@ function SearchAISideNav({
               <button
                 type="button"
                 onClick={() => handleSectionClick(section)}
-                className="flex h-7 w-full items-center justify-between gap-sm rounded-sm px-sm py-[6px] hover:bg-surface-selected"
+                className="flex h-7 w-full items-center justify-between gap-sm rounded-sm px-sm py-xs hover:bg-surface-selected"
               >
                 <span className="text-body text-text-primary">{section.label}</span>
                 <Icon name={isExpanded ? 'expand_less' : 'expand_more'} size={20} className="text-text-icon" />
@@ -135,7 +135,7 @@ function SearchAISideNav({
                     type="button"
                     aria-current={activeId === leaf.id ? 'page' : undefined}
                     onClick={() => onSelect(leaf.id)}
-                    className={`flex h-7 w-full items-center rounded-sm px-sm py-[6px] text-left transition-colors ${
+                    className={`flex h-7 w-full items-center rounded-sm px-sm py-xs text-left transition-colors ${
                       activeId === leaf.id ? 'bg-surface-selected' : 'hover:bg-surface-selected'
                     }`}
                   >
