@@ -129,6 +129,7 @@ export function CompetitorBenchmarkScreen({
             ))}
           </div>
         </ChartCard>
+
       </div>
     </div>
   )

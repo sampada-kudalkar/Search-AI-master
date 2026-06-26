@@ -1,4 +1,4 @@
-import type { RankingEntry, PromptRankingRow } from '../../data/competitorData'
+import type { RankingEntry, PromptRankingRow, ByLocationTableRow, RankingPlatform } from '../../data/competitorData'
 
 export type { RankingEntry }
 
@@ -14,6 +14,6 @@ export interface FlatRankingRow extends Record<string, unknown> {
   rank5?: RankingEntry
 }
 
-export interface CompetitorRankingCardProps {
-  rows: PromptRankingRow[]
-}
+export type CompetitorRankingCardProps =
+  | { mode?: 'themes'; rows: PromptRankingRow[] }
+  | { mode: 'locations'; data: Record<RankingPlatform, ByLocationTableRow[]> }

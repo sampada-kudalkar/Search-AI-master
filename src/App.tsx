@@ -268,8 +268,8 @@ const AGENT_NAMES: Record<string, string> = {
 
 
 export function App() {
-  const [railActive, setRailActive] = useState('frontdesk')
-  const [navActive, setNavActive] = useState('manage-appointments')
+  const [railActive, setRailActive] = useState('search')
+  const [navActive, setNavActive] = useState('by-brand')
   const [editingAgentName, setEditingAgentName] = useState<string | null>(null)
   const [wizardAgentDraft, setWizardAgentDraft] = useState<WizardAgentDraft | null>(null)
   const [activeProduct, setActiveProduct] = useState('healthcare')

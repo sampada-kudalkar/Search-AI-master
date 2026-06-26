@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Icon, TopNav, type NavSection } from '../components'
 import { CompetitorBenchmarkScreen } from './CompetitorBenchmarkScreen'
 import { CompetitorDetailScreen } from './CompetitorDetailScreen'
+import { CompetitorByLocationScreen } from './CompetitorByLocationScreen'
 import type { CompetitorRowData } from '../data/competitorData'
 
 const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
@@ -165,7 +166,7 @@ export function SearchAIScreen() {
 
   if (competitorDetail) {
     return (
-      <div className="flex h-full w-full">
+      <div className="flex h-full w-full min-h-0">
         <SearchAISideNav activeId={navActive} onSelect={handleNavSelect} />
         <main className="flex flex-1 flex-col overflow-hidden">
           <CompetitorDetailScreen
@@ -185,6 +186,8 @@ export function SearchAIScreen() {
           <TopNav initials="S" />
           {navActive === 'by-brand' ? (
             <CompetitorBenchmarkScreen onCompetitorClick={setCompetitorDetail} />
+          ) : navActive === 'by-location' ? (
+            <CompetitorByLocationScreen />
           ) : (
             <div className="flex flex-1 items-center justify-center text-body text-text-secondary">
               {LABEL_MAP[navActive] ?? navActive}

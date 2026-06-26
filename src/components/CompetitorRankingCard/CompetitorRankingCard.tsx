@@ -4,12 +4,19 @@ import { CardHeader } from '../CardHeader/CardHeader'
 import { CardTabs } from '../CardTabs/CardTabs'
 import { DataTable } from '../DataTable/DataTable'
 import type { Column } from '../DataTable/DataTable.types'
-import { TREND_PLATFORMS, type TrendPlatform } from '../../data/competitorData'
+import {
+  TREND_PLATFORMS,
+  RANKING_PLATFORMS,
+  type TrendPlatform,
+  type RankingPlatform,
+  type ByLocationTableRow,
+  type Quadrant,
+} from '../../data/competitorData'
 import type { CompetitorRankingCardProps, FlatRankingRow, RankingEntry } from './CompetitorRankingCard.types'
 
-const PLATFORM_TABS = TREND_PLATFORMS.map((p) => ({ id: p, label: p }))
+// ── Shared rank cell (avatar + text) ─────────────────────────────────────────
 
-function RankCell({ entry }: { entry?: RankingEntry }) {
+function RankCell({ entry }: { entry?: RankingEntry | { name: string; isYou?: boolean } }) {
   if (!entry) return <span className="text-small text-text-tertiary">—</span>
   if (entry.isYou) {
     return (
@@ -28,7 +35,33 @@ function RankCell({ entry }: { entry?: RankingEntry }) {
   )
 }
 
-function buildColumns(
+// ── Performance chip (locations mode only) ────────────────────────────────────
+
+const PERFORMANCE_STYLES: Record<Quadrant, string> = {
+  leading:         'text-chip-success-text',
+  lagging:         'text-chip-danger-text',
+  emerging:        'text-text-tertiary',
+  underperforming: 'text-chip-warning-text',
+}
+
+const PERFORMANCE_LABELS: Record<Quadrant, string> = {
+  leading: 'Leading',
+  lagging: 'Lagging',
+  emerging: 'Emerging',
+  underperforming: 'Underperforming',
+}
+
+function PerformanceChip({ value }: { value: Quadrant }) {
+  return (
+    <span className={`text-small ${PERFORMANCE_STYLES[value]}`}>
+      {PERFORMANCE_LABELS[value]}
+    </span>
+  )
+}
+
+// ── Themes mode columns ───────────────────────────────────────────────────────
+
+function buildThemeColumns(
   expandedIds: Set<string>,
   onToggle: (id: string) => void,
 ): Column<FlatRankingRow>[] {
@@ -105,18 +138,134 @@ function buildColumns(
   ]
 }
 
-export function CompetitorRankingCard({ rows }: CompetitorRankingCardProps) {
+// ── Locations mode columns ────────────────────────────────────────────────────
+
+const LOCATION_COLUMNS: Column<ByLocationTableRow>[] = [
+  {
+    key: 'location',
+    label: 'Locations',
+    width: 200,
+    sortable: true,
+  },
+  {
+    key: 'performance',
+    label: 'Performance',
+    width: 160,
+    sortable: true,
+    render: (val) => <PerformanceChip value={val as Quadrant} />,
+  },
+  {
+    key: 'rank1',
+    label: 'Rank 1',
+    width: 148,
+    render: (val) => <RankCell entry={val as { name: string; isYou?: boolean }} />,
+  },
+  {
+    key: 'rank2',
+    label: 'Rank 2',
+    width: 148,
+    render: (val) => <RankCell entry={val as { name: string; isYou?: boolean }} />,
+  },
+  {
+    key: 'rank3',
+    label: 'Rank 3',
+    width: 148,
+    render: (val) => <RankCell entry={val as { name: string; isYou?: boolean }} />,
+  },
+  {
+    key: 'rank4',
+    label: 'Rank 4',
+    width: 148,
+    render: (val) => <RankCell entry={val as { name: string; isYou?: boolean }} />,
+  },
+  {
+    key: 'rank5',
+    label: 'Rank 5',
+    width: 148,
+    render: (val) => <RankCell entry={val as { name: string; isYou?: boolean }} />,
+  },
+]
+
+// ── Shared toolbar ────────────────────────────────────────────────────────────
+
+const TOOLBAR = (
+  <>
+    <button
+      type="button"
+      className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
+      title="Search"
+    >
+      <Icon name="search" size={16} className="text-text-icon" />
+    </button>
+    <button
+      type="button"
+      className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
+      title="Summarize"
+    >
+      <Icon name="auto_awesome" size={16} className="text-[#6834b7]" />
+    </button>
+    <button
+      type="button"
+      className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
+      title="More options"
+    >
+      <Icon name="more_vert" size={16} className="text-text-icon" />
+    </button>
+  </>
+)
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+export function CompetitorRankingCard(props: CompetitorRankingCardProps) {
+  const isLocations = props.mode === 'locations'
+
+  // ── Locations mode ──
+  const [activeLocationPlatform, setActiveLocationPlatform] = useState<RankingPlatform>('ChatGPT')
+  const locationPlatformTabs = RANKING_PLATFORMS.map((p) => ({ id: p, label: p }))
+
+  if (isLocations) {
+    const rows = props.data[activeLocationPlatform]
+    return (
+      <div className="w-full rounded-md border border-border bg-surface overflow-hidden">
+        <div className="px-[20px] py-[16px]">
+          <CardHeader
+            title="How are you ranking vs competitors for visibility score"
+            subtitle="Discover locations where your visibility has the highest impact across AI platforms"
+            toolbar={TOOLBAR}
+          />
+        </div>
+        <div className="px-[24px]">
+          <CardTabs
+            tabs={locationPlatformTabs}
+            activeTab={activeLocationPlatform}
+            onChange={(id) => setActiveLocationPlatform(id as RankingPlatform)}
+          />
+        </div>
+        <div className="px-2xl pb-2xl">
+          <DataTable<ByLocationTableRow>
+            columns={LOCATION_COLUMNS}
+            data={rows}
+            rowHeight={56}
+          />
+        </div>
+      </div>
+    )
+  }
+
+  // ── Themes mode (default) ──
+  return <ThemesCard rows={props.rows} />
+}
+
+function ThemesCard({ rows }: { rows: import('../../data/competitorData').PromptRankingRow[] }) {
   const [activePlatform, setActivePlatform] = useState<TrendPlatform>('ChatGPT')
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const platformTabs = TREND_PLATFORMS.map((p) => ({ id: p, label: p }))
 
   function toggleExpand(id: string) {
     setExpandedIds((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }
@@ -144,7 +293,7 @@ export function CompetitorRankingCard({ rows }: CompetitorRankingCardProps) {
     }
   }
 
-  const columns = buildColumns(expandedIds, toggleExpand)
+  const columns = buildThemeColumns(expandedIds, toggleExpand)
 
   return (
     <div className="w-full rounded-md border border-border bg-surface overflow-hidden">
@@ -172,21 +321,19 @@ export function CompetitorRankingCard({ rows }: CompetitorRankingCardProps) {
           }
         />
       </div>
-
-      <CardTabs
-        tabs={PLATFORM_TABS}
-        activeTab={activePlatform}
-        onChange={(id) => setActivePlatform(id as TrendPlatform)}
-      />
-
+      <div className="px-[24px]">
+        <CardTabs
+          tabs={platformTabs}
+          activeTab={activePlatform}
+          onChange={(id) => setActivePlatform(id as TrendPlatform)}
+        />
+      </div>
       <div className="px-2xl pb-2xl">
         <DataTable<FlatRankingRow>
           columns={columns}
           data={flatRows}
           rowHeight={68}
-          rowClassName={(row) =>
-            row._isHeader ? '' : 'bg-surface-hover'
-          }
+          rowClassName={(row) => (row._isHeader ? '' : 'bg-surface-hover')}
         />
       </div>
     </div>

@@ -9,20 +9,30 @@ import { PLATFORMS, Platform, CompetitorRowData } from '../../data/competitorDat
 
 const PLATFORM_TABS = PLATFORMS.map((p) => ({ id: p, label: p }))
 
-function buildColumns(activeTab: Platform): Column<CompetitorRowData>[] {
+function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../data/competitorData').CompetitorRowData): Column<CompetitorRowData>[] {
   return [
     {
       key: 'name',
       label: 'Competitors',
       width: 260,
-      render: (_val, row) =>
-        row.isYou ? (
-          <div className="inline-flex items-center rounded-full bg-gradient-to-b from-[#0f7195] to-[#094459] border border-white px-[8px] py-[4px]">
-            <span className="text-small text-white leading-[16px]">You</span>
-          </div>
-        ) : (
-          <span className="text-body text-text-primary truncate">{row.name}</span>
-        ),
+      render: (_val, row) => (
+        <div className="flex items-center gap-sm">
+          {row.isYou ? (
+            <span className="shrink-0 px-[8px] py-[2px] rounded-full text-small text-white bg-gradient-to-b from-[#0f7195] to-[#094459] border border-white">
+              You
+            </span>
+          ) : (
+            <>
+              <span className="text-body text-text-primary truncate">{row.name}</span>
+              {selectedCompetitor?.name === row.name && (
+                <span className="shrink-0 px-[8px] py-[4px] rounded-[4px] text-small text-[#555] bg-[#eaeaea]">
+                  Selected
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      ),
     },
     {
       key: 'metrics',
@@ -71,9 +81,9 @@ function buildColumns(activeTab: Platform): Column<CompetitorRowData>[] {
   ]
 }
 
-export function CompetitorMetricsCard({ rows, onRowClick }: CompetitorMetricsCardProps) {
+export function CompetitorMetricsCard({ rows, onRowClick, selectedCompetitor }: CompetitorMetricsCardProps) {
   const [activeTab, setActiveTab] = useState<Platform>('ChatGPT')
-  const columns = buildColumns(activeTab)
+  const columns = buildColumns(activeTab, selectedCompetitor)
 
   return (
     <div className="w-full rounded-md border border-border bg-surface overflow-hidden">
@@ -117,7 +127,7 @@ export function CompetitorMetricsCard({ rows, onRowClick }: CompetitorMetricsCar
         <DataTable<CompetitorRowData>
           columns={columns}
           data={rows}
-          rowHeight={68}
+          rowHeight={56}
           rowAction={{
             icon: 'arrow_forward',
             label: 'View details',
