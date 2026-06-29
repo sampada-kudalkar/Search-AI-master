@@ -156,21 +156,21 @@ export function CompetitorDetailScreen({
             {/* Card 1 — Summary */}
             <SummaryStats title="Summary" stats={summaryStats} />
 
-            {/* Card 2 — Citation share */}
-            <CitationShareCard rows={COMPETITOR_BRAND_DATA} selectedCompetitor={selected} pageContext={pageContext} />
-
-            {/* Card 3 — Visibility across themes */}
+            {/* Card 2 — Visibility across themes */}
             <VisibilityAcrossThemesCard
               rows={COMPETITOR_BRAND_DATA}
               selectedCompetitor={selected}
               pageContext={pageContext}
             />
 
-            {/* Card 4 — Theme visibility */}
+            {/* Card 3 — Theme visibility */}
             {false && <ThemeVisibilityCard />}
 
-            {/* Card 5 — Share of voice */}
+            {/* Card 4 — Share of voice */}
             <ShareOfVoiceCard selectedCompetitor={selected} />
+
+            {/* Card 5 — Citation share */}
+            <CitationShareCard rows={COMPETITOR_BRAND_DATA} selectedCompetitor={selected} pageContext={pageContext} />
 
             {/* Card 6 — Average position */}
             <AveragePositionCard selectedCompetitor={selected} />
