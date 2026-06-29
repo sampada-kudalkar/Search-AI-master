@@ -2,18 +2,14 @@ import { useState } from 'react'
 
 function ArrowDiagonalIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <mask id="cmc-arrow-mask" style={{ maskType: 'alpha' }} maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="29">
-        <rect y="14.1426" width="20" height="20" transform="rotate(-45 0 14.1426)" fill="#D9D9D9"/>
-      </mask>
-      <g mask="url(#cmc-arrow-mask)">
-        <path d="M17.3016 11.8668L10.6067 18.5617C10.4813 18.6871 10.334 18.7498 10.1648 18.7498C9.99557 18.7498 9.84825 18.6871 9.72285 18.5617C9.59744 18.4363 9.53475 18.289 9.53476 18.1198C9.53476 17.9506 9.59746 17.8033 9.72286 17.6778L16.4177 10.983L12.5376 10.983C12.3624 10.983 12.2166 10.9237 12.1003 10.8051C11.9839 10.6865 11.9227 10.5388 11.9167 10.362C11.9167 10.1792 11.9745 10.027 12.0901 9.90536C12.2056 9.78373 12.3548 9.72291 12.5376 9.72292L17.816 9.72293C17.9263 9.72293 18.0234 9.74219 18.1072 9.78072C18.1911 9.81923 18.2685 9.874 18.3395 9.94502C18.4106 10.016 18.4653 10.0935 18.5038 10.1773C18.5424 10.2612 18.5616 10.3583 18.5616 10.4685L18.5616 15.7469C18.5616 15.9222 18.5008 16.0695 18.3792 16.1888C18.2576 16.3082 18.1054 16.3679 17.9225 16.3679C17.7458 16.3618 17.5981 16.3025 17.4795 16.19C17.3609 16.0774 17.3016 15.9297 17.3016 15.7469L17.3016 11.8668Z" fill="#303030"/>
-      </g>
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10.7234 5.06704L4.02859 11.7619C3.90319 11.8873 3.75588 11.95 3.58666 11.95C3.41744 11.95 3.27013 11.8873 3.14472 11.7619C3.01932 11.6365 2.95662 11.4892 2.95663 11.32C2.95663 11.1508 3.01933 11.0034 3.14474 10.878L9.8396 4.18318L5.95952 4.18318C5.78426 4.18318 5.63846 4.12388 5.52213 4.00527C5.40579 3.88668 5.3446 3.73899 5.33855 3.56221C5.33856 3.3794 5.39635 3.22718 5.51193 3.10555C5.62751 2.98392 5.77671 2.92311 5.95952 2.92312L11.2379 2.92312C11.3482 2.92312 11.4453 2.94238 11.5291 2.98091C11.613 3.01943 11.6904 3.0742 11.7614 3.14521C11.8324 3.21623 11.8872 3.29366 11.9257 3.37751C11.9643 3.46137 11.9835 3.55845 11.9835 3.66874L11.9835 8.94711C11.9835 9.12236 11.9227 9.26967 11.8011 9.38904C11.6795 9.50839 11.5272 9.56807 11.3444 9.56808C11.1676 9.56203 11.02 9.50273 10.9013 9.39017C10.7827 9.2776 10.7234 9.12992 10.7234 8.94711L10.7234 5.06704Z" fill="currentColor"/>
     </svg>
   )
 }
 import { Icon } from '../Icon/Icon'
 import { AiIcon } from '../AiIcon/AiIcon'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import { DataTable } from '../DataTable/DataTable'
 import type { Column } from '../DataTable/DataTable.types'
 import { CardHeader } from '../CardHeader/CardHeader'
@@ -23,7 +19,26 @@ import { PLATFORMS, Platform, CompetitorRowData } from '../../data/competitorDat
 
 const PLATFORM_TABS = PLATFORMS.map((p) => ({ id: p, label: p }))
 
-function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../data/competitorData').CompetitorRowData): Column<CompetitorRowData>[] {
+const VISIBILITY_TOOLTIP = {
+  brand: 'See how frequently you are mentioned in AI-generated answers compared to competitors',
+  location: 'See how frequently your location is mentioned in AI-generated answers compared to competitors',
+}
+const CITATION_SHARE_TOOLTIP = 'See the percentage of all citations that come from your website. This helps you analyse how often your content is being used as a source in AI generated answers'
+const AVG_RANK_TOOLTIP = {
+  brand: 'See the average rank of your brand in AI-generated answers. For example, if your brand is usually listed first, average position will be close to one. A lower average position means your brand is more likely mentioned at the top.',
+  location: 'See the average rank of your location in AI-generated answers. For example, if your brand is usually listed first, average position will be close to one. A lower average position means your brand is more likely mentioned at the top.',
+}
+
+function ColHeader({ text, tooltip }: { text: string; tooltip: string }) {
+  return (
+    <div className="flex items-center gap-xs">
+      <span>{text}</span>
+      <InfoTooltip text={tooltip} />
+    </div>
+  )
+}
+
+function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../data/competitorData').CompetitorRowData, pageContext: 'brand' | 'location' = 'brand'): Column<CompetitorRowData>[] {
   return [
     {
       key: 'name',
@@ -37,7 +52,7 @@ function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../da
             </span>
           ) : (
             <>
-              <span className="text-body text-text-primary truncate">{row.name}</span>
+              <span className="text-body text-text-primary group-hover/row:text-text-action truncate">{row.name}</span>
               {selectedCompetitor?.name === row.name && (
                 <span className="shrink-0 px-[8px] py-[4px] rounded-[4px] text-small text-[#555] bg-[#eaeaea]">
                   Selected
@@ -50,7 +65,7 @@ function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../da
     },
     {
       key: 'metrics',
-      label: 'Visibility score',
+      label: <ColHeader text="Visibility score" tooltip={VISIBILITY_TOOLTIP[pageContext]} />,
       sortable: true,
       render: (_val, row) => {
         const m = row.metrics[activeTab]
@@ -67,7 +82,7 @@ function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../da
     },
     {
       key: 'metrics',
-      label: 'Citation share',
+      label: <ColHeader text="Citation share" tooltip={CITATION_SHARE_TOOLTIP} />,
       sortable: true,
       render: (_val, row) => {
         const m = row.metrics[activeTab]
@@ -84,7 +99,7 @@ function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../da
     },
     {
       key: 'metrics',
-      label: 'Avg rank',
+      label: <ColHeader text="Avg rank" tooltip={AVG_RANK_TOOLTIP[pageContext]} />,
       sortable: true,
       render: (_val, row) => {
         const m = row.metrics[activeTab]
@@ -95,9 +110,9 @@ function buildColumns(activeTab: Platform, selectedCompetitor?: import('../../da
   ]
 }
 
-export function CompetitorMetricsCard({ rows, onRowClick, selectedCompetitor }: CompetitorMetricsCardProps) {
+export function CompetitorMetricsCard({ rows, onRowClick, selectedCompetitor, pageContext = 'brand' }: CompetitorMetricsCardProps) {
   const [activeTab, setActiveTab] = useState<Platform>('ChatGPT')
-  const columns = buildColumns(activeTab, selectedCompetitor)
+  const columns = buildColumns(activeTab, selectedCompetitor, pageContext)
 
   return (
     <div className="w-full rounded-md border border-border bg-surface overflow-hidden">
@@ -142,6 +157,7 @@ export function CompetitorMetricsCard({ rows, onRowClick, selectedCompetitor }: 
           columns={columns}
           data={rows}
           rowHeight={56}
+          onRowClick={(row) => { if (!row.isYou) onRowClick?.(row) }}
           rowAction={{
             iconElement: <ArrowDiagonalIcon />,
             label: 'View comparison',

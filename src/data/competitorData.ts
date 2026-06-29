@@ -786,14 +786,13 @@ export const COMPETITOR_DETAILS: Record<string, CompetitorDetail> = {
 
 // ── Share of Voice card data ──────────────────────────────────────────────────
 
-export type ShareOfVoicePlatform = 'ChatGPT' | 'Gemini' | 'Perplexity' | 'Google AI mode' | 'Google AI Overviews'
+export type ShareOfVoicePlatform = 'ChatGPT' | 'Gemini' | 'Perplexity' | 'All sites'
 
 export const SOV_PLATFORMS: ShareOfVoicePlatform[] = [
   'ChatGPT',
   'Gemini',
   'Perplexity',
-  'Google AI mode',
-  'Google AI Overviews',
+  'All sites',
 ]
 
 export interface SovRow extends Record<string, unknown> {
@@ -832,8 +831,7 @@ export const SHARE_OF_VOICE_DATA: Record<ShareOfVoicePlatform, SovRow[]> = {
   'ChatGPT':              buildSovRows('ChatGPT',    0,    0),
   'Gemini':               buildSovRows('Gemini',     0,    1.2),
   'Perplexity':           buildSovRows('Perplexity', 0,   -0.8),
-  'Google AI mode':       buildSovRows('ChatGPT',    0,    2.1),
-  'Google AI Overviews':  buildSovRows('Gemini',     0,   -1.5),
+  'All sites':            buildSovRows('ChatGPT',    0,    2.1),
 }
 
 export const COMPETITOR_BRAND_DATA: CompetitorRowData[] = [
@@ -1395,4 +1393,87 @@ export function groupCompetitorSeries(dots: ByLocationDot[]): CompetitorSeries[]
   }
 
   return series
+}
+
+// ── Brand-level scatter plot ──────────────────────────────────────────────────
+
+export interface BrandDot {
+  brand: string         // 'you' | competitor name
+  visibilityScore: number
+  citationShare: number
+}
+
+const BRAND_DOTS_CHATGPT: BrandDot[] = [
+  { brand: 'you',                                    visibilityScore: 63, citationShare: 58 },
+  { brand: 'Bowen Dental',                           visibilityScore: 35, citationShare: 42 },
+  { brand: 'Deeragun Dental',                        visibilityScore: 41, citationShare: 37 },
+  { brand: 'Innisfail Dentists',                     visibilityScore: 28, citationShare: 51 },
+  { brand: 'Serenity Dental CQ',                     visibilityScore: 22, citationShare: 29 },
+  { brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 55, citationShare: 18 },
+  { brand: 'Dental Balance NQ',                      visibilityScore: 18, citationShare: 22 },
+  { brand: 'National Dental Care Townsville',        visibilityScore: 47, citationShare: 44 },
+  { brand: 'Riverside Family Dental Innisfail',      visibilityScore: 14, citationShare: 31 },
+  { brand: 'CP Dental Emerald',                      visibilityScore: 32, citationShare: 15 },
+  { brand: 'Central Highlands Dental',               visibilityScore: 26, citationShare: 20 },
+  { brand: 'Sundown Family Dental',                  visibilityScore: 61, citationShare: 12 },
+  { brand: 'Aspire Dental',                          visibilityScore: 38, citationShare: 63 },
+  { brand: 'Hinchinbrook Dental Group',              visibilityScore: 17, citationShare: 26 },
+  { brand: 'Dental On Bowen',                        visibilityScore: 44, citationShare: 33 },
+  { brand: 'Allon4plus',                             visibilityScore: 71, citationShare: 68 },
+  { brand: 'Kirwan Dentist / Dental Implants Clinic',visibilityScore: 53, citationShare: 47 },
+]
+
+const BRAND_DOTS_GEMINI: BrandDot[] = [
+  { brand: 'you',                                    visibilityScore: 71, citationShare: 66 },
+  { brand: 'Bowen Dental',                           visibilityScore: 43, citationShare: 50 },
+  { brand: 'Deeragun Dental',                        visibilityScore: 49, citationShare: 45 },
+  { brand: 'Innisfail Dentists',                     visibilityScore: 36, citationShare: 59 },
+  { brand: 'Serenity Dental CQ',                     visibilityScore: 30, citationShare: 37 },
+  { brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 63, citationShare: 26 },
+  { brand: 'Dental Balance NQ',                      visibilityScore: 26, citationShare: 30 },
+  { brand: 'National Dental Care Townsville',        visibilityScore: 55, citationShare: 52 },
+  { brand: 'Riverside Family Dental Innisfail',      visibilityScore: 22, citationShare: 39 },
+  { brand: 'CP Dental Emerald',                      visibilityScore: 40, citationShare: 23 },
+  { brand: 'Central Highlands Dental',               visibilityScore: 34, citationShare: 28 },
+  { brand: 'Sundown Family Dental',                  visibilityScore: 69, citationShare: 20 },
+  { brand: 'Aspire Dental',                          visibilityScore: 46, citationShare: 71 },
+  { brand: 'Hinchinbrook Dental Group',              visibilityScore: 25, citationShare: 34 },
+  { brand: 'Dental On Bowen',                        visibilityScore: 52, citationShare: 41 },
+  { brand: 'Allon4plus',                             visibilityScore: 79, citationShare: 76 },
+  { brand: 'Kirwan Dentist / Dental Implants Clinic',visibilityScore: 61, citationShare: 55 },
+]
+
+const BRAND_DOTS_PERPLEXITY: BrandDot[] = [
+  { brand: 'you',                                    visibilityScore: 68, citationShare: 62 },
+  { brand: 'Bowen Dental',                           visibilityScore: 39, citationShare: 46 },
+  { brand: 'Deeragun Dental',                        visibilityScore: 45, citationShare: 41 },
+  { brand: 'Innisfail Dentists',                     visibilityScore: 32, citationShare: 55 },
+  { brand: 'Serenity Dental CQ',                     visibilityScore: 26, citationShare: 33 },
+  { brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 59, citationShare: 22 },
+  { brand: 'Dental Balance NQ',                      visibilityScore: 22, citationShare: 26 },
+  { brand: 'National Dental Care Townsville',        visibilityScore: 51, citationShare: 48 },
+  { brand: 'Riverside Family Dental Innisfail',      visibilityScore: 18, citationShare: 35 },
+  { brand: 'CP Dental Emerald',                      visibilityScore: 36, citationShare: 19 },
+  { brand: 'Central Highlands Dental',               visibilityScore: 30, citationShare: 24 },
+  { brand: 'Sundown Family Dental',                  visibilityScore: 65, citationShare: 16 },
+  { brand: 'Aspire Dental',                          visibilityScore: 42, citationShare: 67 },
+  { brand: 'Hinchinbrook Dental Group',              visibilityScore: 21, citationShare: 30 },
+  { brand: 'Dental On Bowen',                        visibilityScore: 48, citationShare: 37 },
+  { brand: 'Allon4plus',                             visibilityScore: 75, citationShare: 72 },
+  { brand: 'Kirwan Dentist / Dental Implants Clinic',visibilityScore: 57, citationShare: 51 },
+]
+
+export const BRAND_DOTS: Record<RankingPlatform, BrandDot[]> = {
+  ChatGPT:    BRAND_DOTS_CHATGPT,
+  Gemini:     BRAND_DOTS_GEMINI,
+  Perplexity: BRAND_DOTS_PERPLEXITY,
+}
+
+export function getBrandDots(platform: RankingPlatform, selected: string[]): BrandDot[] {
+  const all = BRAND_DOTS[platform]
+  const you = all.find((d) => d.brand === 'you')
+  const competitors = selected
+    .map((name) => all.find((d) => d.brand === name))
+    .filter((d): d is BrandDot => d !== undefined)
+  return you ? [you, ...competitors] : competitors
 }

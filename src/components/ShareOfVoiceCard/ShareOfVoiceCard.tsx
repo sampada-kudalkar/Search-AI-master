@@ -6,6 +6,7 @@ import { ChartTooltip } from '../charts/ChartTooltip'
 import { DataTable } from '../DataTable/DataTable'
 import { Icon } from '../Icon/Icon'
 import { AiIcon } from '../AiIcon/AiIcon'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import {
   SHARE_OF_VOICE_DATA,
   SOV_PLATFORMS,
@@ -61,7 +62,10 @@ export interface ShareOfVoiceCardProps {
 export function ShareOfVoiceCard({ selectedCompetitor }: ShareOfVoiceCardProps) {
   const [tab, setTab] = useState<ShareOfVoicePlatform>('ChatGPT')
 
-  const rows = SHARE_OF_VOICE_DATA[tab]
+  const allRows = SHARE_OF_VOICE_DATA[tab]
+  const rows = selectedCompetitor
+    ? allRows.filter((r) => r.isYou || r.name === selectedCompetitor.name)
+    : allRows
 
   // ── Table columns — first col ~40%, remaining cols fill equally ────────────
   // With tableLayout:fixed + width:100%, pixel ratios determine % distribution.
@@ -70,7 +74,12 @@ export function ShareOfVoiceCard({ selectedCompetitor }: ShareOfVoiceCardProps) 
   const columns: Column<SovRow>[] = [
     {
       key: 'name',
-      label: 'Competitors',
+      label: (
+        <span className="flex items-center gap-[4px]">
+          Competitors
+          <InfoTooltip text="Brands being tracked and compared against your own in AI-generated responses" />
+        </span>
+      ),
       width: 400,
       render: (_val, row) => (
         <span className="flex items-center gap-[8px]">
@@ -80,35 +89,30 @@ export function ShareOfVoiceCard({ selectedCompetitor }: ShareOfVoiceCardProps) 
               You
             </span>
           )}
-          {!row.isYou && selectedCompetitor && row.name === selectedCompetitor.name && (
-            <span className="shrink-0 flex items-center justify-center rounded-sm bg-[#eaeaea] px-[8px] py-[4px] text-[12px] leading-[18px] text-[#555]">
-              Selected
-            </span>
-          )}
         </span>
       ),
     },
     {
       key: 'rank',
-      label: 'Rank',
+      label: (
+        <span className="flex items-center gap-[4px]">
+          Rank
+          <InfoTooltip text="Position of each brand in AI-generated responses, where rank 1 means most frequently mentioned" />
+        </span>
+      ),
       width: 250,
       render: (_val, row) => <DeltaCell value={row.rank} delta={row.rankDelta} />,
     },
     {
       key: 'sov',
-      label: 'Share of voice',
+      label: (
+        <span className="flex items-center gap-[4px]">
+          Share of voice
+          <InfoTooltip text="Your brand's share of all brand mentions across responses that mention any brand" />
+        </span>
+      ),
       width: 250,
       render: (_val, row) => <DeltaCell value={`${row.sov}%`} delta={row.sovDelta} />,
-    },
-    {
-      key: 'name' as keyof SovRow,
-      label: '',
-      width: 100,
-      render: () => (
-        <button className="flex size-[22px] items-center justify-center rounded-sm text-text-icon hover:bg-surface-hover">
-          <Icon name="more_vert" size={16} />
-        </button>
-      ),
     },
   ]
 
@@ -130,16 +134,16 @@ export function ShareOfVoiceCard({ selectedCompetitor }: ShareOfVoiceCardProps) 
   )
 
   return (
-    <div className="flex flex-col bg-surface rounded-md shadow-[0px_2px_12px_1px_rgba(33,33,33,0.06)] overflow-hidden">
+    <div className="flex flex-col bg-surface rounded-md border border-border overflow-hidden">
       {/* Header */}
       <div className="px-xl py-lg">
         <CardHeader
           title={
             <span className="text-[18px] leading-[26px] text-text-secondary">
-              What are your share of voice compared to your competitors
+              What is your share of voice compared to your competitors
             </span>
           }
-          subtitle="Track how your content is cited by AI sites overtime"
+          subtitle="Track your mentions in AI-generated answers in relation to competitors"
           toolbar={toolbar}
         />
       </div>

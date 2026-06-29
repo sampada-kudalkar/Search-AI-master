@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import {
   ResponsiveContainer,
   ScatterChart,
@@ -26,23 +27,56 @@ const DOT_COLORS = chartColors.byLocation
 
 const AXIS_COLOR = '#555555'
 
-// ── Info icon (SVG, inline from design) ──────────────────────────────────────
+const INFO_ICON_PATH = "M7.99672 11.0336C8.11856 11.0336 8.22179 10.992 8.3064 10.909C8.39101 10.8259 8.43332 10.723 8.43332 10.6002V7.63356C8.43332 7.51079 8.39211 7.40788 8.30968 7.32483C8.22726 7.24177 8.12513 7.20024 8.00328 7.20024C7.88144 7.20024 7.77821 7.24177 7.6936 7.32483C7.60899 7.40788 7.56668 7.51079 7.56668 7.63356L7.56668 10.6002C7.56668 10.723 7.60789 10.8259 7.69032 10.909C7.77274 10.992 7.87487 11.0336 7.99672 11.0336ZM7.99648 6.19256C8.12917 6.19256 8.24156 6.14769 8.33365 6.05794C8.42574 5.96819 8.47178 5.85697 8.47178 5.72429C8.47178 5.59162 8.42691 5.47923 8.33715 5.38713C8.24741 5.29504 8.13619 5.24899 8.00352 5.24899C7.87083 5.24899 7.75844 5.29387 7.66635 5.38363C7.57426 5.47338 7.52822 5.5846 7.52822 5.71728C7.52822 5.84995 7.57309 5.96234 7.66285 6.05443C7.75259 6.14652 7.86381 6.19256 7.99648 6.19256ZM8.00572 14.0669C7.17114 14.0669 6.38514 13.909 5.64772 13.5932C4.91028 13.2774 4.26483 12.843 3.71135 12.2897C3.15786 11.7365 2.72316 11.0916 2.40723 10.3549C2.09131 9.61832 1.93335 8.83125 1.93335 7.99373C1.93335 7.15619 2.09124 6.37149 2.40702 5.63963C2.72279 4.90775 3.15729 4.26507 3.71052 3.71159C4.26375 3.15811 4.90868 2.7234 5.6453 2.40748C6.38192 2.09156 7.16899 1.93359 8.00652 1.93359C8.84405 1.93359 9.62875 2.09148 10.3606 2.40726C11.0925 2.72304 11.7352 3.15754 12.2886 3.71076C12.8421 4.26399 13.2768 4.90762 13.5928 5.64164C13.9087 6.37567 14.0667 7.15996 14.0667 7.99453C14.0667 8.82911 13.9088 9.61511 13.593 10.3525C13.2772 11.09 12.8427 11.7354 12.2895 12.2889C11.7363 12.8424 11.0926 13.2771 10.3586 13.593C9.62458 13.9089 8.84028 14.0669 8.00572 14.0669ZM8 13.2002C9.44444 13.2002 10.6722 12.6947 11.6833 11.6836C12.6944 10.6725 13.2 9.44469 13.2 8.00024C13.2 6.5558 12.6944 5.32802 11.6833 4.31691C10.6722 3.3058 9.44444 2.80024 8 2.80024C6.55556 2.80024 5.32778 3.3058 4.31667 4.31691C3.30556 5.32802 2.8 6.5558 2.8 8.00024C2.8 9.44469 3.30556 10.6725 4.31667 11.6836C5.32778 12.6947 6.55556 13.2002 8 13.2002Z"
 
-function InfoIconSVG({ x, y }: { x: number; y: number }) {
+// ── Info icon (SVG) with hover tooltip ───────────────────────────────────────
+
+interface InfoIconSVGProps {
+  x: number
+  y: number
+  tooltip: string
+  onHover: (pos: { x: number; y: number } | null) => void
+  svgRef: React.RefObject<SVGSVGElement | null>
+}
+
+function InfoIconSVG({ x, y, tooltip: _tooltip, onHover, svgRef }: InfoIconSVGProps) {
+  function handleMouseEnter(e: React.MouseEvent) {
+    const svg = svgRef.current
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
+    // x, y are SVG-space coords; convert to screen coords
+    const pt = svg.createSVGPoint()
+    pt.x = x + 8
+    pt.y = y + 16
+    const ctm = svg.getScreenCTM()
+    if (!ctm) return
+    const screen = pt.matrixTransform(ctm)
+    onHover({ x: screen.x, y: screen.y + 8 })
+    void rect // suppress unused warning
+    void e
+  }
   return (
-    <g transform={`translate(${x}, ${y})`}>
-      <rect width="16" height="16" fill="none" />
-      <path
-        d="M7.99672 11.0336C8.11856 11.0336 8.22179 10.992 8.3064 10.909C8.39101 10.8259 8.43332 10.723 8.43332 10.6002V7.63356C8.43332 7.51079 8.39211 7.40788 8.30968 7.32483C8.22726 7.24177 8.12513 7.20024 8.00328 7.20024C7.88144 7.20024 7.77821 7.24177 7.6936 7.32483C7.60899 7.40788 7.56668 7.51079 7.56668 7.63356L7.56668 10.6002C7.56668 10.723 7.60789 10.8259 7.69032 10.909C7.77274 10.992 7.87487 11.0336 7.99672 11.0336ZM7.99648 6.19256C8.12917 6.19256 8.24156 6.14769 8.33365 6.05794C8.42574 5.96819 8.47178 5.85697 8.47178 5.72429C8.47178 5.59162 8.42691 5.47923 8.33715 5.38713C8.24741 5.29504 8.13619 5.24899 8.00352 5.24899C7.87083 5.24899 7.75844 5.29387 7.66635 5.38363C7.57426 5.47338 7.52822 5.5846 7.52822 5.71728C7.52822 5.84995 7.57309 5.96234 7.66285 6.05443C7.75259 6.14652 7.86381 6.19256 7.99648 6.19256ZM8.00572 14.0669C7.17114 14.0669 6.38514 13.909 5.64772 13.5932C4.91028 13.2774 4.26483 12.843 3.71135 12.2897C3.15786 11.7365 2.72316 11.0916 2.40723 10.3549C2.09131 9.61832 1.93335 8.83125 1.93335 7.99373C1.93335 7.15619 2.09124 6.37149 2.40702 5.63963C2.72279 4.90775 3.15729 4.26507 3.71052 3.71159C4.26375 3.15811 4.90868 2.7234 5.6453 2.40748C6.38192 2.09156 7.16899 1.93359 8.00652 1.93359C8.84405 1.93359 9.62875 2.09148 10.3606 2.40726C11.0925 2.72304 11.7352 3.15754 12.2886 3.71076C12.8421 4.26399 13.2768 4.90762 13.5928 5.64164C13.9087 6.37567 14.0667 7.15996 14.0667 7.99453C14.0667 8.82911 13.9088 9.61511 13.593 10.3525C13.2772 11.09 12.8427 11.7354 12.2895 12.2889C11.7363 12.8424 11.0926 13.2771 10.3586 13.593C9.62458 13.9089 8.84028 14.0669 8.00572 14.0669ZM8 13.2002C9.44444 13.2002 10.6722 12.6947 11.6833 11.6836C12.6944 10.6725 13.2 9.44469 13.2 8.00024C13.2 6.5558 12.6944 5.32802 11.6833 4.31691C10.6722 3.3058 9.44444 2.80024 8 2.80024C6.55556 2.80024 5.32778 3.3058 4.31667 4.31691C3.30556 5.32802 2.8 6.5558 2.8 8.00024C2.8 9.44469 3.30556 10.6725 4.31667 11.6836C5.32778 12.6947 6.55556 13.2002 8 13.2002Z"
-        fill={AXIS_COLOR}
-      />
+    <g
+      transform={`translate(${x}, ${y})`}
+      style={{ cursor: 'default' }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => onHover(null)}
+    >
+      <rect width="16" height="16" fill="transparent" />
+      <path d={INFO_ICON_PATH} fill={AXIS_COLOR} />
     </g>
   )
 }
 
 // ── Custom axis labels with info icon ─────────────────────────────────────────
 
-function XAxisLabel({ viewBox }: { viewBox?: { x: number; y: number; width: number; height: number } }) {
+interface AxisLabelProps {
+  viewBox?: { x: number; y: number; width: number; height: number }
+  onHover: (key: 'visibility' | 'citation', pos: { x: number; y: number } | null) => void
+  svgRef: React.RefObject<SVGSVGElement | null>
+}
+
+function XAxisLabel({ viewBox, onHover, svgRef }: AxisLabelProps) {
   if (!viewBox) return null
   const label = 'Visibility score'
   const fontSize = 11
@@ -50,28 +84,34 @@ function XAxisLabel({ viewBox }: { viewBox?: { x: number; y: number; width: numb
   const textW = label.length * charW
   const cx = viewBox.x + viewBox.width / 2
   const cy = viewBox.y + viewBox.height + 22
-  const iconX = cx + textW / 2 + 8
+  const gap = 4
+  const iconW = 16
+  const textX = cx - (gap + iconW) / 2
+  const iconX = textX + textW / 2 + gap
   return (
     <g>
-      <text x={cx} y={cy} textAnchor="middle" fontSize={fontSize} fill={AXIS_COLOR} fontFamily="inherit">
+      <text x={textX} y={cy} textAnchor="middle" fontSize={fontSize} fill={AXIS_COLOR} fontFamily="inherit">
         {label}
       </text>
-      <InfoIconSVG x={iconX} y={cy - 13} />
+      <InfoIconSVG
+        x={iconX} y={cy - 13}
+        tooltip="Visibility score"
+        onHover={(pos) => onHover('visibility', pos)}
+        svgRef={svgRef}
+      />
     </g>
   )
 }
 
-function YAxisLabel({ viewBox }: { viewBox?: { x: number; y: number; width: number; height: number } }) {
+function YAxisLabel({ viewBox, onHover, svgRef }: AxisLabelProps) {
   if (!viewBox) return null
   const label = 'Citation share'
   const fontSize = 11
   const charW = fontSize * 0.44
   const textW = label.length * charW
-  const x = 14
+  const x = 15
   const cy = viewBox.y + viewBox.height / 2
-  // Icon is NOT inside the rotated group — positioned directly in screen coordinates
-  // After rotate(-90, x, cy): text top edge is at screen y = cy − textW/2
-  const iconScreenY = cy - textW / 2 - 8 - 16  // 8px gap above text top + 16px icon height
+  const iconScreenY = cy - textW / 2 - 8 - 16
   return (
     <g>
       <g transform={`rotate(-90, ${x}, ${cy})`}>
@@ -79,7 +119,12 @@ function YAxisLabel({ viewBox }: { viewBox?: { x: number; y: number; width: numb
           {label}
         </text>
       </g>
-      <InfoIconSVG x={x - 8} y={iconScreenY} />
+      <InfoIconSVG
+        x={x - 8} y={iconScreenY}
+        tooltip="Citation share"
+        onHover={(pos) => onHover('citation', pos)}
+        svgRef={svgRef}
+      />
     </g>
   )
 }
@@ -90,23 +135,15 @@ interface TooltipPayload {
   payload: ByLocationDot & { x: number; y: number }
 }
 
-function ScatterTooltip({
-  active,
-  payload,
-  onViewComparison,
-}: {
-  active?: boolean
-  payload?: TooltipPayload[]
-  onViewComparison: (locationName: string) => void
-}) {
+function ScatterTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayload[] }) {
   if (!active || !payload?.length) return null
   const dot = payload[0].payload
+  const label = dot.brand === 'you'
+    ? `My Family Dental, ${dot.locationName}`
+    : dot.brand
   return (
     <div className="rounded-md border border-border bg-surface p-md shadow-dropdown w-[220px]">
-      <p className="text-body text-text-primary">{dot.locationName}</p>
-      <p className="text-small text-text-secondary mt-xs">
-        {dot.brand === 'you' ? 'My Family Dental' : dot.brand}
-      </p>
+      <p className="text-body text-text-primary">{label}</p>
       <div className="mt-sm flex flex-col gap-xs">
         <div className="flex justify-between text-small">
           <span className="text-text-tertiary">Visibility score</span>
@@ -117,12 +154,6 @@ function ScatterTooltip({
           <span className="text-text-primary">{dot.citationShare}%</span>
         </div>
       </div>
-      <button
-        onClick={() => onViewComparison(dot.locationName)}
-        className="mt-sm w-full text-left text-small text-text-action hover:underline"
-      >
-        View detailed comparison →
-      </button>
     </div>
   )
 }
@@ -184,14 +215,25 @@ const aiToolbar = (
   </button>
 )
 
+const AXIS_TOOLTIPS = {
+  visibility: 'How often your brand appears in AI-generated search results, expressed as a percentage of total possible appearances',
+  citation: 'The percentage of AI-generated responses that cite or reference your brand compared to competitors',
+}
+
 export function ScatterplotCard({
   dots,
   competitorSeries,
   activePlatform,
   onPlatformChange,
-  onViewComparison,
   onDotClick,
 }: ScatterplotCardProps) {
+  const svgRef = useRef<SVGSVGElement>(null)
+  const [axisTooltip, setAxisTooltip] = useState<{ key: 'visibility' | 'citation'; pos: { x: number; y: number } } | null>(null)
+
+  function handleAxisHover(key: 'visibility' | 'citation', pos: { x: number; y: number } | null) {
+    setAxisTooltip(pos ? { key, pos } : null)
+  }
+
   const toPoint = (d: ByLocationDot) => ({ x: d.visibilityScore, y: d.citationShare, ...d })
 
   const youDots = dots.filter((d) => d.brand === 'you').map(toPoint)
@@ -199,7 +241,7 @@ export function ScatterplotCard({
   return (
     <ChartCard
       title="How are your locations performing compared to their competitors"
-      subtitle="Shows how often your location citation share and visibility score are impacting your overall rank against your competitors"
+      subtitle="Shows your locations' citation share and visibility score against your competitors"
       showActions
       toolbar={aiToolbar}
     >
@@ -212,8 +254,18 @@ export function ScatterplotCard({
         />
       </div>
 
+      <div className="relative">
+        {axisTooltip && (
+          <div
+            className="pointer-events-none fixed z-[120] max-w-[300px] whitespace-normal break-words rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white text-left"
+            style={{ left: axisTooltip.pos.x, top: axisTooltip.pos.y, transform: 'translateX(-50%)' }}
+          >
+            {AXIS_TOOLTIPS[axisTooltip.key]}
+          </div>
+        )}
+
       <ResponsiveContainer width="100%" height={340}>
-        <ScatterChart margin={{ top: 8, right: 24, bottom: 40, left: 70 }}>
+        <ScatterChart margin={{ top: 8, right: 24, bottom: 40, left: 16 }} ref={svgRef as React.RefObject<never>}>
           {/* Quadrant background tints */}
           <ReferenceArea x1={0}       x2={VIS_MID} y1={CIT_MID} y2={100} fill="#fff8e1" fillOpacity={0.7} />
           <ReferenceArea x1={VIS_MID} x2={100}     y1={CIT_MID} y2={100} fill="#BAE4B4" fillOpacity={0.7} />
@@ -239,7 +291,7 @@ export function ScatterplotCard({
             tick={{ fontSize: 11, fill: AXIS_COLOR }}
             axisLine={{ stroke: chartColors.grid }}
             tickLine={false}
-            label={<XAxisLabel />}
+            label={<XAxisLabel onHover={handleAxisHover} svgRef={svgRef} />}
           />
           <YAxis
             type="number"
@@ -250,10 +302,11 @@ export function ScatterplotCard({
             tick={{ fontSize: 11, fill: AXIS_COLOR }}
             axisLine={{ stroke: chartColors.grid }}
             tickLine={false}
-            label={<YAxisLabel />}
+            width={44}
+            label={<YAxisLabel onHover={handleAxisHover} svgRef={svgRef} />}
           />
           <Tooltip
-            content={<ScatterTooltip onViewComparison={onViewComparison} />}
+            content={<ScatterTooltip />}
             cursor={{ strokeDasharray: '3 3' }}
           />
 
@@ -283,6 +336,7 @@ export function ScatterplotCard({
           ))}
         </ScatterChart>
       </ResponsiveContainer>
+      </div>
 
       <ScatterLegend competitorSeries={competitorSeries} />
     </ChartCard>

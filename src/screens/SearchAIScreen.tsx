@@ -38,8 +38,8 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
     id: 'competitors',
     label: 'Competitors',
     items: [
-      { id: 'by-brand',    label: 'Benchmarking by brand'    },
-      { id: 'by-location', label: 'Benchmarking by location' },
+      { id: 'by-brand',    label: 'Brand'    },
+      { id: 'by-location', label: 'Location' },
     ],
   },
   {
@@ -70,8 +70,8 @@ const LABEL_MAP: Record<string, string> = {
   sentiment:            'Sentiment',
   prompt:               'Prompt',
   website:              'Website',
-  'by-brand':           'Benchmarking by brand',
-  'by-location':        'Benchmarking by location',
+  'by-brand':           'Brand',
+  'by-location':        'Location',
   'optimization-agents':'Optimization agents',
   'search-prompts':     'Prompts',
   'search-report':      'Report',

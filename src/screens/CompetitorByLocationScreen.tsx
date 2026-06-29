@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
-import { ScatterplotCard, CompetitorRankingCard } from '../components'
+import { ScatterplotCard, CompetitorRankingCard, InfoTooltip } from '../components'
 import { FilterPanel } from '../components/FilterPanel/FilterPanel'
 import { Icon } from '../components/Icon/Icon'
 import {
@@ -36,12 +36,12 @@ const FILTER_FIELDS = [
 ]
 
 export function CompetitorByLocationScreen({
-  onViewComparison,
+  locationName = 'Location',
   onLocationClick,
   onManageCompetitors,
   onDotClick,
 }: {
-  onViewComparison?: (locationName: string) => void
+  locationName?: string
   onLocationClick?: (row: ByLocationTableRow) => void
   onManageCompetitors?: () => void
   onDotClick?: (dot: ByLocationDot) => void
@@ -89,11 +89,11 @@ export function CompetitorByLocationScreen({
       <div className="flex flex-1 flex-col overflow-y-auto bg-white">
 
         {/* Sticky header — title bar only */}
-        <div className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-sm px-2xl bg-surface border-b border-border">
-          <span className="flex-1 text-h3 text-text-primary">
-            Benchmarking by location
-          </span>
-          <Icon name="info" size={20} className="text-text-icon" />
+        <div className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-sm px-2xl bg-surface">
+          <div className="flex flex-1 items-center gap-sm">
+            <span className="text-h3 text-text-primary">{locationName}</span>
+            <InfoTooltip text="See how your locations are performing against your competitors in AI-generated answers" />
+          </div>
           <div className="flex items-center gap-sm ml-lg">
             <button
               ref={moreButtonRef}
@@ -146,7 +146,6 @@ export function CompetitorByLocationScreen({
             competitorSeries={competitorSeries}
             activePlatform={platform}
             onPlatformChange={setPlatform}
-            onViewComparison={(loc) => onViewComparison?.(loc)}
             onDotClick={onDotClick}
           />
           <CompetitorRankingCard mode="locations" data={filteredByPlatform} onLocationRowClick={onLocationClick} />

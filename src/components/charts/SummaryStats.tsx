@@ -9,6 +9,7 @@ export interface CompetitorEntry {
 export interface ComparisonStat {
   id: string
   label: string
+  tooltip?: string
   youValue: string
   competitors: CompetitorEntry[]
 }
@@ -42,19 +43,24 @@ function kFormat(raw: string): { display: string; tooltip?: string } {
   return { display: raw }
 }
 
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
+
 export function SummaryStats({ title = 'Summary', stats }: SummaryStatsProps) {
   const isComparisonLayout = stats.length > 0 && isComparison(stats[0])
 
   if (isComparisonLayout) {
     return (
       <section className="rounded-md border border-border bg-surface pt-[16px] px-[20px] pb-[24px]">
-        <div className="flex items-center justify-between mb-[8px]">
+        <div className="flex items-center justify-between mb-[16px]">
           <p className="text-[16px] leading-[24px] tracking-[-0.32px] text-text-secondary">{title}</p>
         </div>
-        <div className="flex gap-[48px_64px]">
+        <div className="flex gap-[48px_120px]">
           {(stats as ComparisonStat[]).map((s) => (
             <div key={s.id} className="flex flex-col gap-[8px] items-start">
-              <p className="text-[14px] leading-[20px] tracking-[-0.28px] text-text-secondary whitespace-nowrap">{s.label}</p>
+              <div className="flex items-center gap-xs">
+                <p className="text-[14px] leading-[20px] tracking-[-0.28px] text-text-secondary whitespace-nowrap">{s.label}</p>
+                {s.tooltip && <InfoTooltip text={s.tooltip} />}
+              </div>
               <div className="flex items-center gap-[24px]">
                 {/* You block */}
                 <div className="flex flex-col items-start gap-0">

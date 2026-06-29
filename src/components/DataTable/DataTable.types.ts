@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 export interface Column<T> {
   key: keyof T
-  label: string
+  label: ReactNode
   /** Initial column width in px (default 160). */
   width?: number
   /** Minimum width when resizing (default 80). */

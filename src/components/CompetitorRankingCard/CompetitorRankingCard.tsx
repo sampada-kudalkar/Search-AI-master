@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { getInitials, getCompetitorColor } from '../../utils/competitorAvatar'
 
 function ArrowDiagonalIcon() {
   return (
@@ -22,7 +23,6 @@ import {
   RANKING_PLATFORMS,
   type RankingPlatform,
   type ByLocationTableRow,
-  type Quadrant,
   type PromptRankingRow,
 } from '../../data/competitorData'
 
@@ -43,35 +43,11 @@ function RankCell({ entry }: { entry?: RankingEntry | { name: string; isYou?: bo
   }
   return (
     <div className="flex items-center gap-[8px]">
-      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-chip-neutral-bg text-small text-text-secondary">
-        {entry.name.charAt(0).toUpperCase()}
+      <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${getCompetitorColor(entry.name)} text-[10px] font-medium text-white`}>
+        {getInitials(entry.name)}
       </span>
       <span className="text-[13px] text-text-primary truncate">{entry.name}</span>
     </div>
-  )
-}
-
-// ── Performance chip (locations mode only) ────────────────────────────────────
-
-const PERFORMANCE_STYLES: Record<Quadrant, string> = {
-  leading:         'text-chip-success-text',
-  lagging:         'text-chip-danger-text',
-  emerging:        'text-text-tertiary',
-  underperforming: 'text-chip-warning-text',
-}
-
-const PERFORMANCE_LABELS: Record<Quadrant, string> = {
-  leading: 'Leading',
-  lagging: 'Lagging',
-  emerging: 'Emerging',
-  underperforming: 'Underperforming',
-}
-
-function PerformanceChip({ value }: { value: Quadrant }) {
-  return (
-    <span className={`text-small ${PERFORMANCE_STYLES[value]}`}>
-      {PERFORMANCE_LABELS[value]}
-    </span>
   )
 }
 
@@ -157,13 +133,6 @@ const LOCATION_COLUMNS: Column<ByLocationTableRow>[] = [
     label: 'Locations',
     width: 200,
     sortable: true,
-  },
-  {
-    key: 'performance',
-    label: 'Performance',
-    width: 160,
-    sortable: true,
-    render: (val) => <PerformanceChip value={val as Quadrant} />,
   },
   {
     key: 'rank1',
@@ -263,7 +232,7 @@ export function CompetitorRankingCard(props: CompetitorRankingCardProps) {
                   <button
                     type="button"
                     onClick={() => setLocMetricOpen((v) => !v)}
-                    className="flex items-center gap-[2px] text-[#2563eb] hover:underline"
+                    className="flex items-center gap-[2px] text-[#1976D2]"
                   >
                     {locMetric}
                     <Icon name="expand_more" size={16} />
@@ -390,7 +359,7 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
                 <button
                   type="button"
                   onClick={() => setMetricOpen((v) => !v)}
-                  className="flex items-center gap-[2px] text-[#2563eb] hover:underline"
+                  className="flex items-center gap-[2px] text-[#1976D2]"
                 >
                   {metric}
                   <Icon name="expand_more" size={16} />

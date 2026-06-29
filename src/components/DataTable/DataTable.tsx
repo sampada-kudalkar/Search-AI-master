@@ -158,7 +158,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     style={{ height: rowHeight }}
                     className={`px-[10px] align-middle text-body text-text-primary ${
                       isLast ? 'relative' : 'truncate'
-                    } ${isFirst && onRowClick ? 'group-hover/row:text-text-action' : ''}`}
+                    } ${isFirst && (onRowClick || (rowAction && (!rowAction.visible || rowAction.visible(row)))) ? 'group-hover/row:text-text-action' : ''}`}
                   >
                     {isLast ? <span className="block truncate">{content}</span> : content}
 
@@ -228,7 +228,7 @@ export function DataTable<T extends Record<string, unknown>>({
       {/* Tooltip — fixed so it is never clipped by overflow containers */}
       {tooltip && (
         <div
-          className="pointer-events-none fixed z-[120] -translate-x-1/2 whitespace-nowrap rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white"
+          className="pointer-events-none fixed z-[120] -translate-x-1/2 max-w-[300px] whitespace-normal break-words rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white"
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           {tooltip.text}

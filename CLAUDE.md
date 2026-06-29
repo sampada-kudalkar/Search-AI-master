@@ -172,6 +172,7 @@ If a component exists here, import it — do not recreate it.
 | ThemeVisibilityCard | components/ThemeVisibilityCard/ThemeVisibilityCard.tsx | rows?: ThemeVisibilityThemeRow[] — "Which themes have the strongest visibility" card; CardTabs (ChatGPT/Gemini/Perplexity), accordion table (theme rows expand to show prompt sub-rows), 6 columns (Themes, Avg visibility, ChatGPT, Gemini, Perplexity, Claude) each showing `you% ┊ competitor%`; table wrapped in px-[24px] div |
 | VisibilityRankingCard | components/VisibilityRankingCard/VisibilityRankingCard.tsx | no props — "How is your visibility ranking against your competitors" card; CardTabs (ChatGPT/Gemini/Perplexity), expandable location rows × Rank 1–5 columns showing competitor name chips (teal "You" pill or grey chip); table wrapped in px-[24px] div |
 | ScatterplotCard | components/ScatterplotCard/ScatterplotCard.tsx | dots: ByLocationDot[], competitors: string[], onViewComparison(locationName), onRemoveCompetitor(brand) — Recharts ScatterChart with 4-quadrant backgrounds, competitor chip row, rich hover tooltip with "View detailed comparison →" CTA, and legend row; dot colors from chartColors.byLocation |
+| BrandScatterplotCard | components/BrandScatterplotCard/BrandScatterplotCard.tsx | dots: BrandDot[], activePlatform: RankingPlatform, onPlatformChange — brand-level scatter (max 6 dots: you + 5 selected competitors); 40×40 aqua avatar circles with initials, platform tabs, quadrant backgrounds; used on brand view and location detail page |
 
 
 ### How to add a component to this registry

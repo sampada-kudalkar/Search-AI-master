@@ -6,6 +6,7 @@ import { DataTable } from '../DataTable/DataTable'
 import { DateRangeSelector } from '../DateRangeSelector/DateRangeSelector'
 import { Icon } from '../Icon/Icon'
 import { AiIcon } from '../AiIcon/AiIcon'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import {
   TREND_DATA,
   TREND_SERIES_COLORS,
@@ -24,12 +25,10 @@ export interface AveragePositionCardProps {
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const PLATFORM_TABS: { id: TrendPlatform; label: string }[] = [
-  { id: 'ChatGPT',             label: 'ChatGPT' },
-  { id: 'Gemini',              label: 'Gemini' },
-  { id: 'Perplexity',         label: 'Perplexity' },
-  { id: 'Google AI mode',      label: 'Google AI mode' },
-  { id: 'Google AI Overviews', label: 'Google AI Overviews' },
-  { id: 'Grok',                label: 'All sites' },
+  { id: 'ChatGPT',    label: 'ChatGPT' },
+  { id: 'Gemini',     label: 'Gemini' },
+  { id: 'Perplexity', label: 'Perplexity' },
+  { id: 'Grok',       label: 'All sites' },
 ]
 
 const SERIES_KEYS = ['you', 'comp1', 'comp2', 'comp3', 'comp4', 'comp5'] as const
@@ -117,12 +116,14 @@ const TABLE_DATA: Record<TrendPlatform, AvgPositionRow[]> = {
 
 // ── Table columns ──────────────────────────────────────────────────────────────
 
-function buildTableColumns(selectedCompetitor?: CompetitorRowData): Column<AvgPositionRow>[] {
+const AVG_RANK_TOOLTIP = 'See the average rank of your brand in AI-generated answers. For example, if your brand is usually listed first, average position will be close to one. A lower average position means your brand is more likely mentioned at the top.'
+
+function buildTableColumns(_selectedCompetitor?: CompetitorRowData): Column<AvgPositionRow>[] {
   return [
     {
       key: 'name',
       label: 'Competitors',
-      width: 400,
+      width: 200,
       render: (_: unknown, row: AvgPositionRow) => (
         <div className="flex items-center gap-sm">
           <span className="text-body text-text-primary">{row.name}</span>
@@ -131,17 +132,18 @@ function buildTableColumns(selectedCompetitor?: CompetitorRowData): Column<AvgPo
               You
             </span>
           )}
-          {!row.isYou && selectedCompetitor?.name === row.name && (
-            <span className="shrink-0 px-[8px] py-[4px] rounded-[4px] text-small text-[#555] bg-[#eaeaea]">
-              Selected
-            </span>
-          )}
         </div>
       ),
     },
     {
       key: 'avgPosition',
-      label: 'Average position',
+      label: (
+        <div className="flex items-center gap-xs">
+          <span>Avg rank</span>
+          <InfoTooltip text={AVG_RANK_TOOLTIP} />
+        </div>
+      ),
+      width: 200,
       sortable: true,
       render: (_: unknown, row: AvgPositionRow) => (
         <span className="text-body text-text-primary">
@@ -159,24 +161,30 @@ export function AveragePositionCard({ rows: _rows, selectedCompetitor }: Average
   const [dateRange, setDateRange] = useState('Last 12 months')
 
   const trendData = TREND_DATA[platform]
-  const tableData = TABLE_DATA[platform] ?? TABLE_DATA['ChatGPT']
+  const allTableData = TABLE_DATA[platform] ?? TABLE_DATA['ChatGPT']
+  const tableData = selectedCompetitor
+    ? allTableData.filter((r) => r.isYou || r.name === selectedCompetitor.name)
+    : allTableData
   const tableColumns = buildTableColumns(selectedCompetitor)
+  const activeSeries = selectedCompetitor
+    ? TREND_SERIES.filter((s) => s.key === 'you' || s.label === selectedCompetitor.name)
+    : TREND_SERIES
 
   return (
-    <div className="flex flex-col bg-surface rounded-md shadow-[0px_2px_12px_1px_rgba(33,33,33,0.06)]">
+    <div className="flex flex-col bg-surface rounded-md border border-border">
       {/* ── Header (full width) ── */}
       <div className="px-xl py-lg">
         <CardHeader
           title={
             <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
-              What is your average position compared to competitors across all locations for
-              <button className="flex items-center gap-[4px] text-primary text-[18px] leading-[26px] hover:underline">
+              What is your average position compared to competitors for
+              <button className="flex items-center gap-[4px] text-[#1976D2] text-[18px] leading-[26px]">
                 all themes
-                <Icon name="expand_more" size={16} className="text-primary" />
+                <Icon name="expand_more" size={16} className="text-[#1976D2]" />
               </button>
             </span>
           }
-          subtitle="Track the average position of your brand across AI platforms compared to competitors"
+          subtitle="Track the average position of your brand across AI platforms relative to your competitors"
           toolbar={
             <div className="flex items-center gap-sm">
               <DateRangeSelector
@@ -216,7 +224,7 @@ export function AveragePositionCard({ rows: _rows, selectedCompetitor }: Average
               comp4: +(pt.comp4 / 20).toFixed(2),
               comp5: +(pt.comp5 / 20).toFixed(2),
             }))}
-            series={TREND_SERIES}
+            series={activeSeries}
             height={320}
             yDomain={[0, 5]}
             yTickFormatter={(v) => String(v)}
@@ -224,14 +232,14 @@ export function AveragePositionCard({ rows: _rows, selectedCompetitor }: Average
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-x-lg gap-y-xs mt-sm px-xs">
-          {TREND_SERIES.map((s) => (
+        <div className="flex flex-wrap items-center gap-xl mt-sm px-xs">
+          {activeSeries.map((s) => (
             <div key={s.key} className="flex items-center gap-xs">
               <span
-                className="inline-block w-[16px] h-[2px] rounded-full"
+                className="inline-block size-3 rounded-full"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-small text-text-secondary">{s.label}</span>
+              <span className="text-[12px] text-text-secondary">{s.label}</span>
             </div>
           ))}
         </div>

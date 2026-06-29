@@ -496,7 +496,7 @@ export function AgentDetailScreen({ agentName, onEditAgent, onOpenIntegrationSet
     [order, visible],
   )
   const columnOptions = useMemo<ColumnOption[]>(
-    () => order.map((k) => ({ key: k, label: DEF_BY_KEY.get(k)!.label, locked: DEF_BY_KEY.get(k)!.locked })),
+    () => order.map((k) => ({ key: k, label: DEF_BY_KEY.get(k)!.label as string, locked: DEF_BY_KEY.get(k)!.locked })),
     [order],
   )
 

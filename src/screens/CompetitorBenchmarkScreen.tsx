@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, type ReactNode } from 'react'
+import { getInitials, getCompetitorColor } from '../utils/competitorAvatar'
 
 type ChartMetric = 'Visibility score' | 'Citation share' | 'Rank'
 const CHART_METRICS: ChartMetric[] = ['Visibility score', 'Citation share', 'Rank']
-import { Icon, CompetitorRankingCard } from '../components'
+import { Icon, CompetitorRankingCard, InfoTooltip } from '../components'
 import { CardTabs } from '../components/CardTabs/CardTabs'
 import { CompetitorMetricsCard } from '../components/CompetitorMetricsCard'
 import { ChartCard } from '../components/charts/ChartCard'
@@ -17,10 +18,13 @@ import {
   TREND_DATA,
   TREND_SERIES_COLORS,
   PROMPT_RANKING_DATA,
+  getBrandDots,
   type Competitor,
   type CompetitorRowData,
   type Platform,
+  type RankingPlatform,
 } from '../data/competitorData'
+import { BrandScatterplotCard } from '../components/BrandScatterplotCard/BrandScatterplotCard'
 
 const SERIES_KEYS = ['comp1', 'comp2', 'comp3', 'comp4', 'comp5'] as const
 
@@ -40,6 +44,7 @@ export function CompetitorBenchmarkScreen({
 }): JSX.Element {
   const [selected, setSelected] = useState<string[]>(DEFAULT_SELECTED)
   const [trendPlatform, setTrendPlatform] = useState<Platform>('ChatGPT')
+  const [scatterPlatform, setScatterPlatform] = useState<RankingPlatform>('ChatGPT')
   const [moreMenu, setMoreMenu] = useState<{ top: number; left: number } | null>(null)
   const moreButtonRef = useRef<HTMLButtonElement>(null)
   const [chartMetric, setChartMetric] = useState<ChartMetric>('Visibility score')
@@ -64,7 +69,7 @@ export function CompetitorBenchmarkScreen({
         <button
           type="button"
           onClick={() => setChartMetricOpen((v) => !v)}
-          className="flex items-center gap-[2px] text-[#2563eb] hover:underline"
+          className="flex items-center gap-[2px] text-[#1976D2]"
         >
           {chartMetric}
           <Icon name="expand_more" size={16} />
@@ -102,8 +107,8 @@ export function CompetitorBenchmarkScreen({
       <div className="flex h-16 shrink-0 items-center gap-sm px-2xl">
         {/* Title */}
         <div className="flex flex-1 items-center gap-sm">
-          <span className="text-h3 text-text-primary">Benchmarking by brand</span>
-          <Icon name="info" size={20} className="text-text-icon" />
+          <span className="text-h3 text-text-primary">Brand</span>
+          <InfoTooltip text="See how you are performing against your competitors in AI-generated answers" />
         </div>
 
         {/* Right CTAs */}
@@ -172,11 +177,19 @@ export function CompetitorBenchmarkScreen({
           selected={selected}
           onChange={setSelected}
         />
+
+        <BrandScatterplotCard
+          dots={getBrandDots(scatterPlatform, selected)}
+          activePlatform={scatterPlatform}
+          onPlatformChange={setScatterPlatform}
+        />
+
         <CompetitorMetricsCard
           rows={COMPETITOR_BRAND_DATA.filter(
             (r) => r.isYou || selected.includes(r.name)
           )}
           onRowClick={onCompetitorClick}
+          pageContext="brand"
         />
 
         <CompetitorRankingCard rows={PROMPT_RANKING_DATA} />
@@ -266,7 +279,10 @@ function CompetitorSelector({
     <div ref={containerRef} className="relative w-full">
       {/* Card */}
       <div className="bg-surface rounded-md border border-border p-xl w-full">
-        <p className="text-small text-text-secondary mb-xs">Competitor</p>
+        <div className="flex items-center gap-xs mb-xs">
+          <p className="text-small text-text-secondary">Competitor</p>
+          <InfoTooltip text="Select up to 5 competitors to compare" />
+        </div>
 
         {/* Chip input row */}
         <div className="flex items-center gap-sm rounded-sm border border-border min-h-9 px-sm py-xs">
@@ -364,8 +380,8 @@ function CompetitorDropdown({
               className="flex items-center gap-sm w-full text-left rounded-sm px-xs hover:bg-surface-hover"
             >
               {/* Avatar */}
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-chip-neutral-bg text-small text-text-secondary">
-                {c.name.charAt(0).toUpperCase()}
+              <span className={`flex size-8 shrink-0 items-center justify-center rounded-full ${getCompetitorColor(c.name)} text-[11px] text-white`}>
+                {getInitials(c.name)}
               </span>
 
               {/* Name + hint */}

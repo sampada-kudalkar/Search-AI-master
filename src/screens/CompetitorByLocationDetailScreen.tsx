@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 
 type ChartMetric = 'Visibility score' | 'Citation share' | 'Rank'
 const CHART_METRICS: ChartMetric[] = ['Visibility score', 'Citation share', 'Rank']
-import { Icon, CompetitorRankingCard } from '../components'
+import { Icon, CompetitorRankingCard, InfoTooltip } from '../components'
 import { CardTabs } from '../components/CardTabs/CardTabs'
 import { CompetitorMetricsCard } from '../components/CompetitorMetricsCard'
 import { ChartCard } from '../components/charts/ChartCard'
@@ -17,10 +17,13 @@ import {
   TREND_DATA,
   TREND_SERIES_COLORS,
   PROMPT_RANKING_DATA,
+  getBrandDots,
   type ByLocationTableRow,
   type CompetitorRowData,
   type Platform,
+  type RankingPlatform,
 } from '../data/competitorData'
+import { BrandScatterplotCard } from '../components/BrandScatterplotCard/BrandScatterplotCard'
 
 const SERIES_KEYS = ['comp1', 'comp2', 'comp3', 'comp4', 'comp5'] as const
 
@@ -32,6 +35,7 @@ export function CompetitorByLocationDetailScreen({
   onBack: () => void
 }) {
   const [trendPlatform, setTrendPlatform] = useState<Platform>('ChatGPT')
+  const [scatterPlatform, setScatterPlatform] = useState<RankingPlatform>('ChatGPT')
   const [competitorDetail, setCompetitorDetail] = useState<CompetitorRowData | null>(null)
   const [chartMetric, setChartMetric] = useState<ChartMetric>('Visibility score')
   const [chartMetricOpen, setChartMetricOpen] = useState(false)
@@ -55,7 +59,7 @@ export function CompetitorByLocationDetailScreen({
         <button
           type="button"
           onClick={() => setChartMetricOpen((v) => !v)}
-          className="flex items-center gap-[2px] text-[#2563eb] hover:underline"
+          className="flex items-center gap-[2px] text-[#1976D2]"
         >
           {chartMetric}
           <Icon name="expand_more" size={16} />
@@ -83,6 +87,7 @@ export function CompetitorByLocationDetailScreen({
       <CompetitorDetailScreen
         initialCompetitor={competitorDetail}
         onBack={() => setCompetitorDetail(null)}
+        pageContext="location"
       />
     )
   }
@@ -111,9 +116,9 @@ export function CompetitorByLocationDetailScreen({
             <Icon name="arrow_back" size={20} className="text-text-icon" />
           </button>
           <span className="text-h3 text-text-primary">
-            Benchmarking for {location.location}
+            {location.location}
           </span>
-          <Icon name="info" size={20} className="text-text-icon" />
+          <InfoTooltip text="See how you are performing against your competitors in AI-generated answers" />
         </div>
 
         {/* Right CTAs */}
@@ -149,6 +154,13 @@ export function CompetitorByLocationDetailScreen({
             (r) => r.isYou || DEFAULT_SELECTED.includes(r.name)
           )}
           onRowClick={setCompetitorDetail}
+          pageContext="location"
+        />
+
+        <BrandScatterplotCard
+          dots={getBrandDots(scatterPlatform, DEFAULT_SELECTED)}
+          activePlatform={scatterPlatform}
+          onPlatformChange={setScatterPlatform}
         />
 
         <CompetitorRankingCard rows={PROMPT_RANKING_DATA} />

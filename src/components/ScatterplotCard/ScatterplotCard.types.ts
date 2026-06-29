@@ -9,8 +9,6 @@ export interface ScatterplotCardProps {
   activePlatform: RankingPlatform
   /** Called when the user switches platform tabs */
   onPlatformChange: (platform: RankingPlatform) => void
-  /** Called when user clicks "View detailed comparison" in the tooltip */
-  onViewComparison: (locationName: string) => void
-  /** Called when user clicks a dot — brand === 'you' for self, competitor name otherwise */
+/** Called when user clicks a dot — brand === 'you' for self, competitor name otherwise */
   onDotClick?: (dot: ByLocationDot) => void
 }

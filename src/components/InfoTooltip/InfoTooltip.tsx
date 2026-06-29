@@ -27,14 +27,14 @@ export function InfoTooltip({ text }: InfoTooltipProps) {
         className="flex items-center justify-center text-text-tertiary hover:text-text-secondary"
         aria-label="More info"
       >
-        <img src={infoIconUrl} alt="" width={16} height={16} className="opacity-40 hover:opacity-60" />
+        <img src={infoIconUrl} alt="" width={16} height={16} />
       </button>
       {visible && pos && (
         <div
-          className="pointer-events-none fixed z-[120] w-[260px] rounded-md border border-border bg-surface p-[12px] shadow-dropdown"
+          className="pointer-events-none fixed z-[120] max-w-[300px] whitespace-normal break-words rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white text-left"
           style={{ left: pos.x, top: pos.y, transform: 'translateX(-50%)' }}
         >
-          <p className="text-small text-text-tertiary">{text}</p>
+          {text}
         </div>
       )}
     </>

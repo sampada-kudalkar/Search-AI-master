@@ -4,4 +4,5 @@ export interface CompetitorMetricsCardProps {
   rows: CompetitorRowData[]
   onRowClick?: (row: CompetitorRowData) => void
   selectedCompetitor?: CompetitorRowData
+  pageContext?: 'brand' | 'location'
 }

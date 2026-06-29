@@ -415,7 +415,7 @@ export function AutoAppointmentTypeScreen() {
   }, [filterValues])
 
   const columnOptions = useMemo(
-    () => colOrder.map(k => ({ key: k, label: ST_DEF_BY_KEY.get(k)!.label, locked: ST_DEF_BY_KEY.get(k)!.locked })),
+    () => colOrder.map(k => ({ key: k, label: ST_DEF_BY_KEY.get(k)!.label as string, locked: ST_DEF_BY_KEY.get(k)!.locked })),
     [colOrder],
   )
 

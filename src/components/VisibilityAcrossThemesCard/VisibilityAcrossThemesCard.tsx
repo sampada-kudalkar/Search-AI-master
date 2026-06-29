@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import { CardHeader } from '../CardHeader/CardHeader'
 import { CardTabs } from '../CardTabs/CardTabs'
 import { TrendLineChart } from '../charts/TrendLineChart'
@@ -6,6 +7,7 @@ import { DataTable } from '../DataTable/DataTable'
 import { Icon } from '../Icon/Icon'
 import { COMPETITOR_BRAND_DATA, type Platform, type CompetitorRowData } from '../../data/competitorData'
 import type { Column } from '../DataTable/DataTable.types'
+import aiSummaryIcon from '../../assets/ai-summary.svg'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -13,6 +15,7 @@ export interface VisibilityAcrossThemesCardProps {
   themes?: string[]
   rows?: CompetitorRowData[]
   selectedCompetitor?: CompetitorRowData
+  pageContext?: 'brand' | 'location'
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -146,10 +149,10 @@ function ThemeDropdown({ themes, selected, onChange }: ThemeDropdownProps) {
     <div ref={ref} className="relative inline-flex items-center">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-[4px] text-primary text-[18px] leading-[26px] hover:underline"
+        className="flex items-center gap-[4px] text-[#1976D2] text-[18px] leading-[26px]"
       >
         {selected}
-        <Icon name="expand_more" size={16} className="text-primary" />
+        <Icon name="expand_more" size={16} className="text-[#1976D2]" />
       </button>
 
       {open && (
@@ -180,43 +183,50 @@ function ThemeDropdown({ themes, selected, onChange }: ThemeDropdownProps) {
 
 // ── Table column definitions ──────────────────────────────────────────────────
 
-const VISIBILITY_COLS: Column<VisibilityRow>[] = [
-  {
-    key: 'name',
-    label: 'Competitors',
-    width: 280,
-    sortable: true,
-    render: (_v, row) => (
-      <div className="flex items-center gap-sm">
-        <span className="text-body text-text-primary truncate">{row.name}</span>
-        {row.isYou && (
-          <span className="shrink-0 px-[8px] py-[2px] rounded-full text-small text-white bg-gradient-to-b from-[#0f7195] to-[#094459] border border-white">
-            You
-          </span>
-        )}
-        {row.isSelected && !row.isYou && (
-          <span className="shrink-0 px-[8px] py-[4px] rounded-[4px] text-small text-[#555] bg-[#eaeaea]">
-            Selected
-          </span>
-        )}
-      </div>
-    ),
-  },
-  {
-    key: 'visibilityScore',
-    label: 'Visibility score',
-    sortable: true,
-    render: (_v, row) => {
-      const sign = row.visibilityDelta >= 0 ? '+' : ''
-      return (
-        <div className="flex items-center gap-[8px]">
-          <span className="text-[13px] text-text-primary">{row.visibilityScore.toFixed(1)}%</span>
-          <span className="text-[12px] text-text-tertiary">{sign}{row.visibilityDelta.toFixed(1)}%</span>
+const VISIBILITY_SCORE_TOOLTIP = {
+  brand: 'See how frequently you are mentioned in AI-generated answers compared to competitors',
+  location: 'See how frequently your location is mentioned in AI-generated answers compared to competitors',
+}
+
+function buildVisibilityCols(pageContext: 'brand' | 'location'): Column<VisibilityRow>[] {
+  return [
+    {
+      key: 'name',
+      label: 'Competitors',
+      width: 280,
+      sortable: true,
+      render: (_v, row) => (
+        <div className="flex items-center gap-sm">
+          <span className="text-body text-text-primary truncate">{row.name}</span>
+          {row.isYou && (
+            <span className="shrink-0 px-[8px] py-[2px] rounded-full text-small text-white bg-gradient-to-b from-[#0f7195] to-[#094459] border border-white">
+              You
+            </span>
+          )}
         </div>
-      )
+      ),
     },
-  },
-]
+    {
+      key: 'visibilityScore',
+      label: (
+        <div className="flex items-center gap-xs">
+          <span>Visibility score</span>
+          <InfoTooltip text={VISIBILITY_SCORE_TOOLTIP[pageContext]} />
+        </div>
+      ),
+      sortable: true,
+      render: (_v, row) => {
+        const sign = row.visibilityDelta >= 0 ? '+' : ''
+        return (
+          <div className="flex items-center gap-[8px]">
+            <span className="text-[13px] text-text-primary">{row.visibilityScore.toFixed(1)}%</span>
+            <span className="text-[12px] text-text-tertiary">{sign}{row.visibilityDelta.toFixed(1)}%</span>
+          </div>
+        )
+      },
+    },
+  ]
+}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -224,13 +234,21 @@ export function VisibilityAcrossThemesCard({
   themes = DEFAULT_THEMES,
   rows,
   selectedCompetitor,
+  pageContext = 'brand',
 }: VisibilityAcrossThemesCardProps) {
   const [tab, setTab] = useState<Tab>('ChatGPT')
   const [selectedTheme, setSelectedTheme] = useState(themes[0])
+  const visibilityCols = buildVisibilityCols(pageContext)
 
-  const tableData: CompetitorRowData[] = rows ?? COMPETITOR_BRAND_DATA
+  const allTableData: CompetitorRowData[] = rows ?? COMPETITOR_BRAND_DATA
+  const tableData: CompetitorRowData[] = selectedCompetitor
+    ? allTableData.filter((r) => r.isYou || r.name === selectedCompetitor.name)
+    : allTableData
 
   const trendData = tab === 'all' ? ALL_SITES_TREND : VISIBILITY_TREND[tab]
+  const activeSeries = selectedCompetitor
+    ? TREND_SERIES.filter((s) => s.key === 'you' || s.label === selectedCompetitor.name)
+    : TREND_SERIES
 
   const visibilityRows: VisibilityRow[] = tableData.map((row) => {
     let score = 0
@@ -259,13 +277,13 @@ export function VisibilityAcrossThemesCard({
   })
 
   return (
-    <div className="flex flex-col bg-surface rounded-md shadow-[0px_2px_12px_1px_rgba(33,33,33,0.06)] overflow-hidden">
+    <div className="flex flex-col bg-surface rounded-md border border-border overflow-hidden">
       {/* ── Header ── */}
       <div className="px-xl py-lg">
         <CardHeader
           title={
             <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
-              How visible are across AI sites for
+              How is your visibility across AI sites for
               <ThemeDropdown
                 themes={themes}
                 selected={selectedTheme}
@@ -274,11 +292,11 @@ export function VisibilityAcrossThemesCard({
               relative to competitors
             </span>
           }
-          subtitle="Visibility of your locations relative to competitors"
+          subtitle="Track how your visibility score performing relative to your competitors in answers provided by AI sites overtime"
           toolbar={
             <div className="flex items-center gap-sm">
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                <Icon name="ai_stars" size={16} className="text-ai-brand" />
+                <img src={aiSummaryIcon} alt="" width={16} height={16} />
               </button>
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
                 <Icon name="more_vert" size={16} className="text-text-icon" />
@@ -300,30 +318,30 @@ export function VisibilityAcrossThemesCard({
         <div className="pt-lg pb-sm">
           <TrendLineChart
             data={trendData}
-            series={TREND_SERIES}
+            series={activeSeries}
             height={280}
             yDomain={[0, 'auto']}
             yTickFormatter={(v) => `${v}%`}
           />
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center gap-x-lg gap-y-xs mt-sm px-xs">
-            {TREND_SERIES.map((s) => (
+          <div className="flex flex-wrap items-center gap-xl mt-sm px-xs">
+            {activeSeries.map((s) => (
               <div key={s.key} className="flex items-center gap-xs">
                 <span
-                  className="inline-block w-[16px] h-[2px] rounded-full"
+                  className="inline-block size-3 rounded-full"
                   style={{ backgroundColor: s.color }}
                 />
-                <span className="text-small text-text-secondary">{s.label}</span>
+                <span className="text-[12px] text-text-secondary">{s.label}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* ── Table ── */}
-        <div className="border-t border-border mt-lg">
+        <div className="mt-lg">
           <DataTable<VisibilityRow>
-            columns={VISIBILITY_COLS}
+            columns={visibilityCols}
             data={visibilityRows}
             rowHeight={56}
           />

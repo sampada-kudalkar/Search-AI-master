@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import { CardHeader } from '../CardHeader/CardHeader'
 import { CardTabs } from '../CardTabs/CardTabs'
 import { TrendLineChart } from '../charts/TrendLineChart'
@@ -16,6 +17,7 @@ export interface CitationShareCardProps {
   themes?: string[]
   rows?: CompetitorRowData[]
   selectedCompetitor?: CompetitorRowData
+  pageContext?: 'brand' | 'location'
 }
 
 // ── Static seed data ─────────────────────────────────────────────────────────
@@ -111,10 +113,10 @@ function ThemeDropdown({ themes, selected, onChange }: ThemeDropdownProps) {
     <div ref={ref} className="relative inline-flex items-center">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-[4px] text-primary text-[18px] leading-[26px] hover:underline"
+        className="flex items-center gap-[4px] text-[#1976D2] text-[18px] leading-[26px]"
       >
         {selected}
-        <Icon name="expand_more" size={16} className="text-primary" />
+        <Icon name="expand_more" size={16} className="text-[#1976D2]" />
       </button>
 
       {open && (
@@ -143,7 +145,7 @@ function ThemeDropdown({ themes, selected, onChange }: ThemeDropdownProps) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompetitor }: CitationShareCardProps) {
+export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompetitor, pageContext = 'brand' }: CitationShareCardProps) {
   const [platform, setPlatform] = useState<Platform>('ChatGPT')
   const [selectedTheme, setSelectedTheme] = useState(themes[0])
   const [metric, setMetric] = useState<'share' | 'count'>('share')
@@ -151,7 +153,12 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
 
   const trendData = CITATION_TREND[platform]
 
-  const tableData: CompetitorRowData[] = rows ?? []
+  const tableData: CompetitorRowData[] = (rows ?? []).filter(
+    (r) => !selectedCompetitor || r.isYou || r.name === selectedCompetitor.name
+  )
+  const activeSeries = selectedCompetitor
+    ? TREND_SERIES.filter((s) => s.key === 'you' || s.label === selectedCompetitor.name)
+    : TREND_SERIES
 
   // Compute citation rank per row for the active platform (highest share = rank 1)
   const rankMap = new Map<string, number>()
@@ -159,11 +166,16 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
     .sort((a, b) => (b.metrics[platform]?.citationShare ?? 0) - (a.metrics[platform]?.citationShare ?? 0))
     .forEach((row, i) => rankMap.set(row.name, i + 1))
 
+  const citationRankTooltip = pageContext === 'location'
+    ? "See your location's position compared to others based on how often your website is cited in AI-generated answers"
+    : "See your brand's position compared to competitors based on how often your website is cited in AI-generated answers"
+  const avgCitationShareTooltip = 'See the percentage of all citations that come from your website. This helps you analyse how often your content is being used as a source in AI generated answers'
+
   // Table columns
   const tableColumns = [
     {
       key: 'name' as const,
-      label: '',
+      label: 'You vs competitor',
       width: 400,
       render: (_: unknown, row: CompetitorRowData) => (
         <div className="flex items-center gap-sm">
@@ -181,17 +193,17 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
               You
             </span>
           )}
-          {!row.isYou && selectedCompetitor?.name === row.name && (
-            <span className="shrink-0 px-[8px] py-[4px] rounded-[4px] text-small text-[#555] bg-[#eaeaea]">
-              Selected
-            </span>
-          )}
         </div>
       ),
     },
     {
       key: 'isYou' as const,
-      label: 'Citation rank',
+      label: (
+        <div className="flex items-center gap-xs">
+          <span>Citation rank</span>
+          <InfoTooltip text={citationRankTooltip} />
+        </div>
+      ),
       width: 160,
       sortable: true,
       render: (_: unknown, row: CompetitorRowData) => (
@@ -200,7 +212,12 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
     },
     {
       key: 'domain' as const,
-      label: 'Average citation share',
+      label: (
+        <div className="flex items-center gap-xs">
+          <span>Avg citation share</span>
+          <InfoTooltip text={avgCitationShareTooltip} />
+        </div>
+      ),
       width: 220,
       render: (_: unknown, row: CompetitorRowData) => {
         const m = row.metrics[platform]
@@ -218,7 +235,7 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
   ]
 
   return (
-    <div className="flex flex-col bg-surface rounded-md shadow-[0px_2px_12px_1px_rgba(33,33,33,0.06)]">
+    <div className="flex flex-col bg-surface rounded-md border border-border">
       {/* ── Header ── */}
       <div className="px-xl py-lg">
         <CardHeader
@@ -272,21 +289,21 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
       <div className="px-xl pt-lg pb-sm">
         <TrendLineChart
           data={trendData}
-          series={TREND_SERIES}
+          series={activeSeries}
           height={320}
           yDomain={[0, 'auto']}
           yTickFormatter={(v) => `${v}%`}
         />
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-x-lg gap-y-xs mt-sm px-xs">
-          {TREND_SERIES.map((s) => (
+        <div className="flex flex-wrap items-center gap-xl mt-sm px-xs">
+          {activeSeries.map((s) => (
             <div key={s.key} className="flex items-center gap-xs">
               <span
-                className="inline-block w-[16px] h-[2px] rounded-full"
+                className="inline-block size-3 rounded-full"
                 style={{ backgroundColor: s.color }}
               />
-              <span className="text-small text-text-secondary">{s.label}</span>
+              <span className="text-[12px] text-text-secondary">{s.label}</span>
             </div>
           ))}
         </div>
