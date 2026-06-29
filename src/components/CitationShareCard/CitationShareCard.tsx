@@ -6,6 +6,7 @@ import { DataTable } from '../DataTable/DataTable'
 import { DateRangeSelector } from '../DateRangeSelector/DateRangeSelector'
 import { SegmentedControl } from '../SegmentedControl/SegmentedControl'
 import { Icon } from '../Icon/Icon'
+import { AiIcon } from '../AiIcon/AiIcon'
 import { chartColors } from '../charts/chartColors'
 import type { Platform, CompetitorRowData } from '../../data/competitorData'
 
@@ -23,19 +24,12 @@ const DEFAULT_THEMES = ['All themes', 'Dental care', 'Oral health', 'Insurance',
 
 // Citation share trend data for 12 months, per platform
 const CITATION_TREND: Record<Platform, { label: string; you: number; comp1: number; comp2: number; comp3: number; comp4: number; comp5: number }[]> = {
+  // ChatGPT: real data from citation seed (Apr–Jun 2026, roll-up across all 6 locations).
+  // comp1 (Bowen Dental) = real seed values ("Bowendental"). comp2–comp5 = /* random */
   ChatGPT: [
-    { label: 'Jan', you: 8.2, comp1: 5.1, comp2: 3.9, comp3: 2.8, comp4: 4.5, comp5: 9.6 },
-    { label: 'Feb', you: 8.5, comp1: 5.3, comp2: 3.8, comp3: 2.9, comp4: 4.2, comp5: 8.9 },
-    { label: 'Mar', you: 8.8, comp1: 5.6, comp2: 4.1, comp3: 3.1, comp4: 4.0, comp5: 8.5 },
-    { label: 'Apr', you: 9.0, comp1: 5.4, comp2: 3.9, comp3: 3.2, comp4: 3.9, comp5: 8.3 },
-    { label: 'May', you: 9.2, comp1: 5.2, comp2: 4.2, comp3: 3.0, comp4: 3.8, comp5: 8.7 },
-    { label: 'Jun', you: 9.5, comp1: 5.5, comp2: 4.0, comp3: 2.8, comp4: 4.1, comp5: 8.4 },
-    { label: 'Jul', you: 9.8, comp1: 5.0, comp2: 3.7, comp3: 2.7, comp4: 4.5, comp5: 8.0 },
-    { label: 'Aug', you: 10.1, comp1: 4.8, comp2: 3.9, comp3: 2.9, comp4: 4.3, comp5: 7.9 },
-    { label: 'Sep', you: 10.3, comp1: 4.9, comp2: 4.1, comp3: 3.0, comp4: 4.0, comp5: 7.8 },
-    { label: 'Oct', you: 10.2, comp1: 5.1, comp2: 4.3, comp3: 3.2, comp4: 3.8, comp5: 7.5 },
-    { label: 'Nov', you: 10.4, comp1: 5.0, comp2: 4.2, comp3: 3.1, comp4: 3.6, comp5: 7.4 },
-    { label: 'Dec', you: 10.47, comp1: 2.33, comp2: 4.81, comp3: 1.16, comp4: 1.16, comp5: 2.33 },
+    { label: 'Apr', you: 12.00, comp1: 0.00,  comp2: 3.10 /* random */, comp3: 1.80 /* random */, comp4: 2.40 /* random */, comp5: 1.50 /* random */ },
+    { label: 'May', you: 9.00,  comp1: 4.00,  comp2: 3.50 /* random */, comp3: 2.10 /* random */, comp4: 2.20 /* random */, comp5: 1.90 /* random */ },
+    { label: 'Jun', you: 10.47, comp1: 2.33,  comp2: 3.80 /* random */, comp3: 1.95 /* random */, comp4: 2.60 /* random */, comp5: 2.10 /* random */ },
   ],
   Gemini: [
     { label: 'Jan', you: 5.2, comp1: 3.1, comp2: 2.2, comp3: 1.5, comp4: 3.8, comp5: 7.0 },
@@ -255,7 +249,7 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
                 onChange={setDateRange}
               />
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                <Icon name="auto_awesome" size={16} className="text-ai-brand" />
+                <AiIcon size={16} />
               </button>
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
                 <Icon name="more_vert" size={16} className="text-text-icon" />

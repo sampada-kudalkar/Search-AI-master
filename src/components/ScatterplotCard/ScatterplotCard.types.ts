@@ -1,14 +1,16 @@
-import type { ByLocationDot, RankingPlatform } from '../../data/competitorData'
+import type { ByLocationDot, CompetitorSeries, RankingPlatform } from '../../data/competitorData'
 
 export interface ScatterplotCardProps {
   /** All dots to render — filtered by caller for platform/geo */
   dots: ByLocationDot[]
-  /** Ordered list of active competitor names (up to 5) */
-  competitors: string[]
+  /** Grouped competitor series: up to 4 branded + optional local bucket */
+  competitorSeries: CompetitorSeries[]
   /** Currently selected platform — drives the tab highlight */
   activePlatform: RankingPlatform
   /** Called when the user switches platform tabs */
   onPlatformChange: (platform: RankingPlatform) => void
   /** Called when user clicks "View detailed comparison" in the tooltip */
   onViewComparison: (locationName: string) => void
+  /** Called when user clicks a dot — brand === 'you' for self, competitor name otherwise */
+  onDotClick?: (dot: ByLocationDot) => void
 }

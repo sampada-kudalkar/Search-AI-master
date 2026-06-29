@@ -150,14 +150,15 @@ export function DataTable<T extends Record<string, unknown>>({
             >
               {columns.map((col, ci) => {
                 const isLast = ci === columns.length - 1
+                const isFirst = ci === 0
                 const content = col.render ? col.render(row[col.key], row) : String(row[col.key] ?? '')
                 return (
                   <td
                     key={String(col.key)}
                     style={{ height: rowHeight }}
-                  className={`px-[10px] align-middle text-body text-text-primary ${
+                    className={`px-[10px] align-middle text-body text-text-primary ${
                       isLast ? 'relative' : 'truncate'
-                    }`}
+                    } ${isFirst && onRowClick ? 'group-hover/row:text-text-action' : ''}`}
                   >
                     {isLast ? <span className="block truncate">{content}</span> : content}
 

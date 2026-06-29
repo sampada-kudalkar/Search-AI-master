@@ -5,6 +5,7 @@ import { TrendLineChart } from '../charts/TrendLineChart'
 import { DataTable } from '../DataTable/DataTable'
 import { DateRangeSelector } from '../DateRangeSelector/DateRangeSelector'
 import { Icon } from '../Icon/Icon'
+import { AiIcon } from '../AiIcon/AiIcon'
 import {
   TREND_DATA,
   TREND_SERIES_COLORS,
@@ -184,7 +185,7 @@ export function AveragePositionCard({ rows: _rows, selectedCompetitor }: Average
                 onChange={setDateRange}
               />
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                <Icon name="auto_awesome" size={16} className="text-ai-brand" />
+                <AiIcon size={16} />
               </button>
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
                 <Icon name="more_vert" size={16} className="text-text-icon" />

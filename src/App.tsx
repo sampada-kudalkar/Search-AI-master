@@ -32,6 +32,7 @@ import { SettingsScreen } from './screens/SettingsScreen'
 import { IntegrationDetailScreen } from './screens/IntegrationDetailScreen'
 import { WebWidgetsScreen } from './screens/WebWidgetsScreen'
 import { AppointmentWidgetsScreen } from './screens/AppointmentWidgetsScreen'
+import { ManageCompetitorsScreen } from './screens/ManageCompetitorsScreen'
 import { InboxScreen } from './screens/InboxScreen'
 import { SearchAIScreen } from './screens/SearchAIScreen'
 import logoSrc from './assets/birdeye-logo.svg'
@@ -344,8 +345,10 @@ export function App() {
             <WebWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
           ) : settingsSubScreen === 'appointment-widgets' ? (
             <AppointmentWidgetsScreen onBack={() => setSettingsSubScreen(null)} />
+          ) : settingsSubScreen === 'manage-competitors' ? (
+            <ManageCompetitorsScreen onBack={() => setSettingsSubScreen(null)} />
           ) : (
-            <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} onWebWidgets={() => setSettingsSubScreen('web-widgets')} onAppointmentWidgets={() => setSettingsSubScreen('appointment-widgets')} />
+            <SettingsScreen initialTab={settingsTab} onTabConsumed={() => setSettingsTab(null)} onWebWidgets={() => setSettingsSubScreen('web-widgets')} onAppointmentWidgets={() => setSettingsSubScreen('appointment-widgets')} onManageCompetitors={() => setSettingsSubScreen('manage-competitors')} />
           )
         ) : railActive === 'search' ? (
           <SearchAIScreen />

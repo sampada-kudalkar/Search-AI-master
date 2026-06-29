@@ -1,3 +1,4 @@
+export { AiIcon } from './AiIcon/AiIcon'
 export { CompetitorRankingCard } from './CompetitorRankingCard/CompetitorRankingCard'
 export type { CompetitorRankingCardProps } from './CompetitorRankingCard/CompetitorRankingCard.types'
 export { CardHeader } from './CardHeader/CardHeader'

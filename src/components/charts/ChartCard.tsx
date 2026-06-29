@@ -3,7 +3,7 @@ import { Icon } from '../Icon/Icon'
 import { CardHeader } from '../CardHeader/CardHeader'
 
 export interface ChartCardProps {
-  title: string
+  title: string | ReactNode
   /** Visible text rendered directly below the title inside the header. */
   subtitle?: string
   /** When provided, renders an info icon next to the title that shows this text on hover. */

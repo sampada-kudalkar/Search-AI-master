@@ -190,7 +190,7 @@ const SECTIONS: SettingsSection[] = [
   },
 ]
 
-export function SettingsScreen({ initialTab, onTabConsumed, onWebWidgets, onAppointmentWidgets }: { initialTab?: string | null; onTabConsumed?: () => void; onWebWidgets?: () => void; onAppointmentWidgets?: () => void }) {
+export function SettingsScreen({ initialTab, onTabConsumed, onWebWidgets, onAppointmentWidgets, onManageCompetitors }: { initialTab?: string | null; onTabConsumed?: () => void; onWebWidgets?: () => void; onAppointmentWidgets?: () => void; onManageCompetitors?: () => void }) {
   const [query, setQuery] = useState('')
   const [activeNav, setActiveNav] = useState(initialTab ?? SETTINGS_NAV[0])
 
@@ -293,7 +293,7 @@ export function SettingsScreen({ initialTab, onTabConsumed, onWebWidgets, onAppo
                       <button
                         key={item.label}
                         type="button"
-                        onClick={item.label === 'Web widgets' ? onWebWidgets : item.label === 'Appointment widgets' ? onAppointmentWidgets : undefined}
+                        onClick={item.label === 'Web widgets' ? onWebWidgets : item.label === 'Appointment widgets' ? onAppointmentWidgets : item.label === 'Manage competitors' ? onManageCompetitors : undefined}
                         className="group flex h-[88px] items-center gap-md overflow-hidden rounded-sm px-sm text-left hover:bg-surface-hover"
                       >
                         {item.iconSrc

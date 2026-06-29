@@ -105,7 +105,7 @@ export function CompetitorDetailScreen({
       </div>
 
       {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto bg-[#f5f5f5]">
+      <div className="flex-1 min-h-0 overflow-y-auto bg-white">
       <div className="flex flex-col gap-xl px-2xl py-xl">
         {!detail ? (
           <div className="flex flex-1 items-center justify-center text-body text-text-secondary">

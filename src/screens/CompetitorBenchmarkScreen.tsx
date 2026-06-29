@@ -1,4 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
+
+type ChartMetric = 'Visibility score' | 'Citation share' | 'Rank'
+const CHART_METRICS: ChartMetric[] = ['Visibility score', 'Citation share', 'Rank']
 import { Icon, CompetitorRankingCard } from '../components'
 import { CardTabs } from '../components/CardTabs/CardTabs'
 import { CompetitorMetricsCard } from '../components/CompetitorMetricsCard'
@@ -21,13 +24,68 @@ import {
 
 const SERIES_KEYS = ['comp1', 'comp2', 'comp3', 'comp4', 'comp5'] as const
 
+const MORE_MENU_ITEMS = [
+  'Manage competitors',
+  'Download',
+  'Email',
+  'Schedule',
+] as const
+
 export function CompetitorBenchmarkScreen({
   onCompetitorClick,
+  onManageCompetitors,
 }: {
   onCompetitorClick?: (row: CompetitorRowData) => void
+  onManageCompetitors?: () => void
 }): JSX.Element {
   const [selected, setSelected] = useState<string[]>(DEFAULT_SELECTED)
   const [trendPlatform, setTrendPlatform] = useState<Platform>('ChatGPT')
+  const [moreMenu, setMoreMenu] = useState<{ top: number; left: number } | null>(null)
+  const moreButtonRef = useRef<HTMLButtonElement>(null)
+  const [chartMetric, setChartMetric] = useState<ChartMetric>('Visibility score')
+  const [chartMetricOpen, setChartMetricOpen] = useState(false)
+  const chartMetricRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    if (!chartMetricOpen) return
+    function handleOutside(e: MouseEvent) {
+      if (chartMetricRef.current && !chartMetricRef.current.contains(e.target as Node)) {
+        setChartMetricOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [chartMetricOpen])
+
+  const chartTitle: ReactNode = (
+    <span className="flex flex-wrap items-center gap-xs leading-[24px]">
+      How are you performing against competitors overtime for{' '}
+      <span ref={chartMetricRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setChartMetricOpen((v) => !v)}
+          className="flex items-center gap-[2px] text-[#2563eb] hover:underline"
+        >
+          {chartMetric}
+          <Icon name="expand_more" size={16} />
+        </button>
+        {chartMetricOpen && (
+          <div className="absolute left-0 top-full z-50 mt-xs min-w-[160px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+            {CHART_METRICS.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setChartMetric(m); setChartMetricOpen(false) }}
+                className={`block w-full px-md py-sm text-left text-body hover:bg-surface-hover ${m === chartMetric ? 'text-primary' : 'text-text-primary'}`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        )}
+      </span>
+    </span>
+  )
 
   const trendSeries: SeriesConfig[] = [
     { key: 'you', label: 'You', color: TREND_SERIES_COLORS['you'] },
@@ -39,12 +97,12 @@ export function CompetitorBenchmarkScreen({
   ]
 
   return (
-    <div className="flex flex-col bg-[#f5f5f5] h-full w-full overflow-y-auto">
+    <div className="flex flex-col bg-white h-full w-full overflow-y-auto">
       {/* Page header */}
       <div className="flex h-16 shrink-0 items-center gap-sm px-2xl">
         {/* Title */}
         <div className="flex flex-1 items-center gap-sm">
-          <span className="text-h3 text-text-primary">Competitor benchmarking by brand</span>
+          <span className="text-h3 text-text-primary">Benchmarking by brand</span>
           <Icon name="info" size={20} className="text-text-icon" />
         </div>
 
@@ -62,12 +120,40 @@ export function CompetitorBenchmarkScreen({
 
           {/* More options */}
           <button
+            ref={moreButtonRef}
             type="button"
             aria-label="More options"
             className="flex size-9 items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover"
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect()
+              setMoreMenu(moreMenu ? null : { top: r.bottom + 4, left: r.right - 216 })
+            }}
           >
             <Icon name="more_vert" size={20} className="text-text-icon" />
           </button>
+          {moreMenu && (
+            <>
+              <div className="fixed inset-0 z-[105]" onClick={() => setMoreMenu(null)} />
+              <div
+                className="fixed z-[110] min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+                style={{ top: moreMenu.top, left: moreMenu.left }}
+              >
+                {MORE_MENU_ITEMS.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+                    onClick={() => {
+                      setMoreMenu(null)
+                      if (item === 'Manage competitors') onManageCompetitors?.()
+                    }}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Filter */}
           <button
@@ -97,8 +183,7 @@ export function CompetitorBenchmarkScreen({
 
         {/* Trend chart card */}
         <ChartCard
-          title="How are your key Search AI metrics compared to competitors"
-          subtitle="Track how your Search AI metrics like visibility, citation share and ranking changes against competitors"
+          title={chartTitle}
           toolbar={<ChartCardButton icon="auto_awesome" label="AI insights" iconClassName="text-[#6834b7]" />}
           showActions
         >

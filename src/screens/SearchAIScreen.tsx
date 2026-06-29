@@ -3,7 +3,15 @@ import { Icon, TopNav, type NavSection } from '../components'
 import { CompetitorBenchmarkScreen } from './CompetitorBenchmarkScreen'
 import { CompetitorDetailScreen } from './CompetitorDetailScreen'
 import { CompetitorByLocationScreen } from './CompetitorByLocationScreen'
-import type { CompetitorRowData } from '../data/competitorData'
+import { CompetitorByLocationDetailScreen } from './CompetitorByLocationDetailScreen'
+import { ManageCompetitorsScreen } from './ManageCompetitorsScreen'
+import {
+  BY_LOCATION_DATA,
+  COMPETITOR_BRAND_DATA,
+  type CompetitorRowData,
+  type ByLocationTableRow,
+  type ByLocationDot,
+} from '../data/competitorData'
 
 const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
   {
@@ -30,8 +38,8 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
     id: 'competitors',
     label: 'Competitors',
     items: [
-      { id: 'by-brand',    label: 'By brand'    },
-      { id: 'by-location', label: 'By location' },
+      { id: 'by-brand',    label: 'Benchmarking by brand'    },
+      { id: 'by-location', label: 'Benchmarking by location' },
     ],
   },
   {
@@ -62,8 +70,8 @@ const LABEL_MAP: Record<string, string> = {
   sentiment:            'Sentiment',
   prompt:               'Prompt',
   website:              'Website',
-  'by-brand':           'By brand',
-  'by-location':        'By location',
+  'by-brand':           'Benchmarking by brand',
+  'by-location':        'Benchmarking by location',
   'optimization-agents':'Optimization agents',
   'search-prompts':     'Prompts',
   'search-report':      'Report',
@@ -158,10 +166,25 @@ function SearchAISideNav({
 export function SearchAIScreen() {
   const [navActive, setNavActive] = useState('overview')
   const [competitorDetail, setCompetitorDetail] = useState<CompetitorRowData | null>(null)
+  const [locationDetail, setLocationDetail] = useState<ByLocationTableRow | null>(null)
+  const [manageCompetitors, setManageCompetitors] = useState(false)
 
   function handleNavSelect(id: string) {
     setNavActive(id)
     setCompetitorDetail(null)
+    setLocationDetail(null)
+    setManageCompetitors(false)
+  }
+
+  if (manageCompetitors) {
+    return (
+      <div className="flex h-full w-full min-h-0 flex-col">
+        <TopNav initials="S" />
+        <main className="flex flex-1 overflow-hidden">
+          <ManageCompetitorsScreen onBack={() => setManageCompetitors(false)} />
+        </main>
+      </div>
+    )
   }
 
   if (competitorDetail) {
@@ -178,6 +201,20 @@ export function SearchAIScreen() {
     )
   }
 
+  if (locationDetail) {
+    return (
+      <div className="flex h-full w-full min-h-0">
+        <SearchAISideNav activeId={navActive} onSelect={handleNavSelect} />
+        <main className="flex flex-1 flex-col overflow-hidden">
+          <CompetitorByLocationDetailScreen
+            location={locationDetail}
+            onBack={() => setLocationDetail(null)}
+          />
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full w-full">
       <SearchAISideNav activeId={navActive} onSelect={handleNavSelect} />
@@ -185,9 +222,26 @@ export function SearchAIScreen() {
         <div className="flex h-full flex-col">
           <TopNav initials="S" />
           {navActive === 'by-brand' ? (
-            <CompetitorBenchmarkScreen onCompetitorClick={setCompetitorDetail} />
+            <CompetitorBenchmarkScreen
+              onCompetitorClick={setCompetitorDetail}
+              onManageCompetitors={() => setManageCompetitors(true)}
+            />
           ) : navActive === 'by-location' ? (
-            <CompetitorByLocationScreen />
+            <CompetitorByLocationScreen
+              onLocationClick={setLocationDetail}
+              onManageCompetitors={() => setManageCompetitors(true)}
+              onDotClick={(dot: ByLocationDot) => {
+                if (dot.brand === 'you') {
+                  const row = BY_LOCATION_DATA['ChatGPT'].tableRows.find(
+                    (r) => r.location === dot.locationName
+                  )
+                  if (row) setLocationDetail(row)
+                } else {
+                  const competitor = COMPETITOR_BRAND_DATA.find((c) => c.name === dot.brand)
+                  if (competitor) setCompetitorDetail(competitor)
+                }
+              }}
+            />
           ) : (
             <div className="flex flex-1 items-center justify-center text-body text-text-secondary">
               {LABEL_MAP[navActive] ?? navActive}

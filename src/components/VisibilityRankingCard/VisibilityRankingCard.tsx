@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CardHeader } from '../CardHeader/CardHeader'
 import { CardTabs } from '../CardTabs/CardTabs'
 import { Icon } from '../Icon/Icon'
+import { AiIcon } from '../AiIcon/AiIcon'
 import {
   LOCATION_RANKING_DATA,
   RANKING_PLATFORMS,
@@ -115,7 +116,7 @@ export function VisibilityRankingCard() {
         <Icon name="search" size={20} />
       </button>
       <button className="relative flex size-[36px] items-center justify-center rounded-sm border border-border-selected bg-surface hover:bg-surface-hover">
-        <Icon name="auto_awesome" size={16} className="text-[#6834b7]" />
+        <AiIcon size={16} />
       </button>
       <button className="flex size-[36px] items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-hover">
         <Icon name="more_vert" size={20} />

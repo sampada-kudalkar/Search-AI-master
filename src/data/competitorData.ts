@@ -142,6 +142,7 @@ export interface PromptRankingRow extends Record<string, unknown> {
   id: string
   prompt: string
   rankings: Record<TrendPlatform, RankingEntry[]>
+  prompts?: PromptRankingRow[]
 }
 
 const YOU: RankingEntry = { name: BRAND_NAME, isYou: true }
@@ -179,6 +180,47 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       [BOWEN,     INNISFAIL, YOU,        DEERAGUN,   SERENITY  ],
       [YOU,       SERENITY,  NDC,        BOWEN,      DEERAGUN  ],
     ]),
+    prompts: [
+      {
+        id: 'p1-1',
+        prompt: 'Who is the best dentist near me?',
+        rankings: rankingsForAll([
+          [YOU,       INNISFAIL, BOWEN,      DEERAGUN,   SERENITY  ],
+          [BOWEN,     YOU,       INNISFAIL,  SERENITY,   ABSOLUTELY],
+          [YOU,       BOWEN,     ABSOLUTELY, NDC,        DEERAGUN  ],
+          [INNISFAIL, SERENITY,  YOU,        BOWEN,      DEERAGUN  ],
+          [YOU,       BOWEN,     INNISFAIL,  ABSOLUTELY, RIVERSIDE ],
+          [INNISFAIL, BOWEN,     YOU,        SERENITY,   DEERAGUN  ],
+          [YOU,       NDC,       SERENITY,   BOWEN,      INNISFAIL ],
+        ]),
+      },
+      {
+        id: 'p1-2',
+        prompt: 'Best rated dentist in my city',
+        rankings: rankingsForAll([
+          [BOWEN,     YOU,       SERENITY,   INNISFAIL,  ABSOLUTELY],
+          [YOU,       DEERAGUN,  BOWEN,      SERENITY,   NDC       ],
+          [DEERAGUN,  YOU,       INNISFAIL,  BOWEN,      SERENITY  ],
+          [YOU,       BOWEN,     DEERAGUN,   INNISFAIL,  ABSOLUTELY],
+          [ABSOLUTELY,BOWEN,     YOU,        SERENITY,   INNISFAIL ],
+          [BOWEN,     YOU,       DEERAGUN,   INNISFAIL,  SERENITY  ],
+          [SERENITY,  YOU,       BOWEN,      DEERAGUN,   NDC       ],
+        ]),
+      },
+      {
+        id: 'p1-3',
+        prompt: 'Top dentist for families',
+        rankings: rankingsForAll([
+          [YOU,       SERENITY,  BOWEN,      NDC,        INNISFAIL ],
+          [INNISFAIL, YOU,       BOWEN,      DEERAGUN,   SERENITY  ],
+          [BOWEN,     INNISFAIL, YOU,        SERENITY,   ABSOLUTELY],
+          [SERENITY,  YOU,       INNISFAIL,  BOWEN,      NDC       ],
+          [YOU,       INNISFAIL, BOWEN,      DEERAGUN,   SERENITY  ],
+          [BOWEN,     SERENITY,  YOU,        NDC,        DEERAGUN  ],
+          [YOU,       BOWEN,     INNISFAIL,  SERENITY,   DEERAGUN  ],
+        ]),
+      },
+    ],
   },
   {
     id: 'p2',
@@ -192,6 +234,34 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       [YOU,       DEERAGUN,  BOWEN,      SERENITY,   INNISFAIL ],
       [BOWEN,     YOU,       RIVERSIDE,  DEERAGUN,   SERENITY  ],
     ]),
+    prompts: [
+      {
+        id: 'p2-1',
+        prompt: 'List top 5 dentists near me',
+        rankings: rankingsForAll([
+          [DEERAGUN,  BOWEN,     YOU,        SERENITY,   INNISFAIL ],
+          [YOU,       ABSOLUTELY,BOWEN,      NDC,        DEERAGUN  ],
+          [BOWEN,     DEERAGUN,  YOU,        INNISFAIL,  SERENITY  ],
+          [SERENITY,  BOWEN,     DEERAGUN,   YOU,        ABSOLUTELY],
+          [BOWEN,     INNISFAIL, YOU,        DEERAGUN,   NDC       ],
+          [DEERAGUN,  YOU,       SERENITY,   BOWEN,      INNISFAIL ],
+          [YOU,       RIVERSIDE, BOWEN,      DEERAGUN,   SERENITY  ],
+        ]),
+      },
+      {
+        id: 'p2-2',
+        prompt: 'Best dental practices in my area ranked',
+        rankings: rankingsForAll([
+          [INNISFAIL, BOWEN,     DEERAGUN,   YOU,        NDC       ],
+          [BOWEN,     YOU,       NDC,        ABSOLUTELY, RIVERSIDE ],
+          [YOU,       INNISFAIL, SERENITY,   DEERAGUN,   BOWEN     ],
+          [BOWEN,     YOU,       SERENITY,   DEERAGUN,   ABSOLUTELY],
+          [DEERAGUN,  BOWEN,     INNISFAIL,  NDC,        YOU       ],
+          [YOU,       BOWEN,     DEERAGUN,   INNISFAIL,  SERENITY  ],
+          [RIVERSIDE, BOWEN,     YOU,        SERENITY,   DEERAGUN  ],
+        ]),
+      },
+    ],
   },
   {
     id: 'p3',
@@ -205,6 +275,34 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       [INNISFAIL, YOU,       BOWEN,      ABSOLUTELY, DEERAGUN  ],
       [DEERAGUN,  INNISFAIL, YOU,        BOWEN,      SERENITY  ],
     ]),
+    prompts: [
+      {
+        id: 'p3-1',
+        prompt: 'Who does the best teeth cleaning near me?',
+        rankings: rankingsForAll([
+          [BOWEN,     INNISFAIL, YOU,        NDC,        DEERAGUN  ],
+          [INNISFAIL, YOU,       BOWEN,      SERENITY,   ABSOLUTELY],
+          [YOU,       BOWEN,     RIVERSIDE,  DEERAGUN,   INNISFAIL ],
+          [BOWEN,     SERENITY,  YOU,        INNISFAIL,  NDC       ],
+          [SERENITY,  YOU,       DEERAGUN,   BOWEN,      INNISFAIL ],
+          [YOU,       INNISFAIL, ABSOLUTELY, BOWEN,      DEERAGUN  ],
+          [INNISFAIL, YOU,       BOWEN,      SERENITY,   DEERAGUN  ],
+        ]),
+      },
+      {
+        id: 'p3-2',
+        prompt: 'Affordable teeth cleaning dentist',
+        rankings: rankingsForAll([
+          [YOU,       NDC,       BOWEN,      INNISFAIL,  DEERAGUN  ],
+          [SERENITY,  INNISFAIL, YOU,        ABSOLUTELY, BOWEN     ],
+          [DEERAGUN,  BOWEN,     YOU,        INNISFAIL,  RIVERSIDE ],
+          [INNISFAIL, YOU,       SERENITY,   NDC,        BOWEN     ],
+          [YOU,       BOWEN,     SERENITY,   INNISFAIL,  DEERAGUN  ],
+          [BOWEN,     ABSOLUTELY,INNISFAIL,  YOU,        DEERAGUN  ],
+          [YOU,       SERENITY,  DEERAGUN,   INNISFAIL,  BOWEN     ],
+        ]),
+      },
+    ],
   },
   {
     id: 'p4',
@@ -218,6 +316,34 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       [YOU,       BOWEN,     SERENITY,   INNISFAIL,  ABSOLUTELY],
       [INNISFAIL, YOU,       BOWEN,      SERENITY,   DEERAGUN  ],
     ]),
+    prompts: [
+      {
+        id: 'p4-1',
+        prompt: 'Dentist for sensitive teeth near me',
+        rankings: rankingsForAll([
+          [YOU,       SERENITY,  ABSOLUTELY, BOWEN,      DEERAGUN  ],
+          [SERENITY,  YOU,       BOWEN,      DEERAGUN,   NDC       ],
+          [SERENITY,  INNISFAIL, YOU,        BOWEN,      ABSOLUTELY],
+          [YOU,       DEERAGUN,  BOWEN,      SERENITY,   INNISFAIL ],
+          [NDC,       SERENITY,  BOWEN,      YOU,        DEERAGUN  ],
+          [BOWEN,     YOU,       INNISFAIL,  SERENITY,   ABSOLUTELY],
+          [YOU,       BOWEN,     SERENITY,   INNISFAIL,  DEERAGUN  ],
+        ]),
+      },
+      {
+        id: 'p4-2',
+        prompt: 'Best treatment for tooth sensitivity',
+        rankings: rankingsForAll([
+          [ABSOLUTELY,SERENITY,  YOU,        DEERAGUN,   BOWEN     ],
+          [YOU,       DEERAGUN,  SERENITY,   NDC,        BOWEN     ],
+          [INNISFAIL, YOU,       SERENITY,   ABSOLUTELY, BOWEN     ],
+          [DEERAGUN,  BOWEN,     YOU,        INNISFAIL,  SERENITY  ],
+          [SERENITY,  YOU,       NDC,        DEERAGUN,   BOWEN     ],
+          [YOU,       SERENITY,  BOWEN,      ABSOLUTELY, INNISFAIL ],
+          [BOWEN,     INNISFAIL, YOU,        DEERAGUN,   SERENITY  ],
+        ]),
+      },
+    ],
   },
   {
     id: 'p5',
@@ -231,6 +357,34 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       [BOWEN,     SERENITY,  YOU,        DEERAGUN,   NDC       ],
       [YOU,       BOWEN,     ABSOLUTELY, INNISFAIL,  SERENITY  ],
     ]),
+    prompts: [
+      {
+        id: 'p5-1',
+        prompt: 'Find a local dentist accepting new patients',
+        rankings: rankingsForAll([
+          [YOU,       BOWEN,     ABSOLUTELY, RIVERSIDE,  INNISFAIL ],
+          [ABSOLUTELY,YOU,       BOWEN,      DEERAGUN,   SERENITY  ],
+          [INNISFAIL, BOWEN,     ABSOLUTELY, YOU,        NDC       ],
+          [BOWEN,     YOU,       SERENITY,   ABSOLUTELY, DEERAGUN  ],
+          [YOU,       DEERAGUN,  BOWEN,      INNISFAIL,  ABSOLUTELY],
+          [SERENITY,  BOWEN,     DEERAGUN,   YOU,        NDC       ],
+          [BOWEN,     ABSOLUTELY,YOU,        SERENITY,   INNISFAIL ],
+        ]),
+      },
+      {
+        id: 'p5-2',
+        prompt: 'Local dental clinic with good reviews',
+        rankings: rankingsForAll([
+          [INNISFAIL, ABSOLUTELY,YOU,        BOWEN,      RIVERSIDE ],
+          [YOU,       SERENITY,  ABSOLUTELY, DEERAGUN,   BOWEN     ],
+          [ABSOLUTELY,YOU,       NDC,        INNISFAIL,  BOWEN     ],
+          [SERENITY,  ABSOLUTELY,YOU,        DEERAGUN,   BOWEN     ],
+          [BOWEN,     INNISFAIL, DEERAGUN,   ABSOLUTELY, YOU       ],
+          [YOU,       DEERAGUN,  BOWEN,      SERENITY,   NDC       ],
+          [ABSOLUTELY,YOU,       INNISFAIL,  BOWEN,      SERENITY  ],
+        ]),
+      },
+    ],
   },
   {
     id: 'p6',
@@ -244,6 +398,34 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       [NDC,       YOU,       INNISFAIL,  BOWEN,      SERENITY  ],
       [BOWEN,     DEERAGUN,  YOU,        NDC,        SERENITY  ],
     ]),
+    prompts: [
+      {
+        id: 'p6-1',
+        prompt: 'Emergency dentist for chipped tooth',
+        rankings: rankingsForAll([
+          [BOWEN,     NDC,       YOU,        DEERAGUN,   SERENITY  ],
+          [NDC,       YOU,       ABSOLUTELY, BOWEN,      INNISFAIL ],
+          [YOU,       BOWEN,     SERENITY,   NDC,        DEERAGUN  ],
+          [SERENITY,  NDC,       BOWEN,      YOU,        INNISFAIL ],
+          [BOWEN,     YOU,       DEERAGUN,   SERENITY,   NDC       ],
+          [YOU,       INNISFAIL, NDC,        BOWEN,      SERENITY  ],
+          [DEERAGUN,  BOWEN,     NDC,        YOU,        SERENITY  ],
+        ]),
+      },
+      {
+        id: 'p6-2',
+        prompt: 'How to fix a chipped tooth cost',
+        rankings: rankingsForAll([
+          [YOU,       SERENITY,  NDC,        BOWEN,      DEERAGUN  ],
+          [BOWEN,     INNISFAIL, YOU,        NDC,        ABSOLUTELY],
+          [NDC,       SERENITY,  YOU,        BOWEN,      DEERAGUN  ],
+          [NDC,       BOWEN,     YOU,        SERENITY,   INNISFAIL ],
+          [SERENITY,  BOWEN,     YOU,        NDC,        DEERAGUN  ],
+          [INNISFAIL, NDC,       BOWEN,      YOU,        SERENITY  ],
+          [YOU,       NDC,       BOWEN,      DEERAGUN,   SERENITY  ],
+        ]),
+      },
+    ],
   },
 ]
 
@@ -934,138 +1116,283 @@ export interface ByLocationTableRow extends Record<string, unknown> {
 }
 
 export const BY_LOCATION_COMPETITORS = [
-  'Bowen Dental',
   'Deeragun Dental',
-  'Innisfail Dentists',
+  'Hinchinbrook Dental Group',
+  'Bowen Dental',
   'Serenity Dental CQ',
   'Absolutely Dental @ Kirwan Plaza',
 ] as const
 
+// ── ChatGPT Jun 2026 ────────────────────────────────────────────────────────
+// Location-centric: one dot per (competitor, location) pair where they operate.
+// No filler dots. citationShare is independent of visibilityScore.
+
 const BY_LOCATION_DOTS_CHATGPT: ByLocationDot[] = [
-  { locationName: 'Townsville', brand: 'you',                                    visibilityScore: 72, citationShare: 58, rank: 1, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'you',                                    visibilityScore: 48, citationShare: 52, rank: 2, quadrant: 'underperforming' },
-  { locationName: 'Mackay',     brand: 'you',                                    visibilityScore: 61, citationShare: 42, rank: 3, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'you',                                    visibilityScore: 35, citationShare: 28, rank: 2, quadrant: 'lagging' },
-  { locationName: 'Cairns',     brand: 'you',                                    visibilityScore: 78, citationShare: 62, rank: 1, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Bowen Dental',                           visibilityScore: 55, citationShare: 44, rank: 2, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'Bowen Dental',                           visibilityScore: 82, citationShare: 68, rank: 1, quadrant: 'leading' },
-  { locationName: 'Mackay',     brand: 'Bowen Dental',                           visibilityScore: 47, citationShare: 36, rank: 2, quadrant: 'lagging' },
-  { locationName: 'Innisfail',  brand: 'Bowen Dental',                           visibilityScore: 40, citationShare: 30, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Cairns',     brand: 'Bowen Dental',                           visibilityScore: 63, citationShare: 51, rank: 4, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Deeragun Dental',                        visibilityScore: 38, citationShare: 29, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Bowen',      brand: 'Deeragun Dental',                        visibilityScore: 52, citationShare: 38, rank: 4, quadrant: 'emerging' },
-  { locationName: 'Mackay',     brand: 'Deeragun Dental',                        visibilityScore: 76, citationShare: 60, rank: 1, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Deeragun Dental',                        visibilityScore: 44, citationShare: 55, rank: 5, quadrant: 'underperforming' },
-  { locationName: 'Cairns',     brand: 'Deeragun Dental',                        visibilityScore: 58, citationShare: 47, rank: 2, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Innisfail Dentists',                     visibilityScore: 29, citationShare: 22, rank: 4, quadrant: 'lagging' },
-  { locationName: 'Bowen',      brand: 'Innisfail Dentists',                     visibilityScore: 43, citationShare: 35, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Innisfail Dentists',                     visibilityScore: 33, citationShare: 48, rank: 5, quadrant: 'underperforming' },
-  { locationName: 'Innisfail',  brand: 'Innisfail Dentists',                     visibilityScore: 88, citationShare: 71, rank: 1, quadrant: 'leading' },
-  { locationName: 'Cairns',     brand: 'Innisfail Dentists',                     visibilityScore: 41, citationShare: 32, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Townsville', brand: 'Serenity Dental CQ',                     visibilityScore: 25, citationShare: 18, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Bowen',      brand: 'Serenity Dental CQ',                     visibilityScore: 37, citationShare: 27, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Serenity Dental CQ',                     visibilityScore: 54, citationShare: 41, rank: 4, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Serenity Dental CQ',                     visibilityScore: 46, citationShare: 43, rank: 4, quadrant: 'underperforming' },
-  { locationName: 'Cairns',     brand: 'Serenity Dental CQ',                     visibilityScore: 69, citationShare: 54, rank: 3, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 66, citationShare: 50, rank: 2, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 31, citationShare: 24, rank: 4, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 57, citationShare: 44, rank: 3, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 49, citationShare: 37, rank: 3, quadrant: 'emerging' },
-  { locationName: 'Cairns',     brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 74, citationShare: 59, rank: 2, quadrant: 'leading' },
+  // ── Bohle Plains ─────────────────────────────────────────────────────────
+  { locationName: 'Bohle Plains', brand: 'you',                               visibilityScore: 100, citationShare: 82, rank: 1, quadrant: 'leading' },
+  { locationName: 'Bohle Plains', brand: 'Deeragun Dental',                   visibilityScore: 48,  citationShare: 34, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Aspire Dental',                     visibilityScore: 62,  citationShare: 67, rank: 3, quadrant: 'leading' },
+  { locationName: 'Bohle Plains', brand: 'National Dental Care Townsville',   visibilityScore: 38,  citationShare: 17, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Dental Balance NQ',                 visibilityScore: 22,  citationShare: 15, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'NQ Surgical Dentistry',             visibilityScore: 31,  citationShare: 33, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Dr. Eleri J Hunter',                visibilityScore: 18,  citationShare: 19, rank: 7, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'The Townsville Dental Centre',      visibilityScore: 14,  citationShare: 11, rank: 8, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Townsville Oral & Maxillofacial',   visibilityScore: 11,  citationShare: 12, rank: 9, quadrant: 'lagging' },
+
+  // ── Ingham ───────────────────────────────────────────────────────────────
+  { locationName: 'Ingham', brand: 'you',                           visibilityScore: 63, citationShare: 52, rank: 1, quadrant: 'leading' },
+  { locationName: 'Ingham', brand: 'Hinchinbrook Dental Group',     visibilityScore: 40, citationShare: 28, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'The Hinchinbrook Dental Group', visibilityScore: 29, citationShare: 31, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'Ingham Health Services Dental', visibilityScore: 21, citationShare: 23, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: '1300 Smiles – Ingham',          visibilityScore: 17, citationShare:  8, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'SEAFORD DENTAL',                visibilityScore: 13, citationShare: 14, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'Bella Dental',                  visibilityScore: 11, citationShare: 12, rank: 7, quadrant: 'lagging' },
+
+  // ── Emerald ──────────────────────────────────────────────────────────────
+  { locationName: 'Emerald', brand: 'you',                        visibilityScore: 34, citationShare: 44, rank: 2, quadrant: 'underperforming' },
+  { locationName: 'Emerald', brand: 'CP Dental Emerald',          visibilityScore: 72, citationShare: 78, rank: 1, quadrant: 'leading' },
+  { locationName: 'Emerald', brand: 'Serenity Dental CQ',         visibilityScore: 29, citationShare: 21, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Central Highlands Dental',   visibilityScore: 24, citationShare: 26, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Meta Dental Haus',           visibilityScore: 18, citationShare: 13, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Hello My Dental',            visibilityScore: 14, citationShare: 15, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Serenity Dental CQ Emerald', visibilityScore: 12, citationShare:  9, rank: 7, quadrant: 'lagging' },
+
+  // ── Bowen ────────────────────────────────────────────────────────────────
+  { locationName: 'Bowen', brand: 'you',                   visibilityScore: 28, citationShare: 23, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Bowen Dental',          visibilityScore: 55, citationShare: 25, rank: 1, quadrant: 'emerging' },
+  { locationName: 'Bowen', brand: 'Dental On Bowen',       visibilityScore: 46, citationShare: 21, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Serenity Dental CQ',    visibilityScore: 22, citationShare: 16, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Bowen Dental Pty Ltd',  visibilityScore: 19, citationShare: 14, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: "Kylie's Family Dental", visibilityScore: 14, citationShare: 11, rank: 6, quadrant: 'lagging' },
+
+  // ── Innisfail ─────────────────────────────────────────────────────────────
+  { locationName: 'Innisfail', brand: 'you',                               visibilityScore: 51, citationShare: 42, rank: 3, quadrant: 'leading' },
+  { locationName: 'Innisfail', brand: 'Riverside Family Dental Innisfail', visibilityScore: 78, citationShare: 84, rank: 1, quadrant: 'leading' },
+  { locationName: 'Innisfail', brand: 'Innisfail Dentists',                visibilityScore: 66, citationShare: 72, rank: 2, quadrant: 'leading' },
+  { locationName: 'Innisfail', brand: 'Bowen Dental',                      visibilityScore: 24, citationShare: 11, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'Sundown Family Dental',             visibilityScore: 32, citationShare: 35, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'Tropical Coast Dental',             visibilityScore: 19, citationShare: 21, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'All On 4 Plus Townsville',          visibilityScore: 14, citationShare: 15, rank: 7, quadrant: 'lagging' },
+
+  // ── Kirwan ────────────────────────────────────────────────────────────────
+  { locationName: 'Kirwan', brand: 'you',                                     visibilityScore: 32, citationShare: 26, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Absolutely Dental @ Kirwan Plaza',        visibilityScore: 88, citationShare: 95, rank: 1, quadrant: 'leading' },
+  { locationName: 'Kirwan', brand: 'National Dental Care Townsville',         visibilityScore: 61, citationShare: 28, rank: 2, quadrant: 'emerging' },
+  { locationName: 'Kirwan', brand: 'Aspire Dental',                           visibilityScore: 45, citationShare: 49, rank: 4, quadrant: 'underperforming' },
+  { locationName: 'Kirwan', brand: 'Deeragun Dental',                         visibilityScore: 38, citationShare: 27, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Dental Balance NQ',                       visibilityScore: 29, citationShare: 32, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Kirwan Dentist / Dental Implants Clinic', visibilityScore: 22, citationShare: 15, rank: 7, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: '1300SMILES Dentists Townsville City',     visibilityScore: 17, citationShare: 18, rank: 8, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Dental Precinct',                         visibilityScore: 13, citationShare: 14, rank: 9, quadrant: 'lagging' },
+]
+
+// ── Gemini Jun 2026 ──────────────────────────────────────────────────────────
+
+const BY_LOCATION_DOTS_GEMINI: ByLocationDot[] = [
+  // ── Bohle Plains ─────────────────────────────────────────────────────────
+  { locationName: 'Bohle Plains', brand: 'you',                               visibilityScore: 93, citationShare: 76, rank: 1, quadrant: 'leading' },
+  { locationName: 'Bohle Plains', brand: 'Deeragun Dental',                   visibilityScore: 52, citationShare: 37, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Aspire Dental',                     visibilityScore: 44, citationShare: 48, rank: 3, quadrant: 'underperforming' },
+  { locationName: 'Bohle Plains', brand: 'National Dental Care Townsville',   visibilityScore: 35, citationShare: 16, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Dental Balance NQ',                 visibilityScore: 27, citationShare: 19, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'NQ Surgical Dentistry',             visibilityScore: 19, citationShare: 21, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Townsville Oral & Maxillofacial',   visibilityScore: 14, citationShare: 10, rank: 7, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Dr. Eleri J Hunter',                visibilityScore: 12, citationShare: 13, rank: 8, quadrant: 'lagging' },
+
+  // ── Ingham ───────────────────────────────────────────────────────────────
+  { locationName: 'Ingham', brand: 'you',                           visibilityScore: 97, citationShare: 79, rank: 1, quadrant: 'leading' },
+  { locationName: 'Ingham', brand: 'Hinchinbrook Dental Group',     visibilityScore: 37, citationShare: 26, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'Ingham Health Services Dental', visibilityScore: 28, citationShare: 30, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'The Hinchinbrook Dental Group', visibilityScore: 22, citationShare: 15, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: '1300 Smiles – Ingham',          visibilityScore: 16, citationShare: 11, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'Bella Dental',                  visibilityScore: 12, citationShare: 13, rank: 6, quadrant: 'lagging' },
+
+  // ── Emerald ──────────────────────────────────────────────────────────────
+  { locationName: 'Emerald', brand: 'you',                        visibilityScore: 46, citationShare: 56, rank: 2, quadrant: 'underperforming' },
+  { locationName: 'Emerald', brand: 'Serenity Dental CQ',         visibilityScore: 52, citationShare: 38, rank: 1, quadrant: 'emerging' },
+  { locationName: 'Emerald', brand: 'CP Dental Emerald',          visibilityScore: 39, citationShare: 43, rank: 3, quadrant: 'underperforming' },
+  { locationName: 'Emerald', brand: 'Central Highlands Dental',   visibilityScore: 28, citationShare: 20, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Meta Dental Haus',           visibilityScore: 21, citationShare: 23, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Hello My Dental',            visibilityScore: 16, citationShare: 11, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Serenity Dental CQ Emerald', visibilityScore: 11, citationShare: 12, rank: 7, quadrant: 'lagging' },
+
+  // ── Bowen ────────────────────────────────────────────────────────────────
+  { locationName: 'Bowen', brand: 'you',                   visibilityScore: 46, citationShare: 38, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Bowen Dental',          visibilityScore: 93, citationShare: 42, rank: 1, quadrant: 'leading' },
+  { locationName: 'Bowen', brand: 'Dental On Bowen',       visibilityScore: 34, citationShare: 15, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Serenity Dental CQ',    visibilityScore: 18, citationShare: 13, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: "Kylie's Family Dental", visibilityScore: 13, citationShare: 14, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Bowen Dental Pty Ltd',  visibilityScore: 11, citationShare:  8, rank: 6, quadrant: 'lagging' },
+
+  // ── Innisfail ─────────────────────────────────────────────────────────────
+  { locationName: 'Innisfail', brand: 'you',                               visibilityScore: 67, citationShare: 55, rank: 1, quadrant: 'leading' },
+  { locationName: 'Innisfail', brand: 'Riverside Family Dental Innisfail', visibilityScore: 58, citationShare: 63, rank: 2, quadrant: 'leading' },
+  { locationName: 'Innisfail', brand: 'Innisfail Dentists',                visibilityScore: 49, citationShare: 53, rank: 3, quadrant: 'underperforming' },
+  { locationName: 'Innisfail', brand: 'Sundown Family Dental',             visibilityScore: 36, citationShare: 39, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'Bowen Dental',                      visibilityScore: 21, citationShare:  9, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'Tropical Coast Dental',             visibilityScore: 17, citationShare: 18, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'All On 4 Plus Townsville',          visibilityScore: 12, citationShare: 13, rank: 7, quadrant: 'lagging' },
+
+  // ── Kirwan ────────────────────────────────────────────────────────────────
+  { locationName: 'Kirwan', brand: 'you',                                     visibilityScore: 52, citationShare: 43, rank: 1, quadrant: 'leading' },
+  { locationName: 'Kirwan', brand: 'Absolutely Dental @ Kirwan Plaza',        visibilityScore: 74, citationShare: 82, rank: 2, quadrant: 'leading' },
+  { locationName: 'Kirwan', brand: 'National Dental Care Townsville',         visibilityScore: 48, citationShare: 21, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Aspire Dental',                           visibilityScore: 38, citationShare: 41, rank: 4, quadrant: 'underperforming' },
+  { locationName: 'Kirwan', brand: 'Deeragun Dental',                         visibilityScore: 29, citationShare: 20, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Dental Balance NQ',                       visibilityScore: 22, citationShare: 24, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Kirwan Dentist / Dental Implants Clinic', visibilityScore: 18, citationShare: 12, rank: 7, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Dental Precinct',                         visibilityScore: 14, citationShare: 15, rank: 8, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: '1300SMILES Dentists Townsville City',     visibilityScore: 11, citationShare: 12, rank: 9, quadrant: 'lagging' },
+]
+
+// ── Perplexity Jun 2026 ───────────────────────────────────────────────────────
+
+const BY_LOCATION_DOTS_PERPLEXITY: ByLocationDot[] = [
+  // ── Bohle Plains ─────────────────────────────────────────────────────────
+  { locationName: 'Bohle Plains', brand: 'you',                               visibilityScore: 87, citationShare: 71, rank: 1, quadrant: 'leading' },
+  { locationName: 'Bohle Plains', brand: 'Deeragun Dental',                   visibilityScore: 33, citationShare: 24, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Aspire Dental',                     visibilityScore: 55, citationShare: 59, rank: 3, quadrant: 'leading' },
+  { locationName: 'Bohle Plains', brand: 'National Dental Care Townsville',   visibilityScore: 29, citationShare: 13, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'NQ Surgical Dentistry',             visibilityScore: 24, citationShare: 26, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Dental Balance NQ',                 visibilityScore: 18, citationShare: 12, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Townsville Oral & Maxillofacial',   visibilityScore: 14, citationShare: 15, rank: 7, quadrant: 'lagging' },
+  { locationName: 'Bohle Plains', brand: 'Dr. Eleri J Hunter',                visibilityScore: 11, citationShare: 12, rank: 8, quadrant: 'lagging' },
+
+  // ── Ingham ───────────────────────────────────────────────────────────────
+  { locationName: 'Ingham', brand: 'you',                           visibilityScore: 77, citationShare: 63, rank: 1, quadrant: 'leading' },
+  { locationName: 'Ingham', brand: 'Hinchinbrook Dental Group',     visibilityScore: 11, citationShare:  9, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'The Hinchinbrook Dental Group', visibilityScore: 33, citationShare: 36, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'Ingham Health Services Dental', visibilityScore: 24, citationShare: 26, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: '1300 Smiles – Ingham',          visibilityScore: 19, citationShare:  8, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'SEAFORD DENTAL',                visibilityScore: 14, citationShare: 15, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Ingham', brand: 'Bella Dental',                  visibilityScore: 12, citationShare: 13, rank: 7, quadrant: 'lagging' },
+
+  // ── Emerald ──────────────────────────────────────────────────────────────
+  { locationName: 'Emerald', brand: 'you',                        visibilityScore: 50, citationShare: 61, rank: 1, quadrant: 'underperforming' },
+  { locationName: 'Emerald', brand: 'Serenity Dental CQ',         visibilityScore: 17, citationShare: 12, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'CP Dental Emerald',          visibilityScore: 43, citationShare: 47, rank: 2, quadrant: 'underperforming' },
+  { locationName: 'Emerald', brand: 'Central Highlands Dental',   visibilityScore: 26, citationShare: 28, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Hello My Dental',            visibilityScore: 19, citationShare: 21, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Meta Dental Haus',           visibilityScore: 14, citationShare:  6, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Emerald', brand: 'Serenity Dental CQ Emerald', visibilityScore: 11, citationShare: 12, rank: 7, quadrant: 'lagging' },
+
+  // ── Bowen ────────────────────────────────────────────────────────────────
+  { locationName: 'Bowen', brand: 'you',                   visibilityScore: 57, citationShare: 47, rank: 1, quadrant: 'leading' },
+  { locationName: 'Bowen', brand: 'Bowen Dental',          visibilityScore: 56, citationShare: 25, rank: 2, quadrant: 'emerging' },
+  { locationName: 'Bowen', brand: 'Dental On Bowen',       visibilityScore: 38, citationShare: 17, rank: 3, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Serenity Dental CQ',    visibilityScore: 12, citationShare:  9, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: "Kylie's Family Dental", visibilityScore: 18, citationShare: 14, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Bowen', brand: 'Bowen Dental Pty Ltd',  visibilityScore: 13, citationShare: 11, rank: 6, quadrant: 'lagging' },
+
+  // ── Innisfail ─────────────────────────────────────────────────────────────
+  { locationName: 'Innisfail', brand: 'you',                               visibilityScore: 89, citationShare: 73, rank: 1, quadrant: 'leading' },
+  { locationName: 'Innisfail', brand: 'Sundown Family Dental',             visibilityScore: 62, citationShare: 67, rank: 2, quadrant: 'leading' },
+  { locationName: 'Innisfail', brand: 'Innisfail Dentists',                visibilityScore: 47, citationShare: 51, rank: 3, quadrant: 'underperforming' },
+  { locationName: 'Innisfail', brand: 'Riverside Family Dental Innisfail', visibilityScore: 38, citationShare: 41, rank: 4, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'Bowen Dental',                      visibilityScore: 19, citationShare:  8, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'Tropical Coast Dental',             visibilityScore: 24, citationShare: 26, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Innisfail', brand: 'All On 4 Plus Townsville',          visibilityScore: 15, citationShare: 16, rank: 7, quadrant: 'lagging' },
+
+  // ── Kirwan ────────────────────────────────────────────────────────────────
+  { locationName: 'Kirwan', brand: 'you',                                     visibilityScore: 48, citationShare: 39, rank: 2, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Absolutely Dental @ Kirwan Plaza',        visibilityScore: 79, citationShare: 88, rank: 1, quadrant: 'leading' },
+  { locationName: 'Kirwan', brand: 'National Dental Care Townsville',         visibilityScore: 53, citationShare: 23, rank: 3, quadrant: 'emerging' },
+  { locationName: 'Kirwan', brand: 'Aspire Dental',                           visibilityScore: 41, citationShare: 44, rank: 4, quadrant: 'underperforming' },
+  { locationName: 'Kirwan', brand: 'Deeragun Dental',                         visibilityScore: 34, citationShare: 24, rank: 5, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Dental Balance NQ',                       visibilityScore: 26, citationShare: 28, rank: 6, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Kirwan Dentist / Dental Implants Clinic', visibilityScore: 19, citationShare: 13, rank: 7, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: '1300SMILES Dentists Townsville City',     visibilityScore: 15, citationShare: 16, rank: 8, quadrant: 'lagging' },
+  { locationName: 'Kirwan', brand: 'Dental Precinct',                         visibilityScore: 12, citationShare: 13, rank: 9, quadrant: 'lagging' },
 ]
 
 const BY_LOCATION_TABLE_CHATGPT: ByLocationTableRow[] = [
-  { location: 'Townsville', performance: 'leading',         rank1: { name: 'My Family Dental', isYou: true }, rank2: { name: 'Bowen Dental' },                   rank3: { name: 'Deeragun Dental' },               rank4: { name: 'Innisfail Dentists' },             rank5: { name: 'Serenity Dental CQ' } },
-  { location: 'Bowen',      performance: 'underperforming', rank1: { name: 'Bowen Dental' },                   rank2: { name: 'My Family Dental', isYou: true }, rank3: { name: 'Innisfail Dentists' },             rank4: { name: 'Deeragun Dental' },               rank5: { name: 'Serenity Dental CQ' } },
-  { location: 'Mackay',     performance: 'leading',         rank1: { name: 'Deeragun Dental' },                rank2: { name: 'Bowen Dental' },                   rank3: { name: 'My Family Dental', isYou: true }, rank4: { name: 'Serenity Dental CQ' },             rank5: { name: 'Innisfail Dentists' } },
-  { location: 'Innisfail',  performance: 'lagging',         rank1: { name: 'Innisfail Dentists' },             rank2: { name: 'My Family Dental', isYou: true }, rank3: { name: 'Bowen Dental' },                   rank4: { name: 'Serenity Dental CQ' },             rank5: { name: 'Deeragun Dental' } },
-  { location: 'Cairns',     performance: 'leading',         rank1: { name: 'My Family Dental', isYou: true }, rank2: { name: 'Deeragun Dental' },                rank3: { name: 'Serenity Dental CQ' },             rank4: { name: 'Bowen Dental' },                   rank5: { name: 'Innisfail Dentists' } },
-]
-
-const BY_LOCATION_DOTS_GEMINI: ByLocationDot[] = [
-  { locationName: 'Townsville', brand: 'you',                                    visibilityScore: 55, citationShare: 62, rank: 2, quadrant: 'underperforming' },
-  { locationName: 'Bowen',      brand: 'you',                                    visibilityScore: 73, citationShare: 56, rank: 1, quadrant: 'leading' },
-  { locationName: 'Mackay',     brand: 'you',                                    visibilityScore: 44, citationShare: 39, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Innisfail',  brand: 'you',                                    visibilityScore: 60, citationShare: 48, rank: 3, quadrant: 'leading' },
-  { locationName: 'Cairns',     brand: 'you',                                    visibilityScore: 38, citationShare: 45, rank: 2, quadrant: 'underperforming' },
-  { locationName: 'Townsville', brand: 'Bowen Dental',                           visibilityScore: 49, citationShare: 40, rank: 3, quadrant: 'emerging' },
-  { locationName: 'Bowen',      brand: 'Bowen Dental',                           visibilityScore: 68, citationShare: 53, rank: 2, quadrant: 'leading' },
-  { locationName: 'Mackay',     brand: 'Bowen Dental',                           visibilityScore: 30, citationShare: 24, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Innisfail',  brand: 'Bowen Dental',                           visibilityScore: 77, citationShare: 63, rank: 1, quadrant: 'leading' },
-  { locationName: 'Cairns',     brand: 'Bowen Dental',                           visibilityScore: 52, citationShare: 43, rank: 4, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Deeragun Dental',                        visibilityScore: 81, citationShare: 65, rank: 1, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'Deeragun Dental',                        visibilityScore: 36, citationShare: 28, rank: 4, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Deeragun Dental',                        visibilityScore: 58, citationShare: 46, rank: 2, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Deeragun Dental',                        visibilityScore: 45, citationShare: 34, rank: 2, quadrant: 'lagging' },
-  { locationName: 'Cairns',     brand: 'Deeragun Dental',                        visibilityScore: 29, citationShare: 21, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Townsville', brand: 'Innisfail Dentists',                     visibilityScore: 42, citationShare: 33, rank: 4, quadrant: 'lagging' },
-  { locationName: 'Bowen',      brand: 'Innisfail Dentists',                     visibilityScore: 27, citationShare: 20, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Innisfail Dentists',                     visibilityScore: 84, citationShare: 67, rank: 1, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Innisfail Dentists',                     visibilityScore: 51, citationShare: 57, rank: 4, quadrant: 'underperforming' },
-  { locationName: 'Cairns',     brand: 'Innisfail Dentists',                     visibilityScore: 65, citationShare: 52, rank: 1, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Serenity Dental CQ',                     visibilityScore: 33, citationShare: 48, rank: 5, quadrant: 'underperforming' },
-  { locationName: 'Bowen',      brand: 'Serenity Dental CQ',                     visibilityScore: 57, citationShare: 43, rank: 3, quadrant: 'leading' },
-  { locationName: 'Mackay',     brand: 'Serenity Dental CQ',                     visibilityScore: 41, citationShare: 32, rank: 4, quadrant: 'lagging' },
-  { locationName: 'Innisfail',  brand: 'Serenity Dental CQ',                     visibilityScore: 69, citationShare: 55, rank: 5, quadrant: 'leading' },
-  { locationName: 'Cairns',     brand: 'Serenity Dental CQ',                     visibilityScore: 79, citationShare: 63, rank: 3, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 62, citationShare: 49, rank: 2, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 46, citationShare: 38, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 71, citationShare: 57, rank: 2, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 35, citationShare: 27, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Cairns',     brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 54, citationShare: 44, rank: 2, quadrant: 'leading' },
+  { location: 'Bohle Plains', performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Dr. Eleri J Hunter' },             rank3: { name: 'NQ Surgical Dentistry' },          rank4: { name: 'Aspire Dental' },                  rank5: { name: 'The Townsville Dental Centre' } },
+  { location: 'Ingham',       performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Hinchinbrook Dental Group' },       rank3: { name: 'The Hinchinbrook Dental Group' },  rank4: { name: 'SEAFORD DENTAL' },                 rank5: { name: 'Bella Dental' } },
+  { location: 'Emerald',      performance: 'lagging',  rank1: { name: 'CP Dental Emerald' },                rank2: { name: 'My Family Dental', isYou: true },   rank3: { name: 'Serenity Dental CQ' },             rank4: { name: 'Serenity Dental CQ Emerald' },     rank5: { name: 'Central Highlands Dental' } },
+  { location: 'Bowen',        performance: 'lagging',  rank1: { name: 'Bowen Dental' },                     rank2: { name: 'Dental On Bowen' },                 rank3: { name: 'My Family Dental', isYou: true },  rank4: { name: "Kylie's Family Dental" },           rank5: { name: 'Bowen Dental Pty Ltd' } },
+  { location: 'Innisfail',    performance: 'leading',  rank1: { name: 'Riverside Family Dental Innisfail' }, rank2: { name: 'Innisfail Dentists' },             rank3: { name: 'My Family Dental', isYou: true },  rank4: { name: 'Sundown Family Dental' },           rank5: { name: 'All On 4 Plus Townsville' } },
+  { location: 'Kirwan',       performance: 'lagging',  rank1: { name: 'Absolutely Dental @ Kirwan Plaza' }, rank2: { name: 'National Dental Care Townsville' }, rank3: { name: 'My Family Dental', isYou: true },  rank4: { name: 'Dental Balance NQ' },              rank5: { name: '1300SMILES Dentists Townsville City' } },
 ]
 
 const BY_LOCATION_TABLE_GEMINI: ByLocationTableRow[] = [
-  { location: 'Townsville', performance: 'underperforming', rank1: { name: 'Deeragun Dental' },                rank2: { name: 'My Family Dental', isYou: true }, rank3: { name: 'Bowen Dental' },                   rank4: { name: 'Serenity Dental CQ' },             rank5: { name: 'Innisfail Dentists' } },
-  { location: 'Bowen',      performance: 'leading',         rank1: { name: 'My Family Dental', isYou: true }, rank2: { name: 'Bowen Dental' },                   rank3: { name: 'Serenity Dental CQ' },             rank4: { name: 'Deeragun Dental' },               rank5: { name: 'Innisfail Dentists' } },
-  { location: 'Mackay',     performance: 'lagging',         rank1: { name: 'Innisfail Dentists' },             rank2: { name: 'Deeragun Dental' },                rank3: { name: 'My Family Dental', isYou: true }, rank4: { name: 'Serenity Dental CQ' },             rank5: { name: 'Bowen Dental' } },
-  { location: 'Innisfail',  performance: 'leading',         rank1: { name: 'Bowen Dental' },                   rank2: { name: 'Deeragun Dental' },                rank3: { name: 'My Family Dental', isYou: true }, rank4: { name: 'Innisfail Dentists' },             rank5: { name: 'Serenity Dental CQ' } },
-  { location: 'Cairns',     performance: 'underperforming', rank1: { name: 'Innisfail Dentists' },             rank2: { name: 'My Family Dental', isYou: true }, rank3: { name: 'Serenity Dental CQ' },             rank4: { name: 'Bowen Dental' },                   rank5: { name: 'Deeragun Dental' } },
-]
-
-const BY_LOCATION_DOTS_PERPLEXITY: ByLocationDot[] = [
-  { locationName: 'Townsville', brand: 'you',                                    visibilityScore: 80, citationShare: 64, rank: 1, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'you',                                    visibilityScore: 42, citationShare: 33, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'you',                                    visibilityScore: 57, citationShare: 46, rank: 2, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'you',                                    visibilityScore: 76, citationShare: 60, rank: 1, quadrant: 'leading' },
-  { locationName: 'Cairns',     brand: 'you',                                    visibilityScore: 34, citationShare: 27, rank: 4, quadrant: 'lagging' },
-  { locationName: 'Townsville', brand: 'Bowen Dental',                           visibilityScore: 45, citationShare: 36, rank: 4, quadrant: 'lagging' },
-  { locationName: 'Bowen',      brand: 'Bowen Dental',                           visibilityScore: 75, citationShare: 60, rank: 1, quadrant: 'leading' },
-  { locationName: 'Mackay',     brand: 'Bowen Dental',                           visibilityScore: 31, citationShare: 23, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Innisfail',  brand: 'Bowen Dental',                           visibilityScore: 50, citationShare: 39, rank: 3, quadrant: 'emerging' },
-  { locationName: 'Cairns',     brand: 'Bowen Dental',                           visibilityScore: 66, citationShare: 52, rank: 2, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Deeragun Dental',                        visibilityScore: 37, citationShare: 29, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Bowen',      brand: 'Deeragun Dental',                        visibilityScore: 61, citationShare: 48, rank: 2, quadrant: 'leading' },
-  { locationName: 'Mackay',     brand: 'Deeragun Dental',                        visibilityScore: 79, citationShare: 63, rank: 1, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Deeragun Dental',                        visibilityScore: 44, citationShare: 54, rank: 4, quadrant: 'underperforming' },
-  { locationName: 'Cairns',     brand: 'Deeragun Dental',                        visibilityScore: 28, citationShare: 21, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Townsville', brand: 'Innisfail Dentists',                     visibilityScore: 58, citationShare: 45, rank: 2, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'Innisfail Dentists',                     visibilityScore: 27, citationShare: 20, rank: 5, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Innisfail Dentists',                     visibilityScore: 48, citationShare: 37, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Innisfail',  brand: 'Innisfail Dentists',                     visibilityScore: 33, citationShare: 43, rank: 5, quadrant: 'underperforming' },
-  { locationName: 'Cairns',     brand: 'Innisfail Dentists',                     visibilityScore: 85, citationShare: 68, rank: 1, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Serenity Dental CQ',                     visibilityScore: 26, citationShare: 19, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Bowen',      brand: 'Serenity Dental CQ',                     visibilityScore: 53, citationShare: 41, rank: 4, quadrant: 'leading' },
-  { locationName: 'Mackay',     brand: 'Serenity Dental CQ',                     visibilityScore: 67, citationShare: 53, rank: 4, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Serenity Dental CQ',                     visibilityScore: 40, citationShare: 31, rank: 2, quadrant: 'lagging' },
-  { locationName: 'Cairns',     brand: 'Serenity Dental CQ',                     visibilityScore: 72, citationShare: 57, rank: 3, quadrant: 'leading' },
-  { locationName: 'Townsville', brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 69, citationShare: 55, rank: 1, quadrant: 'leading' },
-  { locationName: 'Bowen',      brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 38, citationShare: 30, rank: 3, quadrant: 'lagging' },
-  { locationName: 'Mackay',     brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 55, citationShare: 44, rank: 2, quadrant: 'leading' },
-  { locationName: 'Innisfail',  brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 63, citationShare: 50, rank: 2, quadrant: 'leading' },
-  { locationName: 'Cairns',     brand: 'Absolutely Dental @ Kirwan Plaza',       visibilityScore: 47, citationShare: 38, rank: 3, quadrant: 'lagging' },
+  { location: 'Bohle Plains', performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Deeragun Dental' },                rank3: { name: 'Dental Precinct' },                rank4: { name: 'Dental Balance NQ' },              rank5: { name: 'Townsville Oral & Maxillofacial Surgery' } },
+  { location: 'Ingham',       performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Hinchinbrook Dental Group' },       rank3: { name: 'Ingham Health Services Dental Clinic' }, rank4: { name: 'Ingham Hospital Dental Clinic' }, rank5: { name: '1300 Smiles - Ingham' } },
+  { location: 'Emerald',      performance: 'lagging',  rank1: { name: 'Serenity Dental CQ' },               rank2: { name: 'My Family Dental', isYou: true },   rank3: { name: 'CP Dental Emerald' },              rank4: { name: 'Meta Dental Haus' },               rank5: { name: 'Central Highlands Dental' } },
+  { location: 'Bowen',        performance: 'lagging',  rank1: { name: 'Bowen Dental' },                     rank2: { name: 'My Family Dental', isYou: true },   rank3: { name: 'Dental On Bowen' },                rank4: { name: "Kylie's Family Dental" },           rank5: { name: "Kylie's Family Dental Bowen" } },
+  { location: 'Innisfail',    performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Riverside Family Dental' },         rank3: { name: 'Innisfail Dentists' },             rank4: { name: 'Sundown Family Dental' },           rank5: { name: 'Tropical Coast Dental' } },
+  { location: 'Kirwan',       performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Dental Balance NQ' },               rank3: { name: 'Aspire Dental' },                  rank4: { name: 'Absolutely Dental @ Kirwan Plaza' }, rank5: { name: 'Absolutely Dental' } },
 ]
 
 const BY_LOCATION_TABLE_PERPLEXITY: ByLocationTableRow[] = [
-  { location: 'Townsville', performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true }, rank2: { name: 'Innisfail Dentists' },             rank3: { name: 'Deeragun Dental' },               rank4: { name: 'Bowen Dental' },                   rank5: { name: 'Serenity Dental CQ' } },
-  { location: 'Bowen',      performance: 'lagging',  rank1: { name: 'Bowen Dental' },                   rank2: { name: 'Deeragun Dental' },                rank3: { name: 'My Family Dental', isYou: true }, rank4: { name: 'Serenity Dental CQ' },             rank5: { name: 'Innisfail Dentists' } },
-  { location: 'Mackay',     performance: 'leading',  rank1: { name: 'Deeragun Dental' },                rank2: { name: 'My Family Dental', isYou: true }, rank3: { name: 'Innisfail Dentists' },             rank4: { name: 'Serenity Dental CQ' },             rank5: { name: 'Bowen Dental' } },
-  { location: 'Innisfail',  performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true }, rank2: { name: 'Bowen Dental' },                   rank3: { name: 'Serenity Dental CQ' },             rank4: { name: 'Deeragun Dental' },               rank5: { name: 'Innisfail Dentists' } },
-  { location: 'Cairns',     performance: 'lagging',  rank1: { name: 'Innisfail Dentists' },             rank2: { name: 'Bowen Dental' },                   rank3: { name: 'Serenity Dental CQ' },             rank4: { name: 'My Family Dental', isYou: true }, rank5: { name: 'Deeragun Dental' } },
+  { location: 'Bohle Plains', performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Deeragun Dental' },                rank3: { name: 'NQ Surgical Dentistry' },          rank4: { name: 'Aspire Dental' },                  rank5: { name: 'Townsville Oral & Maxillofacial Surgery' } },
+  { location: 'Ingham',       performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'The Hinchinbrook Dental Group' },   rank3: { name: 'Ingham Health Services Dental Clinic' }, rank4: { name: '1300 Smiles – Ingham' },          rank5: { name: 'Bella Dental' } },
+  { location: 'Emerald',      performance: 'lagging',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'CP Dental Emerald' },               rank3: { name: 'Serenity Dental CQ' },             rank4: { name: 'Central Highlands Dental' },        rank5: { name: 'Hello My Dental' } },
+  { location: 'Bowen',        performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Bowen Dental' },                    rank3: { name: 'Dental On Bowen' },                rank4: { name: 'Bowen Dental Pty Ltd' },            rank5: { name: "Kylie's Family Dental" } },
+  { location: 'Innisfail',    performance: 'leading',  rank1: { name: 'My Family Dental', isYou: true },    rank2: { name: 'Sundown Family Dental' },            rank3: { name: 'Innisfail Dentists' },             rank4: { name: 'Riverside Family Dental' },         rank5: { name: 'Tropical Coast Dental (Innisfail)' } },
+  { location: 'Kirwan',       performance: 'leading',  rank1: { name: 'Absolutely Dental @ Kirwan Plaza' }, rank2: { name: 'My Family Dental', isYou: true },   rank3: { name: 'Aspire Dental' },                  rank4: { name: 'Dental Balance NQ' },               rank5: { name: 'Kirwan Dentist' } },
 ]
 
 export const BY_LOCATION_DATA: Record<RankingPlatform, { dots: ByLocationDot[]; tableRows: ByLocationTableRow[] }> = {
   ChatGPT:    { dots: BY_LOCATION_DOTS_CHATGPT,    tableRows: BY_LOCATION_TABLE_CHATGPT },
   Gemini:     { dots: BY_LOCATION_DOTS_GEMINI,     tableRows: BY_LOCATION_TABLE_GEMINI },
   Perplexity: { dots: BY_LOCATION_DOTS_PERPLEXITY, tableRows: BY_LOCATION_TABLE_PERPLEXITY },
+}
+
+// ── Scatter plot brand grouping ───────────────────────────────────────────────
+
+export const LOCAL_COMPETITORS_LABEL = 'Local competitors'
+export const MAX_BRANDED_SERIES = 4
+
+export interface CompetitorSeries {
+  name: string
+  dots: ByLocationDot[]
+  isLocal: boolean
+}
+
+function avgVis(dots: ByLocationDot[], brand: string): number {
+  const bd = dots.filter((d) => d.brand === brand)
+  return bd.reduce((s, d) => s + d.visibilityScore, 0) / (bd.length || 1)
+}
+
+// Splits competitor dots into up to MAX_BRANDED_SERIES named brand series
+// (chains present in >1 location) plus one "Local competitors" catch-all.
+// ALL competitors are plotted — branding only determines color/series.
+// Branded competitors beyond top 4 fall into the local bucket alongside
+// single-location competitors so no dot is ever dropped.
+export function groupCompetitorSeries(dots: ByLocationDot[]): CompetitorSeries[] {
+  const brandLocations = new Map<string, Set<string>>()
+  for (const dot of dots) {
+    if (dot.brand === 'you') continue
+    if (!brandLocations.has(dot.brand)) brandLocations.set(dot.brand, new Set())
+    brandLocations.get(dot.brand)!.add(dot.locationName)
+  }
+
+  const branded: string[] = []
+  const local: string[] = []
+  for (const [brand, locs] of brandLocations) {
+    if (locs.size > 1) branded.push(brand)
+    else local.push(brand)
+  }
+
+  branded.sort((a, b) => {
+    const diff = brandLocations.get(b)!.size - brandLocations.get(a)!.size
+    if (diff !== 0) return diff
+    return avgVis(dots, b) - avgVis(dots, a)
+  })
+  const top4 = branded.slice(0, MAX_BRANDED_SERIES)
+  const overflowBranded = branded.slice(MAX_BRANDED_SERIES)
+
+  const series: CompetitorSeries[] = top4.map((name) => ({
+    name,
+    dots: dots.filter((d) => d.brand === name),
+    isLocal: false,
+  }))
+
+  const allLocal = [...local, ...overflowBranded]
+  const localDots = dots.filter((d) => allLocal.includes(d.brand))
+  if (localDots.length > 0) {
+    series.push({ name: LOCAL_COMPETITORS_LABEL, dots: localDots, isLocal: true })
+  }
+
+  return series
 }

@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { ScatterplotCard, CompetitorRankingCard } from '../components'
 import { FilterPanel } from '../components/FilterPanel/FilterPanel'
 import { Icon } from '../components/Icon/Icon'
 import {
   BY_LOCATION_DATA,
-  BY_LOCATION_COMPETITORS,
   RANKING_PLATFORMS,
+  groupCompetitorSeries,
   type RankingPlatform,
   type ByLocationDot,
   type ByLocationTableRow,
@@ -19,6 +19,13 @@ const ALL_LOCATIONS = Array.from(
   )
 ).sort()
 
+const MORE_MENU_ITEMS = [
+  'Manage competitors',
+  'Download',
+  'Email',
+  'Schedule',
+] as const
+
 const FILTER_FIELDS = [
   {
     id: 'location',
@@ -30,13 +37,20 @@ const FILTER_FIELDS = [
 
 export function CompetitorByLocationScreen({
   onViewComparison,
+  onLocationClick,
+  onManageCompetitors,
+  onDotClick,
 }: {
   onViewComparison?: (locationName: string) => void
+  onLocationClick?: (row: ByLocationTableRow) => void
+  onManageCompetitors?: () => void
+  onDotClick?: (dot: ByLocationDot) => void
 }) {
   const [platform, setPlatform] = useState<RankingPlatform>('ChatGPT')
-  const [competitors] = useState<string[]>([...BY_LOCATION_COMPETITORS])
   const [filterOpen, setFilterOpen] = useState(false)
   const [filterSelections, setFilterSelections] = useState<Record<string, string[]>>({})
+  const [moreMenu, setMoreMenu] = useState<{ top: number; left: number } | null>(null)
+  const moreButtonRef = useRef<HTMLButtonElement>(null)
 
   const selectedLocations = filterSelections['location'] ?? []
 
@@ -57,25 +71,65 @@ export function CompetitorByLocationScreen({
     ) as Record<RankingPlatform, ByLocationTableRow[]>
   }, [selectedLocations])
 
-  const visibleDots = filteredDots.filter(
-    (d) => d.brand === 'you' || competitors.includes(d.brand)
+  const competitorSeries = useMemo(
+    () => groupCompetitorSeries(filteredDots),
+    [filteredDots]
   )
+
+  const visibleDots = useMemo(() => {
+    const competitorBrands = new Set(
+      competitorSeries.flatMap((s) => s.dots.map((d) => d.brand))
+    )
+    return filteredDots.filter((d) => d.brand === 'you' || competitorBrands.has(d.brand))
+  }, [filteredDots, competitorSeries])
 
   return (
     <div className="flex h-full w-full">
       {/* Scrollable main area */}
-      <div className="flex flex-1 flex-col overflow-y-auto bg-[#f5f5f5]">
+      <div className="flex flex-1 flex-col overflow-y-auto bg-white">
 
         {/* Sticky header — title bar only */}
         <div className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-sm px-2xl bg-surface border-b border-border">
           <span className="flex-1 text-h3 text-text-primary">
-            Competitor benchmarking by locations
+            Benchmarking by location
           </span>
           <Icon name="info" size={20} className="text-text-icon" />
           <div className="flex items-center gap-sm ml-lg">
-            <button className="flex size-[36px] items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover">
+            <button
+              ref={moreButtonRef}
+              type="button"
+              aria-label="More options"
+              className="flex size-[36px] items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover"
+              onClick={(e) => {
+                const r = e.currentTarget.getBoundingClientRect()
+                setMoreMenu(moreMenu ? null : { top: r.bottom + 4, left: r.right - 216 })
+              }}
+            >
               <Icon name="more_vert" size={20} className="text-text-icon" />
             </button>
+            {moreMenu && (
+              <>
+                <div className="fixed inset-0 z-[105]" onClick={() => setMoreMenu(null)} />
+                <div
+                  className="fixed z-[110] min-w-[216px] rounded-sm border border-border bg-surface py-xs shadow-dropdown"
+                  style={{ top: moreMenu.top, left: moreMenu.left }}
+                >
+                  {MORE_MENU_ITEMS.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      className="block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover"
+                      onClick={() => {
+                        setMoreMenu(null)
+                        if (item === 'Manage competitors') onManageCompetitors?.()
+                      }}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             <button
               onClick={() => setFilterOpen((v) => !v)}
               className="flex size-[36px] items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover"
@@ -89,12 +143,13 @@ export function CompetitorByLocationScreen({
         <div className="flex flex-col gap-xl px-2xl py-xl">
           <ScatterplotCard
             dots={visibleDots}
-            competitors={competitors}
+            competitorSeries={competitorSeries}
             activePlatform={platform}
             onPlatformChange={setPlatform}
             onViewComparison={(loc) => onViewComparison?.(loc)}
+            onDotClick={onDotClick}
           />
-          <CompetitorRankingCard mode="locations" data={filteredByPlatform} />
+          <CompetitorRankingCard mode="locations" data={filteredByPlatform} onLocationRowClick={onLocationClick} />
         </div>
       </div>
 

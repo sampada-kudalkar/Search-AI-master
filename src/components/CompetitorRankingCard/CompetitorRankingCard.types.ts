@@ -16,4 +16,4 @@ export interface FlatRankingRow extends Record<string, unknown> {
 
 export type CompetitorRankingCardProps =
   | { mode?: 'themes'; rows: PromptRankingRow[] }
-  | { mode: 'locations'; data: Record<RankingPlatform, ByLocationTableRow[]> }
+  | { mode: 'locations'; data: Record<RankingPlatform, ByLocationTableRow[]>; onLocationRowClick?: (row: ByLocationTableRow) => void }
