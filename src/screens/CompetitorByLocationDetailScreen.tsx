@@ -156,6 +156,7 @@ export function CompetitorByLocationDetailScreen({
         {/* Trend chart card */}
         <ChartCard
           title={chartTitle}
+          subtitle="Shows how often your location appears in AI-generated answers across AI sites"
           toolbar={<ChartCardButton icon="auto_awesome" label="AI insights" iconClassName="text-[#6834b7]" />}
           showActions
         >
