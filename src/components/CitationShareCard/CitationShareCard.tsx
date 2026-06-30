@@ -168,7 +168,7 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
 
   const citationRankTooltip = pageContext === 'location'
     ? "See your location's position compared to others based on how often your website is cited in AI-generated answers"
-    : "See your brand's position compared to competitors based on how often your website is cited in AI-generated answers"
+    : "See your brand's position compared to competitor based on how often your website is cited in AI-generated answers"
   const avgCitationShareTooltip = 'See the percentage of all citations that come from your website. This helps you analyse how often your content is being used as a source in AI generated answers'
 
   // Table columns
@@ -241,7 +241,7 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
         <CardHeader
           title={
             <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
-              What is your citation share compared to your competitors for
+              What is your citation share compared to your competitor for
               <ThemeDropdown
                 themes={themes}
                 selected={selectedTheme}
@@ -249,7 +249,7 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, rows, selectedCompe
               />
             </span>
           }
-          subtitle="Track how your content is cited relative to your competitors in answers provided by AI sites overtime"
+          subtitle="Track how your content is cited relative to your competitor in answers provided by AI sites overtime"
           toolbar={
             <div className="flex items-center gap-sm">
               <SegmentedControl

@@ -76,7 +76,7 @@ export function ShareOfVoiceCard({ selectedCompetitor }: ShareOfVoiceCardProps) 
       key: 'name',
       label: (
         <span className="flex items-center gap-[4px]">
-          Competitors
+          You vs competitor
           <InfoTooltip text="Brands being tracked and compared against your own in AI-generated responses" />
         </span>
       ),
@@ -140,10 +140,10 @@ export function ShareOfVoiceCard({ selectedCompetitor }: ShareOfVoiceCardProps) 
         <CardHeader
           title={
             <span className="text-[18px] leading-[26px] text-text-secondary">
-              What is your share of voice compared to your competitors
+              What is your share of voice compared to your competitor
             </span>
           }
-          subtitle="Track your mentions in AI-generated answers in relation to competitors"
+          subtitle="Track your mentions in AI-generated answers relative to competitor"
           toolbar={toolbar}
         />
       </div>

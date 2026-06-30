@@ -122,7 +122,7 @@ function buildTableColumns(_selectedCompetitor?: CompetitorRowData): Column<AvgP
   return [
     {
       key: 'name',
-      label: 'Competitors',
+      label: 'You vs competitor',
       width: 200,
       render: (_: unknown, row: AvgPositionRow) => (
         <div className="flex items-center gap-sm">
@@ -177,14 +177,14 @@ export function AveragePositionCard({ rows: _rows, selectedCompetitor }: Average
         <CardHeader
           title={
             <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
-              What is your average position compared to competitors for
+              What is your average position compared to competitor for
               <button className="flex items-center gap-[4px] text-[#1976D2] text-[18px] leading-[26px]">
                 all themes
                 <Icon name="expand_more" size={16} className="text-[#1976D2]" />
               </button>
             </span>
           }
-          subtitle="Track the average position of your brand across AI platforms relative to your competitors"
+          subtitle="Track the average position of your brand across AI platforms relative to your competitor"
           toolbar={
             <div className="flex items-center gap-sm">
               <DateRangeSelector

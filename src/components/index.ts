@@ -1,4 +1,6 @@
 export { AiIcon } from './AiIcon/AiIcon'
+export { PromptDetailModal } from './PromptDetailModal/PromptDetailModal'
+export type { PromptDetailModalProps } from './PromptDetailModal/PromptDetailModal.types'
 export { CompetitorRankingCard } from './CompetitorRankingCard/CompetitorRankingCard'
 export type { CompetitorRankingCardProps } from './CompetitorRankingCard/CompetitorRankingCard.types'
 export { CardHeader } from './CardHeader/CardHeader'

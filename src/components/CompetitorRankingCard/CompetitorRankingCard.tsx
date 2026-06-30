@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { PromptDetailModal } from '../PromptDetailModal/PromptDetailModal'
 import { getInitials, getCompetitorColor } from '../../utils/competitorAvatar'
 
 function ArrowDiagonalIcon() {
@@ -56,6 +57,7 @@ function RankCell({ entry }: { entry?: RankingEntry | { name: string; isYou?: bo
 function buildThemeColumns(
   expandedIds: Set<string>,
   onToggle: (id: string) => void,
+  onPromptClick: (row: FlatRankingRow) => void,
 ): Column<FlatRankingRow>[] {
   return [
     {
@@ -86,9 +88,13 @@ function buildThemeColumns(
           )
         }
         return (
-          <span className="pl-[24px] text-[13px] text-text-primary">
+          <button
+            type="button"
+            onClick={() => onPromptClick(row)}
+            className="pl-[24px] text-[13px] text-text-primary hover:text-[#1976D2] text-left w-full"
+          >
             {row.prompt as string}
-          </span>
+          </button>
         )
       },
     },
@@ -290,6 +296,7 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
   const [activePlatform, setActivePlatform] = useState<RankingPlatform>('ChatGPT')
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [metric, setMetric] = useState<Metric>('Visibility score')
+  const [selectedPrompt, setSelectedPrompt] = useState<FlatRankingRow | null>(null)
   const [metricOpen, setMetricOpen] = useState(false)
   const metricRef = useRef<HTMLSpanElement>(null)
   const platformTabs = RANKING_PLATFORMS.map((p) => ({ id: p, label: p }))
@@ -341,12 +348,15 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
           rank3: childRanks[2],
           rank4: childRanks[3],
           rank5: childRanks[4],
+          date: child.date as string | undefined,
+          location: child.location as string | undefined,
+          aiResponse: child.aiResponse as FlatRankingRow['aiResponse'],
         })
       }
     }
   }
 
-  const columns = buildThemeColumns(expandedIds, toggleExpand)
+  const columns = buildThemeColumns(expandedIds, toggleExpand, setSelectedPrompt)
 
   return (
     <div className="w-full rounded-md border border-border bg-surface overflow-hidden">
@@ -417,6 +427,12 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
           rowClassName={(row) => (row._isHeader ? '' : 'bg-surface-hover')}
         />
       </div>
+      <PromptDetailModal
+        open={selectedPrompt !== null}
+        prompt={selectedPrompt}
+        platform={activePlatform}
+        onClose={() => setSelectedPrompt(null)}
+      />
     </div>
   )
 }

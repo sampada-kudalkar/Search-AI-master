@@ -1,4 +1,4 @@
-import type { RankingEntry, PromptRankingRow, ByLocationTableRow, RankingPlatform } from '../../data/competitorData'
+import type { RankingEntry, PromptRankingRow, ByLocationTableRow, RankingPlatform, TrendPlatform } from '../../data/competitorData'
 
 export type { RankingEntry }
 
@@ -12,6 +12,9 @@ export interface FlatRankingRow extends Record<string, unknown> {
   rank3?: RankingEntry
   rank4?: RankingEntry
   rank5?: RankingEntry
+  date?: string
+  location?: string
+  aiResponse?: Partial<Record<TrendPlatform, string>>
 }
 
 export type CompetitorRankingCardProps =

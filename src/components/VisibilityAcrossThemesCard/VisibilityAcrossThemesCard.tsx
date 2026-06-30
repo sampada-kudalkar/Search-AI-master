@@ -184,15 +184,15 @@ function ThemeDropdown({ themes, selected, onChange }: ThemeDropdownProps) {
 // ── Table column definitions ──────────────────────────────────────────────────
 
 const VISIBILITY_SCORE_TOOLTIP = {
-  brand: 'See how frequently you are mentioned in AI-generated answers compared to competitors',
-  location: 'See how frequently your location is mentioned in AI-generated answers compared to competitors',
+  brand: 'See how frequently you are mentioned in AI-generated answers compared to competitor',
+  location: 'See how frequently your location is mentioned in AI-generated answers compared to competitor',
 }
 
 function buildVisibilityCols(pageContext: 'brand' | 'location'): Column<VisibilityRow>[] {
   return [
     {
       key: 'name',
-      label: 'Competitors',
+      label: 'You vs competitor',
       width: 280,
       sortable: true,
       render: (_v, row) => (
@@ -289,10 +289,10 @@ export function VisibilityAcrossThemesCard({
                 selected={selectedTheme}
                 onChange={setSelectedTheme}
               />
-              relative to competitors
+              relative to competitor
             </span>
           }
-          subtitle="Track how your visibility score performing relative to your competitors in answers provided by AI sites overtime"
+          subtitle="Track how your visibility score performing relative to your competitor in answers provided by AI sites overtime"
           toolbar={
             <div className="flex items-center gap-sm">
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">

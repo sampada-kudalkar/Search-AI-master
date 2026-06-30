@@ -143,6 +143,9 @@ export interface PromptRankingRow extends Record<string, unknown> {
   prompt: string
   rankings: Record<TrendPlatform, RankingEntry[]>
   prompts?: PromptRankingRow[]
+  date?: string
+  location?: string
+  aiResponse?: Partial<Record<TrendPlatform, string>>
 }
 
 const YOU: RankingEntry = { name: BRAND_NAME, isYou: true }
@@ -184,6 +187,11 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       {
         id: 'p1-1',
         prompt: 'Who is the best dentist near me?',
+        date: 'Jan 10, 2026',
+        location: 'Kirwan, QLD',
+        aiResponse: {
+          'ChatGPT': `Here are the top-rated dental practices near Kirwan, QLD, based on patient reviews and local reputation:\n\n**Top Dentists Near You**\n\n**1. My Family Dental Townsville**\nConveniently located in Kirwan, My Family Dental is consistently rated as the top choice by local patients. Known for friendly, approachable care across all age groups, they offer a full range of dental services including preventive, cosmetic, and emergency dentistry. Highly praised for short wait times and transparent pricing.\n\n**2. Innisfail Dentists**\nA well-regarded multi-dentist practice with a strong reputation across North Queensland. Innisfail Dentists offers comprehensive general and specialist dental services. Patients highlight the experienced team and thorough consultations as standout qualities.\n\n**3. Bowen Dental**\nBowen Dental is a trusted family practice praised for its gentle approach and modern equipment. Located within easy reach of Kirwan, it's a popular choice for both routine check-ups and more complex procedures. Patients consistently note the professional and caring environment.\n\n**4. Deeragun Dental**\nDeeragun Dental is known for flexible appointment availability and a patient-first approach. They handle everything from routine cleans to orthodontic assessments, and are frequently recommended for patients seeking affordable, quality care in the Townsville area.\n\n**5. Serenity Dental CQ**\nSerenity Dental CQ rounds out the top five with a focus on creating a calm, stress-free dental experience. Particularly well-regarded for anxious patients, they offer sedation options and a welcoming environment. Multiple locations across Central Queensland make them easily accessible.\n\nFor the most up-to-date availability and appointment booking, it's recommended to call ahead or check each clinic's website directly.`,
+        },
         rankings: rankingsForAll([
           [YOU,       INNISFAIL, BOWEN,      DEERAGUN,   SERENITY  ],
           [BOWEN,     YOU,       INNISFAIL,  SERENITY,   ABSOLUTELY],
@@ -197,6 +205,11 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       {
         id: 'p1-2',
         prompt: 'Best rated dentist in my city',
+        date: 'Jan 10, 2026',
+        location: 'Kirwan, QLD',
+        aiResponse: {
+          'ChatGPT': `If you're searching for the best-rated dental practices in Kirwan and the greater Townsville area, here are the top five consistently praised by local patients:\n\n**Best Rated Dentists in Kirwan & Townsville**\n\n**1. Bowen Dental**\nBowen Dental earns top ratings across review platforms for its exceptional patient care and clinical outcomes. Patients highlight the thoroughness of every appointment, the warm and professional staff, and the clinic's commitment to keeping up with the latest dental techniques. A standout choice for both general and restorative dentistry.\n\n**2. My Family Dental Townsville**\nMy Family Dental is one of Kirwan's most highly rated practices, celebrated for its accessibility, transparent pricing, and welcoming atmosphere. Consistently praised for minimal wait times and a team that makes patients of all ages feel comfortable. A trusted local favourite for families and individuals alike.\n\n**3. Serenity Dental CQ**\nSerenity Dental CQ receives outstanding ratings for its calm, patient-centred approach. Particularly popular with patients who experience dental anxiety, the clinic is praised for its relaxed environment, clear communication, and high-quality cosmetic and general dental services.\n\n**4. Innisfail Dentists**\nInnisfail Dentists is highly regarded across North Queensland for its experienced clinical team and comprehensive range of services. Patients consistently rate the practice well for thorough treatment planning, clear explanations, and reliable follow-up care.\n\n**5. Absolutely Dental**\nAbsolutely Dental rounds out the top five with strong ratings for cosmetic and preventive dentistry. Known for personalised treatment plans and a modern clinic environment, it's a popular choice for patients seeking quality care with a focus on long-term dental health.\n\nFor the most current ratings and to book an appointment, check each clinic's Google Business profile or call directly.`,
+        },
         rankings: rankingsForAll([
           [BOWEN,     YOU,       SERENITY,   INNISFAIL,  ABSOLUTELY],
           [YOU,       DEERAGUN,  BOWEN,      SERENITY,   NDC       ],
@@ -210,6 +223,11 @@ export const PROMPT_RANKING_DATA: PromptRankingRow[] = [
       {
         id: 'p1-3',
         prompt: 'Top dentist for families',
+        date: 'Jan 10, 2026',
+        location: 'Kirwan, QLD',
+        aiResponse: {
+          'ChatGPT': `Finding a dentist that the whole family can rely on is important. Here are the top-rated family dental practices in Kirwan and Townsville:\n\n**Top Dentists for Families in Kirwan & Townsville**\n\n**1. My Family Dental Townsville**\nAs the name suggests, My Family Dental is built around family care. Located in Kirwan, they offer services for patients of all ages — from children's first check-ups to comprehensive adult dentistry. Highly praised for their patient and friendly approach with young patients, and their ability to accommodate multiple family members in a single visit.\n\n**2. Serenity Dental CQ**\nSerenity Dental CQ is a top pick for families seeking a stress-free dental experience. Their team is experienced in treating children and adults alike, with a calm environment designed to reduce anxiety for patients of all ages. Families appreciate the consistent care and personalised attention across every visit.\n\n**3. Bowen Dental**\nBowen Dental is a trusted family practice known for its comprehensive general dentistry services. Parents regularly commend the team for their patience with children and their ability to explain procedures clearly to both kids and adults. A reliable, long-standing choice for multi-generational families in the Townsville region.\n\n**4. National Dental Care Townsville**\nNational Dental Care is a large, well-equipped clinic in Kirwan offering a full suite of family dental services. Their team of multiple dentists and specialists means families can have all their dental needs met under one roof, from routine cleans to orthodontic consultations and oral surgery referrals.\n\n**5. Innisfail Dentists**\nInnisfail Dentists rounds out the top five family practices, offering dependable general and preventive dentistry for patients of all ages. Families value the welcoming environment, experienced clinicians, and the practice's focus on building long-term patient relationships through consistent, quality care.\n\nAll five practices welcome new patients. It's recommended to call ahead to confirm bulk-billing arrangements or health fund acceptance before booking.`,
+        },
         rankings: rankingsForAll([
           [YOU,       SERENITY,  BOWEN,      NDC,        INNISFAIL ],
           [INNISFAIL, YOU,       BOWEN,      DEERAGUN,   SERENITY  ],

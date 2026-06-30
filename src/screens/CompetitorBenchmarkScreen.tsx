@@ -166,7 +166,7 @@ export function CompetitorBenchmarkScreen({
             aria-label="Filter"
             className="flex size-9 items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover"
           >
-            <Icon name="tune" size={20} className="text-text-icon" />
+            <Icon name="filter_list" size={20} className="text-text-icon" />
           </button>
         </div>
       </div>
