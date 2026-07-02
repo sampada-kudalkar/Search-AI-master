@@ -10,15 +10,18 @@
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
+    "@langchain/anthropic": "^1.5.1",
     "@xyflow/react": "^12.11.0",
     "highcharts": "^12.6.0",
     "highcharts-react-official": "^3.2.3",
+    "langchain": "^1.5.2",
     "lucide-react": "^0.460.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
     "recharts": "^2.15.4",
-    "wavesurfer.js": "^7.12.8"
+    "wavesurfer.js": "^7.12.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
