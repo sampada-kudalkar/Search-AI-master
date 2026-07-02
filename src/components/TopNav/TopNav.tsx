@@ -1,6 +1,7 @@
 import { Sparkles } from 'lucide-react'
 import { Icon } from '../Icon/Icon'
 import { TopNavProps } from './TopNav.types'
+import { useBirdAI } from '../../context/BirdAIContext'
 
 function IconButton({
   label,
@@ -23,7 +24,9 @@ function IconButton({
   )
 }
 
-export function TopNav({ title, avatarUrl, initials = 'S', onAdd, onHelp, onMenu, onAskBirdAI }: TopNavProps) {
+export function TopNav({ title, avatarUrl, initials = 'S', onAdd, onHelp, onMenu }: TopNavProps) {
+  const { openBirdAI } = useBirdAI()
+
   return (
     <header className="flex h-14 items-center gap-xs border-b border-border bg-surface px-2xl">
       {title && (
@@ -34,7 +37,7 @@ export function TopNav({ title, avatarUrl, initials = 'S', onAdd, onHelp, onMenu
       {/* Ask BirdAI button */}
       <button
         type="button"
-        onClick={onAskBirdAI}
+        onClick={openBirdAI}
         className="group ml-1 flex h-[30px] items-center gap-1 rounded-lg border-0 bg-transparent px-2 py-0 text-[12px] hover:bg-surface-hover"
       >
         <svg aria-hidden className="absolute h-0 w-0 overflow-hidden">

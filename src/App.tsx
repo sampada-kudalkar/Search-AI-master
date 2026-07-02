@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BirdAIContext } from './context/BirdAIContext'
 import { ResizableRightChatPanel } from './components/AskBirdAI/layout/ResizableRightChatPanel'
 import { MynaChatPanel } from './components/AskBirdAI/MynaChatPanel.v1'
 import { useMynaConversations } from './myna/useMynaConversations'
@@ -333,6 +334,7 @@ export function App() {
   const isViewingDetail = intakeDetail !== null
 
   return (
+    <BirdAIContext.Provider value={{ openBirdAI: () => setBirdAIOpen(true) }}>
     <ProcedureStoreProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
       <IconRail
@@ -388,7 +390,7 @@ export function App() {
           <InboxScreen />
         ) : isEditingWorkflow ? (
           <>
-            <TopNav title="Front desk" initials="S" onAskBirdAI={() => setBirdAIOpen((o) => !o)} />
+            <TopNav title="Front desk" initials="S" />
             <div className="flex-1 overflow-hidden">
               <WorkflowEditorScreen
                 agentName={editingAgentName}
@@ -407,7 +409,7 @@ export function App() {
           <SalesPipelineScreen />
         ) : navActive === 'manage-intake' && isViewingDetail ? (
           <>
-            <TopNav title="Front desk" initials="S" onAskBirdAI={() => setBirdAIOpen((o) => !o)} />
+            <TopNav title="Front desk" initials="S" />
             <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
               <Link
                 as="button"
@@ -512,5 +514,6 @@ export function App() {
       </ResizableRightChatPanel>
     </div>
     </ProcedureStoreProvider>
+    </BirdAIContext.Provider>
   )
 }
