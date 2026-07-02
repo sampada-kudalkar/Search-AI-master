@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { ResizableRightChatPanel } from './components/AskBirdAI/layout/ResizableRightChatPanel'
+import { MynaChatPanel } from './components/AskBirdAI/MynaChatPanel.v1'
+import { useMynaConversations } from './myna/useMynaConversations'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
 import type { WizardAgentDraft } from './data/wizardAgentConfig.types'
 import { Icon, IconRail, Link, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
@@ -297,6 +300,35 @@ export function App() {
 
   const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
 
+  // ── Ask BirdAI ──────────────────────────────────────────────────────────────
+  const [birdAIOpen, setBirdAIOpen] = useState(false)
+  const [birdAIExpanded, setBirdAIExpanded] = useState(false)
+  const [mynaComposerFocusNonce, setMynaComposerFocusNonce] = useState(0)
+  const {
+    conversations,
+    activeConversationId,
+    setActiveConversationId,
+    activeConversation,
+    appendUserAndAssistant,
+    createConversationWithFirstMessage,
+    createEmptyConversation,
+    deleteConversation,
+  } = useMynaConversations(railActive)
+
+  function handleMynaSend(text: string, options?: { ignoreConversationHistory?: boolean }) {
+    if (!activeConversationId) {
+      createConversationWithFirstMessage(text)
+    } else {
+      appendUserAndAssistant(text, options)
+    }
+  }
+
+  function startNewMynaChat() {
+    createEmptyConversation()
+    setMynaComposerFocusNonce((n) => n + 1)
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
   const isEditingWorkflow = editingAgentName !== null
   const isViewingDetail = intakeDetail !== null
 
@@ -356,7 +388,7 @@ export function App() {
           <InboxScreen />
         ) : isEditingWorkflow ? (
           <>
-            <TopNav title="Front desk" initials="S" />
+            <TopNav title="Front desk" initials="S" onAskBirdAI={() => setBirdAIOpen((o) => !o)} />
             <div className="flex-1 overflow-hidden">
               <WorkflowEditorScreen
                 agentName={editingAgentName}
@@ -375,7 +407,7 @@ export function App() {
           <SalesPipelineScreen />
         ) : navActive === 'manage-intake' && isViewingDetail ? (
           <>
-            <TopNav title="Front desk" initials="S" />
+            <TopNav title="Front desk" initials="S" onAskBirdAI={() => setBirdAIOpen((o) => !o)} />
             <div className="flex shrink-0 items-center gap-xs border-b border-border px-2xl py-md">
               <Link
                 as="button"
@@ -461,6 +493,23 @@ export function App() {
           <ManageAppointmentsScreen product={activeProduct} />
         )}
       </main>
+
+      <ResizableRightChatPanel open={birdAIOpen} workspaceExpanded={birdAIOpen && birdAIExpanded} layoutRowWidth={0}>
+        <MynaChatPanel
+          messages={activeConversation?.messages ?? []}
+          onSend={handleMynaSend}
+          onClose={() => setBirdAIOpen(false)}
+          expanded={birdAIExpanded}
+          onToggleExpand={() => setBirdAIExpanded((e) => !e)}
+          conversations={conversations}
+          activeConversationId={activeConversationId}
+          onSelectConversation={setActiveConversationId}
+          onOpenNewChat={startNewMynaChat}
+          onDeleteConversation={deleteConversation}
+          screenTitle={railActive}
+          composerFocusNonce={mynaComposerFocusNonce}
+        />
+      </ResizableRightChatPanel>
     </div>
     </ProcedureStoreProvider>
   )

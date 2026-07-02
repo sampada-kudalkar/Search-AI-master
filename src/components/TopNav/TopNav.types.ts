@@ -7,4 +7,5 @@ export interface TopNavProps {
   onAdd?: () => void
   onHelp?: () => void
   onMenu?: () => void
+  onAskBirdAI?: () => void
 }
