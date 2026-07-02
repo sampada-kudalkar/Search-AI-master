@@ -57,7 +57,7 @@ export { DataTable } from './DataTable/DataTable'
 export { PatientCell } from './PatientCell/PatientCell'
 
 // Charts (Recharts-based + CSS heatmap) — reusable across report pages
-export { ChartCard } from './charts/ChartCard'
+export { ChartCard, MoreMenu } from './charts/ChartCard'
 export { ChartCardButton } from './charts/ChartCardButton'
 export { ChartStatRow } from './charts/ChartStatRow'
 export { HBarList } from './charts/HBarList'
@@ -142,3 +142,5 @@ export { VisibilityRankingCard } from './VisibilityRankingCard/VisibilityRanking
 export { ScatterplotCard } from './ScatterplotCard/ScatterplotCard'
 export { BrandScatterplotCard } from './BrandScatterplotCard/BrandScatterplotCard'
 export type { BrandScatterplotCardProps } from './BrandScatterplotCard/BrandScatterplotCard.types'
+export { SummaryCard } from './SummaryCard/SummaryCard'
+export type { SummaryCardProps, SummaryCardStat } from './SummaryCard/SummaryCard.types'

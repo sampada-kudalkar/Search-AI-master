@@ -174,6 +174,7 @@ If a component exists here, import it — do not recreate it.
 | ScatterplotCard | components/ScatterplotCard/ScatterplotCard.tsx | dots: ByLocationDot[], competitors: string[], onViewComparison(locationName), onRemoveCompetitor(brand) — Recharts ScatterChart with 4-quadrant backgrounds, competitor chip row, rich hover tooltip with "View detailed comparison →" CTA, and legend row; dot colors from chartColors.byLocation |
 | BrandScatterplotCard | components/BrandScatterplotCard/BrandScatterplotCard.tsx | dots: BrandDot[], activePlatform: RankingPlatform, onPlatformChange — brand-level scatter (max 6 dots: you + 5 selected competitors); 40×40 aqua avatar circles with initials, platform tabs, quadrant backgrounds; used on brand view and location detail page |
 | CompetitorSelector | components/CompetitorSelector/CompetitorSelector.tsx | competitors: Competitor[], selected: string[], onChange — competitor picker card: chip input (removable) + searchable dropdown panel, max 5 selections; used on brand view and location detail page |
+| SummaryCard | components/SummaryCard/SummaryCard.tsx | title, subtitle?, stats[] ({id,value,label}) — KPI summary card: text-text-secondary heading, optional subtext, 32px text-text-primary values with 8px gap to label; reusable wherever a titled KPI row is needed |
 
 
 ### How to add a component to this registry

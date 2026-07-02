@@ -20,7 +20,7 @@ export interface ChartCardProps {
   children: ReactNode
 }
 
-function MoreMenu() {
+export function MoreMenu() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -44,7 +44,7 @@ function MoreMenu() {
       </button>
       {open && (
         <div className="absolute right-0 top-full z-50 mt-xs w-48 rounded-sm bg-surface p-md shadow-dropdown">
-          {['Download', 'Email'].map((option) => (
+          {['Download', 'Email', 'Schedule'].map((option) => (
             <button
               key={option}
               type="button"

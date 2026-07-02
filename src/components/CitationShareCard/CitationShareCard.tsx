@@ -10,6 +10,7 @@ import { Icon } from '../Icon/Icon'
 import { AiIcon } from '../AiIcon/AiIcon'
 import { chartColors } from '../charts/chartColors'
 import type { Platform, CompetitorRowData } from '../../data/competitorData'
+import { THEME_NAMES } from '../../data/themesData'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,7 +23,7 @@ export interface CitationShareCardProps {
 
 // ── Static seed data ─────────────────────────────────────────────────────────
 
-const DEFAULT_THEMES = ['All themes', 'Dental care', 'Oral health', 'Insurance', 'Implants']
+const DEFAULT_THEMES = THEME_NAMES
 
 // Citation share trend data for 12 months, per platform
 const CITATION_TREND: Record<Platform, { label: string; you: number; comp1: number; comp2: number; comp3: number; comp4: number; comp5: number }[]> = {
