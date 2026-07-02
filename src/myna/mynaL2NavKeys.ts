@@ -1,19 +1,33 @@
-// mynaL2NavKeys.ts
-// L2 navigation key constants for context-aware AI routing
+import type { MynaConversation } from "./mynaMockConversations";
 
-export const MYNA_L2_NAV_KEYS = {
-  SEARCH_AI: "Search AI",
-  LISTINGS: "Listings",
-  REVIEWS: "Reviews",
-  SOCIAL: "Social",
-  CAMPAIGNS: "Campaigns",
-  INSIGHTS: "Insights",
-  MESSAGING: "Messaging",
-  REFERRALS: "Referrals",
-} as const;
+const PLACEHOLDER_EMPTY_KEY = "__myna_ph_empty__";
 
-export type MynaL2NavKey = (typeof MYNA_L2_NAV_KEYS)[keyof typeof MYNA_L2_NAV_KEYS];
+/**
+ * One row per conversation, newest first (same order as `conversations` array).
+ * Empty state is a single non-action placeholder row.
+ */
+export function mynaFlatNavItemsForConversations(
+  conversations: MynaConversation[],
+): { label: string; key: string }[] {
+  if (conversations.length === 0) {
+    return [{ label: "No conversations yet", key: PLACEHOLDER_EMPTY_KEY }];
+  }
+  return conversations.map((c) => ({ label: c.title, key: c.id }));
+}
 
-export function isValidL2NavKey(key: string): key is MynaL2NavKey {
-  return Object.values(MYNA_L2_NAV_KEYS).includes(key as MynaL2NavKey);
+export function conversationById(
+  conversations: MynaConversation[],
+  id: string,
+): MynaConversation | undefined {
+  return conversations.find((c) => c.id === id);
+}
+
+export function l2KeyFromConversation(conv: MynaConversation): string {
+  return `${conv.shared ? "Shared with me" : "Recent chats"}/${conv.id}`;
+}
+
+const PLACEHOLDER_KEYS = new Set([PLACEHOLDER_EMPTY_KEY, "—"]);
+
+export function isMynaL2PlaceholderKey(id: string): boolean {
+  return PLACEHOLDER_KEYS.has(id);
 }
