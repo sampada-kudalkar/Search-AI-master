@@ -342,6 +342,28 @@ const PRODUCT_RULES: Record<string, Array<{ match: RegExp; reply: string }>> = {
         "**Most common themes in customer feedback:**\n\n1. 🕐 **Wait times** — 38% of mentions (mixed; dominant negative driver)\n2. 😊 **Staff attitude** — 31% (overwhelmingly positive)\n3. 💰 **Pricing** — 19% (neutral to slightly negative)\n4. 📍 **Location/parking** — 12% (mostly neutral)\n\nWant a breakdown by channel (reviews vs surveys vs inbox) or by location? The location view often reveals where to act first.",
     },
   ],
+  "Search AI": [
+    {
+      match: /\b(competitor|competitive|rival|rank|ahead|winning|leading|who is|who's)\b/,
+      reply:
+        "**Competitor AI visibility snapshot:**\n\n🥇 Brighton Family Dental — **71%** (↑2 pts)\n🥈 Riverside Smiles — **58%** (↑6 pts, biggest mover)\n📍 You — **62%** (↓3 pts)\n\nFocus areas: answer-format content on **\"dental implants near me\"** (your top keyword) and claim more Perplexity citations. Riverside Smiles' recent gains come from structured FAQ pages — worth auditing their format.",
+    },
+    {
+      match: /\b(visibility|score|performance|how am i|how are we|trending|drop|decline|platform)\b/,
+      reply:
+        "**Your AI visibility score: 62%** (↓3 pts vs last month)\n\nBreakdown by platform:\n- Perplexity: **74%** ✅ Strongest\n- Gemini: **65%**\n- Claude: **58%**\n- ChatGPT: **41%** ⚠️ Biggest gap\n\nCitation share: **18%** — top-quartile brands hit 20%+. Top opportunity: expand FAQ-style content for **\"emergency dentist\"** — currently 0% cited across all LLM platforms.",
+    },
+    {
+      match: /\b(report|summary|overview|snapshot|brief|dashboard|kpi|metric|citation share|search ai)\b/,
+      reply:
+        "**Search AI snapshot:**\n\n📊 AI Visibility: **62%** (↓3 pts)\n🔗 Citation share: **18%**\n🏆 Best platform: Perplexity (74%)\n🎯 Top keyword: dental implants near me\n👥 Tracked competitors: 8\n\nBiggest mover this week: **Riverside Smiles +6 pts** (now 58%). Top action: audit their FAQ content structure — they're gaining citations fast on ChatGPT where you're weakest.",
+    },
+    {
+      match: /\b(keyword|topic|query|search term|phrase|content|what to write|focus)\b/,
+      reply:
+        "**Top keywords by AI citation opportunity:**\n\n1. **\"dental implants near me\"** — 62% cited, your #1\n2. **\"emergency dentist [city]\"** — 0% cited ⚠️ High-volume gap\n3. **\"teeth whitening cost\"** — 38% cited, competitors at 55%\n4. **\"same-day dentist\"** — 29% cited\n\nQuick win: write a 300-word FAQ page targeting **\"emergency dentist\"** in answer format — this format has the highest LLM citation rate in your category.",
+    },
+  ],
 };
 
 function buildProductResponse(screenTitle: string, _intent: Intent, q: string): string | null {
@@ -358,6 +380,8 @@ function buildProductResponse(screenTitle: string, _intent: Intent, q: string): 
 // so responses stay accurate even when the active screen is different.
 
 const PRODUCT_SIGNALS: Array<{ re: RegExp; screen: string }> = [
+  // Search AI must come first — its keywords overlap with other products (competitor, citation, report)
+  { re: /\b(search ai|ai visibility|ai search|llm ranking|citation share|llm platform|visibility score|ai.?powered search|competitor rank|ai citation)\b/i, screen: "Search AI" },
   { re: /\b(review|rating|star|yelp|google review|response rate|sentiment|unanswered)\b/i, screen: "Reviews" },
   { re: /\b(campaign|email blast|sms blast|open rate|click.?through|ctr|drip)\b/i, screen: "Campaigns" },
   { re: /\b(survey|nps|net promoter|csat|satisfaction score|detractor|promoter|passives?)\b/i, screen: "Surveys" },

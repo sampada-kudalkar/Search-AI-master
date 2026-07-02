@@ -272,6 +272,10 @@ const AGENT_NAMES: Record<string, string> = {
 }
 
 
+const RAIL_SCREEN_TITLE: Record<string, string> = {
+  search: 'Search AI',
+}
+
 export function App() {
   const [railActive, setRailActive] = useState('search')
   const [navActive, setNavActive] = useState('by-brand')
@@ -302,6 +306,7 @@ export function App() {
   const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
 
   // ── Ask BirdAI ──────────────────────────────────────────────────────────────
+  const aiScreenTitle = RAIL_SCREEN_TITLE[railActive] ?? railActive
   const [birdAIOpen, setBirdAIOpen] = useState(false)
   const [birdAIExpanded, setBirdAIExpanded] = useState(false)
   const [mynaComposerFocusNonce, setMynaComposerFocusNonce] = useState(0)
@@ -314,7 +319,7 @@ export function App() {
     createConversationWithFirstMessage,
     createEmptyConversation,
     deleteConversation,
-  } = useMynaConversations(railActive)
+  } = useMynaConversations(aiScreenTitle)
 
   function handleMynaSend(text: string, options?: { ignoreConversationHistory?: boolean }) {
     if (!activeConversationId) {
@@ -508,7 +513,7 @@ export function App() {
           onSelectConversation={setActiveConversationId}
           onOpenNewChat={startNewMynaChat}
           onDeleteConversation={deleteConversation}
-          screenTitle={railActive}
+          screenTitle={aiScreenTitle}
           composerFocusNonce={mynaComposerFocusNonce}
         />
       </ResizableRightChatPanel>

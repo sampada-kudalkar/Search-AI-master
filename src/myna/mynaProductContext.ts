@@ -338,6 +338,10 @@ Platforms: ChatGPT, Gemini, Perplexity, Claude`,
   },
 };
 
+const SCREEN_TITLE_ALIASES: Record<string, string> = {
+  search: 'Search AI',
+}
+
 export function getProductContext(screenTitle: string): MynaProductContext | undefined {
-  return PRODUCT_CONTEXTS[screenTitle];
+  return PRODUCT_CONTEXTS[screenTitle] ?? PRODUCT_CONTEXTS[SCREEN_TITLE_ALIASES[screenTitle]];
 }
