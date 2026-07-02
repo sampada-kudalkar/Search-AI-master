@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 
 type ChartMetric = 'Visibility score' | 'Citation share' | 'Rank'
 const CHART_METRICS: ChartMetric[] = ['Visibility score', 'Citation share', 'Rank']
-import { Icon, CompetitorRankingCard, InfoTooltip } from '../components'
+import { Icon, CompetitorRankingCard, CompetitorSelector, InfoTooltip } from '../components'
 import { CardTabs } from '../components/CardTabs/CardTabs'
 import { CompetitorMetricsCard } from '../components/CompetitorMetricsCard'
 import { ChartCard } from '../components/charts/ChartCard'
@@ -10,6 +10,7 @@ import { ChartCardButton } from '../components/charts/ChartCardButton'
 import { TrendLineChart, type SeriesConfig } from '../components/charts/TrendLineChart'
 import { CompetitorDetailScreen } from './CompetitorDetailScreen'
 import {
+  COMPETITORS,
   COMPETITOR_BRAND_DATA,
   DEFAULT_SELECTED,
   REPORT_DATE,
@@ -34,6 +35,7 @@ export function CompetitorByLocationDetailScreen({
   location: ByLocationTableRow
   onBack: () => void
 }) {
+  const [selected, setSelected] = useState<string[]>(DEFAULT_SELECTED)
   const [trendPlatform, setTrendPlatform] = useState<Platform>('ChatGPT')
   const [scatterPlatform, setScatterPlatform] = useState<RankingPlatform>('ChatGPT')
   const [competitorDetail, setCompetitorDetail] = useState<CompetitorRowData | null>(null)
@@ -94,9 +96,9 @@ export function CompetitorByLocationDetailScreen({
 
   const trendSeries: SeriesConfig[] = [
     { key: 'you', label: 'You', color: TREND_SERIES_COLORS['you'] },
-    ...SERIES_KEYS.slice(0, DEFAULT_SELECTED.length).map((key, i) => ({
+    ...SERIES_KEYS.slice(0, selected.length).map((key, i) => ({
       key,
-      label: DEFAULT_SELECTED[i],
+      label: selected[i],
       color: TREND_SERIES_COLORS[key],
     })),
   ]
@@ -149,18 +151,24 @@ export function CompetitorByLocationDetailScreen({
       </div>
 
       <div className="flex flex-col gap-xl px-2xl pb-2xl">
-        <CompetitorMetricsCard
-          rows={COMPETITOR_BRAND_DATA.filter(
-            (r) => r.isYou || DEFAULT_SELECTED.includes(r.name)
-          )}
-          onRowClick={setCompetitorDetail}
-          pageContext="location"
+        <CompetitorSelector
+          competitors={COMPETITORS}
+          selected={selected}
+          onChange={setSelected}
         />
 
         <BrandScatterplotCard
-          dots={getBrandDots(scatterPlatform, DEFAULT_SELECTED)}
+          dots={getBrandDots(scatterPlatform, selected)}
           activePlatform={scatterPlatform}
           onPlatformChange={setScatterPlatform}
+        />
+
+        <CompetitorMetricsCard
+          rows={COMPETITOR_BRAND_DATA.filter(
+            (r) => r.isYou || selected.includes(r.name)
+          )}
+          onRowClick={setCompetitorDetail}
+          pageContext="location"
         />
 
         <CompetitorRankingCard rows={PROMPT_RANKING_DATA} />
