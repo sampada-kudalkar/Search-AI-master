@@ -13,12 +13,19 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  Loader2,
+  Maximize2,
+  Minimize2,
+  MoreHorizontal,
   MoreVertical,
   Pencil,
   Search,
+  Sparkles,
+  SquarePen,
   Star,
   ThumbsDown,
   ThumbsUp,
+  X,
 } from "lucide-react";
 import {
   ChatContainerContent,
@@ -55,14 +62,13 @@ import {
 
 function MynaAiAvatar({ size = 20 }: { size?: number }) {
   return (
-    <img
-      src="/ai-avatar.svg"
-      width={size}
-      height={size}
-      alt=""
+    <span
+      className="flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#9970D7] to-[#2552ED]"
+      style={{ width: size, height: size }}
       aria-hidden
-      className="shrink-0"
-    />
+    >
+      <Sparkles style={{ width: size * 0.6, height: size * 0.6, color: 'white' }} />
+    </span>
   );
 }
 
@@ -119,19 +125,11 @@ function TypingIndicator() {
   return (
     <div className="flex items-center gap-2">
       <MynaAiAvatar />
-      <img
-        src="/download.gif"
+      <Loader2
         width={20}
         height={20}
-        alt=""
         aria-hidden
-        className="shrink-0"
-        onError={(e) => {
-          const target = e.currentTarget;
-          target.style.display = "none";
-          const fallback = target.nextElementSibling as HTMLElement | null;
-          if (fallback) fallback.style.display = "flex";
-        }}
+        className="animate-spin shrink-0 text-[#8f8f8f]"
       />
       <span className="hidden items-center gap-1" aria-hidden>
         {[0, 1, 2].map((i) => (
@@ -646,7 +644,7 @@ function HistoryPanel({
             className={cn("rounded-lg transition-colors", headerIconBtnTone)}
             aria-label="New chat"
           >
-            <img src="/New chat.svg" alt="" aria-hidden className="h-[20px] w-[20px] shrink-0" />
+            <SquarePen className="h-[20px] w-[20px] shrink-0" aria-hidden />
           </Button>
           {!expanded && (
             <Button
@@ -657,7 +655,7 @@ function HistoryPanel({
               className={cn("rounded-lg transition-colors", headerIconBtnTone)}
               aria-label="Expand"
             >
-              <img src="/Expand.svg" alt="" aria-hidden className="h-[20px] w-[20px] shrink-0" />
+              <Maximize2 className="h-[20px] w-[20px] shrink-0" aria-hidden />
             </Button>
           )}
           <Button
@@ -668,7 +666,7 @@ function HistoryPanel({
             className={cn("rounded-lg transition-colors", headerIconBtnTone)}
             aria-label="Close"
           >
-            <img src="/Close.svg" alt="" aria-hidden className="h-[20px] w-[20px] shrink-0" />
+            <X className="h-[20px] w-[20px] shrink-0" aria-hidden />
           </Button>
         </div>
       </div>
@@ -1017,12 +1015,8 @@ export function MynaChatPanel({
                   className={cn("group !size-8 rounded-lg transition-colors", headerIconBtnTone)}
                   aria-label="New chat"
                 >
-                  <img
-                    src="/New chat.svg"
-                    alt=""
+                  <SquarePen
                     aria-hidden
-                    width={20}
-                    height={20}
                     className="h-[20px] w-[20px] shrink-0 transition-[width,height] duration-150 group-hover:h-[24px] group-hover:w-[24px]"
                   />
                 </Button>
@@ -1034,12 +1028,8 @@ export function MynaChatPanel({
                   className={cn("group size-8 rounded-lg transition-colors", headerIconBtnTone)}
                   aria-label="Expand chat workspace"
                 >
-                  <img
-                    src="/Expand.svg"
-                    alt=""
+                  <Maximize2
                     aria-hidden
-                    width={20}
-                    height={20}
                     className="h-[20px] w-[20px] shrink-0 transition-[width,height] duration-150 group-hover:h-[24px] group-hover:w-[24px]"
                   />
                 </Button>
@@ -1052,12 +1042,8 @@ export function MynaChatPanel({
                       className={cn("group !size-8 rounded-lg transition-colors", headerIconBtnTone)}
                       aria-label="More actions"
                     >
-                      <img
-                        src="/More-1.svg"
-                        alt=""
+                      <MoreHorizontal
                         aria-hidden
-                        width={20}
-                        height={20}
                         className="h-[20px] w-[20px] shrink-0 transition-[width,height] duration-150 group-hover:h-[24px] group-hover:w-[24px]"
                       />
                     </Button>
@@ -1085,12 +1071,8 @@ export function MynaChatPanel({
                   className={cn("group !size-6 rounded-lg transition-colors", headerIconBtnTone)}
                   aria-label="Close chat"
                 >
-                  <img
-                    src="/Close.svg"
-                    alt=""
+                  <X
                     aria-hidden
-                    width={20}
-                    height={20}
                     className="h-[20px] w-[20px] shrink-0 transition-[width,height] duration-150 group-hover:h-[24px] group-hover:w-[24px]"
                   />
                 </Button>
@@ -1108,14 +1090,7 @@ export function MynaChatPanel({
                   )}
                   aria-label="Collapse chat workspace"
                 >
-                  <img
-                    src="/collapse_all.svg"
-                    alt=""
-                    aria-hidden
-                    width={20}
-                    height={20}
-                    className="h-[20px] w-[20px] shrink-0"
-                  />
+                  <Minimize2 aria-hidden className="h-[20px] w-[20px] shrink-0" />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -1129,14 +1104,7 @@ export function MynaChatPanel({
                       )}
                       aria-label="More actions"
                     >
-                      <img
-                        src="/More-1.svg"
-                        alt=""
-                        aria-hidden
-                        width={20}
-                        height={20}
-                        className="h-[20px] w-[20px] shrink-0"
-                      />
+                      <MoreHorizontal aria-hidden className="h-[20px] w-[20px] shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="min-w-[160px]">
