@@ -5,6 +5,7 @@ import { CompetitorDetailScreen } from './CompetitorDetailScreen'
 import { CompetitorByLocationScreen } from './CompetitorByLocationScreen'
 import { CompetitorByLocationDetailScreen } from './CompetitorByLocationDetailScreen'
 import { ManageCompetitorsScreen } from './ManageCompetitorsScreen'
+import { CitationsReportScreen } from './CitationsReportScreen'
 import {
   BY_LOCATION_DATA,
   COMPETITOR_BRAND_DATA,
@@ -226,6 +227,8 @@ export function SearchAIScreen() {
               onCompetitorClick={setCompetitorDetail}
               onManageCompetitors={() => setManageCompetitors(true)}
             />
+          ) : navActive === 'citations' ? (
+            <CitationsReportScreen />
           ) : navActive === 'by-location' ? (
             <CompetitorByLocationScreen
               onLocationClick={setLocationDetail}

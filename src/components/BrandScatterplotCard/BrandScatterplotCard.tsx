@@ -6,6 +6,7 @@ import {
   YAxis,
   Tooltip,
   ReferenceArea,
+  ReferenceLine,
 } from 'recharts'
 import { ChartCard } from '../charts/ChartCard'
 import { CardTabs } from '../CardTabs/CardTabs'
@@ -222,10 +223,8 @@ export function BrandScatterplotCard({
 
       <ResponsiveContainer width="100%" height={340}>
         <ScatterChart margin={{ top: 8, right: 24, bottom: 40, left: 16 }}>
-          <ReferenceArea x1={0}       x2={VIS_MID} y1={CIT_MID} y2={100} fill="#fff8e1" fillOpacity={0.7} />
-          <ReferenceArea x1={VIS_MID} x2={100}     y1={CIT_MID} y2={100} fill="#BAE4B4" fillOpacity={0.7} />
-          <ReferenceArea x1={0}       x2={VIS_MID} y1={0}       y2={CIT_MID} fill="#ffebee" fillOpacity={0.7} />
-          <ReferenceArea x1={VIS_MID} x2={100}     y1={0}       y2={CIT_MID} fill="#DCF1D9" fillOpacity={0.7} />
+          <ReferenceLine x={VIS_MID} stroke="#e8e8ea" strokeWidth={1} />
+          <ReferenceLine y={CIT_MID} stroke="#e8e8ea" strokeWidth={1} />
 
           <ReferenceArea x1={2} x2={VIS_MID - 1} y1={CIT_MID + 1} y2={99} fill="transparent"
             label={<QuadrantLabel value="Underperforming" color="#f59e0b" position="topLeft" />} />

@@ -6,6 +6,7 @@ import { TrendLineChart } from '../charts/TrendLineChart'
 import { DataTable } from '../DataTable/DataTable'
 import { Icon } from '../Icon/Icon'
 import { COMPETITOR_BRAND_DATA, type Platform, type CompetitorRowData } from '../../data/competitorData'
+import { THEME_NAMES } from '../../data/themesData'
 import type { Column } from '../DataTable/DataTable.types'
 import aiSummaryIcon from '../../assets/ai-summary.svg'
 
@@ -20,7 +21,7 @@ export interface VisibilityAcrossThemesCardProps {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const DEFAULT_THEMES = ['All themes', 'Dental care', 'Oral health', 'Insurance', 'Implants']
+const DEFAULT_THEMES = THEME_NAMES
 
 const PLATFORM_TABS = [
   { id: 'ChatGPT' as Platform, label: 'ChatGPT' },
