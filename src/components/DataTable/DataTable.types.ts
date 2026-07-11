@@ -52,4 +52,6 @@ export interface DataTableProps<T = Record<string, unknown>> {
   rowClassName?: (row: T, index: number) => string
   /** Row height in px. Defaults to 48 (h-12). */
   rowHeight?: number
+  /** When set, caps the table body to this many rows and scrolls vertically beyond that (header stays fixed). */
+  maxVisibleRows?: number
 }

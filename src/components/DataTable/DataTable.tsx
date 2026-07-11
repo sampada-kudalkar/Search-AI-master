@@ -16,6 +16,7 @@ export function DataTable<T extends Record<string, unknown>>({
   scrollOnHover = false,
   rowClassName,
   rowHeight = 48,
+  maxVisibleRows,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -85,15 +86,21 @@ export function DataTable<T extends Record<string, unknown>>({
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
   const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
+  const headerHeight = 48
+  const maxHeight = maxVisibleRows ? headerHeight + maxVisibleRows * rowHeight : undefined
+
   return (
-    <div className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}`}>
+    <div
+      className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}${maxHeight ? ' overflow-y-auto' : ''}`}
+      style={maxHeight ? { maxHeight } : undefined}
+    >
       <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
         <colgroup>
           {columns.map((col) => (
             <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
           ))}
         </colgroup>
-        <thead>
+        <thead className={maxHeight ? 'sticky top-0 z-10 bg-surface' : undefined}>
           <tr>
             {columns.map((col, i) => {
               const key = String(col.key)

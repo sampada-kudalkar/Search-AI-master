@@ -33,7 +33,7 @@ import type { CompetitorRankingCardProps, FlatRankingRow, RankingEntry } from '.
 
 // ── Shared rank cell (avatar + text) ─────────────────────────────────────────
 
-function RankCell({ entry }: { entry?: RankingEntry | { name: string; isYou?: boolean } }) {
+function RankCell({ entry, avatarOnly = false }: { entry?: RankingEntry | { name: string; isYou?: boolean }; avatarOnly?: boolean }) {
   if (!entry) return <span className="text-small text-text-tertiary">—</span>
   if (entry.isYou) {
     return (
@@ -47,7 +47,7 @@ function RankCell({ entry }: { entry?: RankingEntry | { name: string; isYou?: bo
       <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${getCompetitorColor(entry.name)} text-[10px] font-medium text-white`}>
         {getInitials(entry.name)}
       </span>
-      <span className="text-[13px] text-text-primary truncate">{entry.name}</span>
+      {!avatarOnly && <span className="text-[13px] text-text-primary truncate">{entry.name}</span>}
     </div>
   )
 }
@@ -58,6 +58,8 @@ function buildThemeColumns(
   expandedIds: Set<string>,
   onToggle: (id: string) => void,
   onPromptClick: (row: FlatRankingRow) => void,
+  rankCount: number,
+  avatarOnly: boolean,
 ): Column<FlatRankingRow>[] {
   return [
     {
@@ -98,36 +100,17 @@ function buildThemeColumns(
         )
       },
     },
-    {
-      key: 'rank1',
-      label: 'Rank 1',
-      width: 148,
-      render: (_val, row) => <RankCell entry={row.rank1 as RankingEntry | undefined} />,
-    },
-    {
-      key: 'rank2',
-      label: 'Rank 2',
-      width: 148,
-      render: (_val, row) => <RankCell entry={row.rank2 as RankingEntry | undefined} />,
-    },
-    {
-      key: 'rank3',
-      label: 'Rank 3',
-      width: 148,
-      render: (_val, row) => <RankCell entry={row.rank3 as RankingEntry | undefined} />,
-    },
-    {
-      key: 'rank4',
-      label: 'Rank 4',
-      width: 148,
-      render: (_val, row) => <RankCell entry={row.rank4 as RankingEntry | undefined} />,
-    },
-    {
-      key: 'rank5',
-      label: 'Rank 5',
-      width: 148,
-      render: (_val, row) => <RankCell entry={row.rank5 as RankingEntry | undefined} />,
-    },
+    ...Array.from({ length: rankCount }, (_, i) => {
+      const key = `rank${i + 1}`
+      return {
+        key,
+        label: `Rank ${i + 1}`,
+        width: 148,
+        render: (_val: unknown, row: FlatRankingRow) => (
+          <RankCell entry={row[key] as RankingEntry | undefined} avatarOnly={avatarOnly} />
+        ),
+      }
+    }),
   ]
 }
 
@@ -289,17 +272,52 @@ export function CompetitorRankingCard(props: CompetitorRankingCardProps) {
   }
 
   // ── Themes mode (default) ──
-  return <ThemesCard rows={props.rows} />
+  return (
+    <ThemesCard
+      rows={props.rows}
+      rankCount={props.rankCount}
+      avatarOnly={props.avatarOnly}
+      title={props.title}
+      subtitle={props.subtitle}
+      platformTabsProp={props.platformTabs}
+      activePlatformProp={props.activePlatform}
+      onPlatformChangeProp={props.onPlatformChange}
+    />
+  )
 }
 
-function ThemesCard({ rows }: { rows: import('../../data/competitorData').PromptRankingRow[] }) {
-  const [activePlatform, setActivePlatform] = useState<RankingPlatform>('ChatGPT')
+function ThemesCard({
+  rows,
+  rankCount = 5,
+  avatarOnly = false,
+  title,
+  subtitle,
+  platformTabsProp,
+  activePlatformProp,
+  onPlatformChangeProp,
+}: {
+  rows: import('../../data/competitorData').PromptRankingRow[]
+  rankCount?: number
+  avatarOnly?: boolean
+  title?: import('react').ReactNode
+  subtitle?: string
+  platformTabsProp?: { id: string; label: string }[]
+  activePlatformProp?: string
+  onPlatformChangeProp?: (id: string) => void
+}) {
+  const [internalPlatform, setInternalPlatform] = useState<RankingPlatform>('ChatGPT')
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [metric, setMetric] = useState<Metric>('Visibility score')
   const [selectedPrompt, setSelectedPrompt] = useState<FlatRankingRow | null>(null)
   const [metricOpen, setMetricOpen] = useState(false)
   const metricRef = useRef<HTMLSpanElement>(null)
-  const platformTabs = RANKING_PLATFORMS.map((p) => ({ id: p, label: p }))
+
+  const isControlled = platformTabsProp != null && activePlatformProp != null && onPlatformChangeProp != null
+  const platformTabs = platformTabsProp ?? RANKING_PLATFORMS.map((p) => ({ id: p, label: p }))
+  const activePlatform = isControlled ? (activePlatformProp as string) : internalPlatform
+  const setActivePlatform: (id: string) => void = isControlled
+    ? (onPlatformChangeProp as (id: string) => void)
+    : (id) => setInternalPlatform(id as RankingPlatform)
 
   useEffect(() => {
     if (!metricOpen) return
@@ -323,31 +341,29 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
 
   const flatRows: FlatRankingRow[] = []
   for (const row of rows) {
-    const ranks = row.rankings[activePlatform] ?? []
+    const ranks = row.rankings[activePlatform as RankingPlatform] ?? []
+    const rankFields = Object.fromEntries(
+      Array.from({ length: rankCount }, (_, i) => [`rank${i + 1}`, ranks[i]])
+    )
     flatRows.push({
       _id: row.id,
       _isHeader: true,
       prompt: row.prompt,
-      rank1: ranks[0],
-      rank2: ranks[1],
-      rank3: ranks[2],
-      rank4: ranks[3],
-      rank5: ranks[4],
+      ...rankFields,
     })
     if (expandedIds.has(row.id)) {
       const childPrompts = (row.prompts as PromptRankingRow[] | undefined) ?? []
       for (const child of childPrompts) {
         const childRanks = (child.rankings as Record<string, RankingEntry[]>)[activePlatform] ?? []
+        const childRankFields = Object.fromEntries(
+          Array.from({ length: rankCount }, (_, i) => [`rank${i + 1}`, childRanks[i]])
+        )
         flatRows.push({
           _id: `${row.id}-${child.id as string}`,
           _isHeader: false,
           _parentId: row.id,
           prompt: child.prompt as string,
-          rank1: childRanks[0],
-          rank2: childRanks[1],
-          rank3: childRanks[2],
-          rank4: childRanks[3],
-          rank5: childRanks[4],
+          ...childRankFields,
           date: child.date as string | undefined,
           location: child.location as string | undefined,
           aiResponse: child.aiResponse as FlatRankingRow['aiResponse'],
@@ -356,42 +372,44 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
     }
   }
 
-  const columns = buildThemeColumns(expandedIds, toggleExpand, setSelectedPrompt)
+  const columns = buildThemeColumns(expandedIds, toggleExpand, setSelectedPrompt, rankCount, avatarOnly)
 
   return (
     <div className="w-full rounded-md border border-border bg-surface overflow-hidden">
       <div className="px-[20px] py-[16px]">
         <CardHeader
           title={
-            <span className="flex flex-wrap items-center gap-xs leading-[24px]">
-              How are you ranking vs competitors for{' '}
-              <span ref={metricRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => setMetricOpen((v) => !v)}
-                  className="flex items-center gap-[2px] text-[#1976D2]"
-                >
-                  {metric}
-                  <Icon name="expand_more" size={16} />
-                </button>
-                {metricOpen && (
-                  <div className="absolute left-0 top-full z-50 mt-xs min-w-[160px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
-                    {METRICS.map((m) => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => { setMetric(m); setMetricOpen(false) }}
-                        className={`block w-full px-md py-sm text-left text-body hover:bg-surface-hover ${m === metric ? 'text-primary' : 'text-text-primary'}`}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </div>
-                )}
+            title ?? (
+              <span className="flex flex-wrap items-center gap-xs leading-[24px]">
+                How are you ranking vs competitors for{' '}
+                <span ref={metricRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setMetricOpen((v) => !v)}
+                    className="flex items-center gap-[2px] text-[#1976D2]"
+                  >
+                    {metric}
+                    <Icon name="expand_more" size={16} />
+                  </button>
+                  {metricOpen && (
+                    <div className="absolute left-0 top-full z-50 mt-xs min-w-[160px] rounded-sm border border-border bg-surface py-xs shadow-dropdown">
+                      {METRICS.map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => { setMetric(m); setMetricOpen(false) }}
+                          className={`block w-full px-md py-sm text-left text-body hover:bg-surface-hover ${m === metric ? 'text-primary' : 'text-text-primary'}`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </span>
               </span>
-            </span>
+            )
           }
-          subtitle="Shows how often your brand appears in answers generated by AI sites compared to your competitors"
+          subtitle={subtitle ?? 'Shows how often your brand appears in answers generated by AI sites compared to your competitors'}
           toolbar={
             <>
               <button
@@ -416,7 +434,7 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
         <CardTabs
           tabs={platformTabs}
           activeTab={activePlatform}
-          onChange={(id) => setActivePlatform(id as RankingPlatform)}
+          onChange={(id) => setActivePlatform(id)}
         />
       </div>
       <div className="px-2xl pb-2xl">
@@ -430,7 +448,7 @@ function ThemesCard({ rows }: { rows: import('../../data/competitorData').Prompt
       <PromptDetailModal
         open={selectedPrompt !== null}
         prompt={selectedPrompt}
-        platform={activePlatform}
+        platform={activePlatform as RankingPlatform}
         onClose={() => setSelectedPrompt(null)}
       />
     </div>
