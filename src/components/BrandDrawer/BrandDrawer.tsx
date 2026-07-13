@@ -1,29 +1,28 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '../Icon/Icon'
 import { BackArrowIcon } from '../../assets/BackArrowIcon'
-import { BrandKitInstance } from '../../data/brandsData'
+import { BRAND_KITS, BrandKitInstance } from '../../data/brandsData'
+import { SelectMenu } from '../SelectMenu/SelectMenu'
 import { BrandDrawerProps, BrandDrawerValues } from './BrandDrawer.types'
 
 const EMPTY_VALUES: BrandDrawerValues = { name: '', domainUrl: '', variations: [], brandKits: [] }
-const EMPTY_KIT_DRAFT = { name: '', locationScope: '' }
 
 export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, onClose, onSave }: BrandDrawerProps) {
   const [values, setValues] = useState<BrandDrawerValues>(initialValues ?? EMPTY_VALUES)
   const [variationDraft, setVariationDraft] = useState('')
-  const [editingKitId, setEditingKitId] = useState<string | null>(null)
-  const [addingKit, setAddingKit] = useState(false)
-  const [kitDraft, setKitDraft] = useState(EMPTY_KIT_DRAFT)
+  const [addKitAnchor, setAddKitAnchor] = useState<{ top: number; left: number } | null>(null)
 
   useEffect(() => {
     if (open) {
       setValues(initialValues ?? EMPTY_VALUES)
       setVariationDraft('')
-      setEditingKitId(null)
-      setAddingKit(false)
-      setKitDraft(EMPTY_KIT_DRAFT)
+      setAddKitAnchor(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
+
+  const availableKits = BRAND_KITS.filter((k) => !values.brandKits.some((bk) => bk.id === k.id))
+  const canAddKit = values.brandKits.length === 0 && availableKits.length > 0
 
   const base = initialValues ?? EMPTY_VALUES
   const isDirty =
@@ -48,38 +47,18 @@ export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, 
     setValues((v) => ({ ...v, variations: v.variations.filter((x) => x !== variation) }))
   }
 
-  function startEditKit(kit: BrandKitInstance) {
-    setAddingKit(false)
-    setEditingKitId(kit.id)
-    setKitDraft({ name: kit.name, locationScope: kit.locationScope })
-  }
-
-  function saveEditKit() {
-    if (!editingKitId) return
-    setValues((v) => ({
-      ...v,
-      brandKits: v.brandKits.map((k) => (k.id === editingKitId ? { ...k, ...kitDraft } : k)),
-    }))
-    setEditingKitId(null)
-    setKitDraft(EMPTY_KIT_DRAFT)
-  }
-
   function removeKit(id: string) {
     setValues((v) => ({ ...v, brandKits: v.brandKits.filter((k) => k.id !== id) }))
-    if (editingKitId === id) {
-      setEditingKitId(null)
-      setKitDraft(EMPTY_KIT_DRAFT)
-    }
   }
 
-  function saveNewKit() {
-    if (!kitDraft.name.trim()) return
+  function addKitFromCatalog(kitId: string) {
+    const option = BRAND_KITS.find((k) => k.id === kitId)
+    if (!option) return
     setValues((v) => ({
       ...v,
-      brandKits: [...v.brandKits, { id: `bk-${v.brandKits.length}-${kitDraft.name}`, ...kitDraft }],
+      brandKits: [...v.brandKits, { id: option.id, name: option.label, locationScope: 'All locations' }],
     }))
-    setAddingKit(false)
-    setKitDraft(EMPTY_KIT_DRAFT)
+    setAddKitAnchor(null)
   }
 
   const title = heading ?? (mode === 'edit' ? 'Edit' : 'Add')
@@ -135,7 +114,9 @@ export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, 
         {/* Body */}
         <div className="flex flex-1 flex-col gap-lg overflow-y-auto px-2xl pb-2xl pt-md">
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">Brand</label>
+            <label className="text-small text-text-primary">
+              Brand <span className="text-danger">*</span>
+            </label>
             <input
               value={values.name}
               onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
@@ -145,7 +126,9 @@ export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, 
           </div>
 
           <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">Domain URL</label>
+            <label className="text-small text-text-primary">
+              Domain URL <span className="text-danger">*</span>
+            </label>
             <input
               value={values.domainUrl}
               onChange={(e) => setValues((v) => ({ ...v, domainUrl: e.target.value }))}
@@ -199,53 +182,38 @@ export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, 
               </div>
 
               <div className="flex flex-col gap-xs">
-                {values.brandKits.map((kit) =>
-                  editingKitId === kit.id ? (
-                    <BrandKitDraftRow
-                      key={kit.id}
-                      draft={kitDraft}
-                      onChange={setKitDraft}
-                      onCancel={() => {
-                        setEditingKitId(null)
-                        setKitDraft(EMPTY_KIT_DRAFT)
-                      }}
-                      onSave={saveEditKit}
-                    />
-                  ) : (
-                    <BrandKitRow
-                      key={kit.id}
-                      kit={kit}
-                      onEdit={() => startEditKit(kit)}
-                      onRemove={() => removeKit(kit.id)}
-                    />
-                  ),
-                )}
-
-                {addingKit && (
-                  <BrandKitDraftRow
-                    draft={kitDraft}
-                    onChange={setKitDraft}
-                    onCancel={() => {
-                      setAddingKit(false)
-                      setKitDraft(EMPTY_KIT_DRAFT)
-                    }}
-                    onSave={saveNewKit}
-                  />
-                )}
+                {values.brandKits.map((kit) => (
+                  <BrandKitRow key={kit.id} kit={kit} onRemove={() => removeKit(kit.id)} />
+                ))}
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingKitId(null)
-                  setKitDraft(EMPTY_KIT_DRAFT)
-                  setAddingKit(true)
-                }}
-                className="flex w-fit items-center gap-xs text-body text-text-action hover:underline"
-              >
-                <Icon name="add_circle" size={16} className="text-text-action" />
-                Add brand kit
-              </button>
+              {canAddKit && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect()
+                    setAddKitAnchor({ top: r.bottom + 4, left: r.left })
+                  }}
+                  className="flex w-fit items-center gap-xs text-body text-text-action hover:underline"
+                >
+                  <Icon name="add_circle" size={16} className="text-text-action" />
+                  Add brand kit
+                </button>
+              )}
+
+              {addKitAnchor && (
+                <>
+                  <div className="fixed inset-0 z-[105]" onClick={() => setAddKitAnchor(null)} />
+                  <div className="fixed z-[110] w-[240px]" style={{ top: addKitAnchor.top, left: addKitAnchor.left }}>
+                    <SelectMenu
+                      options={availableKits.map((k) => ({ value: k.id, label: k.label }))}
+                      value={[]}
+                      searchable={false}
+                      onChange={([kitId]) => addKitFromCatalog(kitId)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -256,11 +224,9 @@ export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, 
 
 function BrandKitRow({
   kit,
-  onEdit,
   onRemove,
 }: {
   kit: BrandKitInstance
-  onEdit: () => void
   onRemove: () => void
 }) {
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null)
@@ -279,13 +245,12 @@ function BrandKitRow({
       <div className="flex items-center gap-sm opacity-0 group-hover:opacity-100">
         <button
           type="button"
-          aria-label={`Edit ${kit.name}`}
-          onClick={onEdit}
-          onMouseEnter={(e) => showTooltip(e, 'Edit')}
+          aria-label={`View ${kit.name}`}
+          onMouseEnter={(e) => showTooltip(e, 'View')}
           onMouseLeave={() => setTooltip(null)}
           className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
         >
-          <Icon name="edit" size={16} />
+          <Icon name="visibility" size={16} />
         </button>
         <button
           type="button"
@@ -307,52 +272,6 @@ function BrandKitRow({
           {tooltip.text}
         </div>
       )}
-    </div>
-  )
-}
-
-function BrandKitDraftRow({
-  draft,
-  onChange,
-  onCancel,
-  onSave,
-}: {
-  draft: { name: string; locationScope: string }
-  onChange: (draft: { name: string; locationScope: string }) => void
-  onCancel: () => void
-  onSave: () => void
-}) {
-  return (
-    <div className="flex w-full flex-col gap-sm rounded-lg bg-surface-hover px-md py-sm">
-      <input
-        value={draft.name}
-        onChange={(e) => onChange({ ...draft, name: e.target.value })}
-        placeholder="Brand kit name"
-        className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
-      />
-      <input
-        value={draft.locationScope}
-        onChange={(e) => onChange({ ...draft, locationScope: e.target.value })}
-        placeholder="Location scope (e.g. All locations)"
-        className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
-      />
-      <div className="flex items-center justify-end gap-sm">
-        <button type="button" onClick={onCancel} className="rounded-sm px-md py-xs text-body text-text-action hover:bg-surface-hover">
-          Cancel
-        </button>
-        <button
-          type="button"
-          disabled={!draft.name.trim()}
-          onClick={onSave}
-          className={`rounded-sm px-lg py-[7px] text-body transition-colors ${
-            draft.name.trim()
-              ? 'bg-primary text-white hover:bg-primary-hover'
-              : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
-          }`}
-        >
-          Save
-        </button>
-      </div>
     </div>
   )
 }

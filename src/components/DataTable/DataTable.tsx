@@ -256,22 +256,26 @@ export function DataTable<T extends Record<string, unknown>>({
                 const row = sortedData[menu.rowIndex]
                 return item.visible ? item.visible(row) : true
               })
-              .map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => {
-                    item.onClick(sortedData[menu.rowIndex])
-                    setMenu(null)
-                  }}
-                  className={`flex w-full items-center justify-between px-md py-md text-left text-body hover:bg-surface-hover ${
-                    item.variant === 'danger' ? 'text-chip-danger-text' : 'text-text-primary'
-                  }`}
-                >
-                  {item.label}
-                  {item.icon && <Icon name={item.icon} size={16} className="shrink-0 text-text-icon" />}
-                </button>
-              ))}
+              .map((item) => {
+                const row = sortedData[menu.rowIndex]
+                const label = typeof item.label === 'function' ? item.label(row) : item.label
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => {
+                      item.onClick(row)
+                      setMenu(null)
+                    }}
+                    className={`flex w-full items-center justify-between px-md py-md text-left text-body hover:bg-surface-hover ${
+                      item.variant === 'danger' ? 'text-chip-danger-text' : 'text-text-primary'
+                    }`}
+                  >
+                    {label}
+                    {item.icon && <Icon name={item.icon} size={16} className="shrink-0 text-text-icon" />}
+                  </button>
+                )
+              })}
           </div>
         </>
       )}

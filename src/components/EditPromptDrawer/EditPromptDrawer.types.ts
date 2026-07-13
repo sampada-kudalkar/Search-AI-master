@@ -6,6 +6,7 @@ export interface EditPromptValues {
   text: string
   theme: string
   locationIds: string[]
+  brandIds: string[]
   aiSites: string[]
   tagIds: string[]
   trackBy: PromptTrackBy

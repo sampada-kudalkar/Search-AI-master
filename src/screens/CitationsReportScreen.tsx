@@ -20,6 +20,7 @@ import {
 import {
   CITATION_SUMMARY,
   CITATION_TREND,
+  BRAND_CITATION_TREND,
   CITATION_COMPARISON,
   CITATION_RANKING,
   SOURCE_TYPES,
@@ -126,6 +127,10 @@ export function CitationsReportScreen() {
   const [citedTheme, setCitedTheme] = useState(CITED_THEMES[0])
   const [citedMetric, setCitedMetric] = useState<'share' | 'count'>('share')
   const [citedDateRange, setCitedDateRange] = useState('Last 3 months')
+  const [brandCitedTheme, setBrandCitedTheme] = useState(CITED_THEMES[0])
+  const [brandCitedPlatform, setBrandCitedPlatform] = useState<CitationPlatform>('ChatGPT')
+  const [brandCitedMetric, setBrandCitedMetric] = useState<'share' | 'count'>('share')
+  const [brandCitedDateRange, setBrandCitedDateRange] = useState('Last 3 months')
   const [comparisonPlatform, setComparisonPlatform] = useState<CitationPlatform>('ChatGPT')
   const [comparisonMetric, setComparisonMetric] = useState<'share' | 'count'>('share')
   const [comparisonDateRange, setComparisonDateRange] = useState('Last 3 months')
@@ -158,6 +163,14 @@ export function CitationsReportScreen() {
   ]
 
   const visibleTrend = CITATION_TREND.slice(-Math.min(DATE_RANGE_MONTHS[citedDateRange], CITATION_TREND.length))
+
+  const brandTrendSeries = [
+    { key: `aspendental${brandCitedMetric === 'share' ? 'Share' : 'Count'}`, label: 'Aspendental', color: chartColors.categorical[0] },
+    { key: `clearChoice${brandCitedMetric === 'share' ? 'Share' : 'Count'}`, label: 'Clear choice', color: chartColors.categorical[1] },
+    { key: `wellnessNow${brandCitedMetric === 'share' ? 'Share' : 'Count'}`, label: 'Wellness now', color: chartColors.categorical[2] },
+  ]
+  const brandTrendData = BRAND_CITATION_TREND[brandCitedPlatform]
+  const visibleBrandTrend = brandTrendData.slice(-Math.min(DATE_RANGE_MONTHS[brandCitedDateRange], brandTrendData.length))
 
   const allComparisonRows = CITATION_COMPARISON[comparisonPlatform]
   const latestComparisonMonth = allComparisonRows[allComparisonRows.length - 1]?.timeRange
@@ -325,7 +338,62 @@ export function CitationsReportScreen() {
             stats={summaryStats}
           />
 
-          {/* 2. How often cited trend */}
+          {/* 2. How often are your brands cited (By brand view only) */}
+          {citationView === 'brand' && (
+            <ChartCard
+              title={
+                <span className="flex flex-wrap items-baseline gap-[4px] text-[16px] leading-[24px] text-text-secondary">
+                  How often are your brands cited by AI sites for
+                  <ThemeDropdown themes={CITED_THEMES} selected={brandCitedTheme} onChange={setBrandCitedTheme} />
+                </span>
+              }
+              subtitle="Track how your brand content is cited by AI sites over time."
+              toolbar={
+                <div className="flex items-center gap-sm">
+                  <SegmentedControl
+                    options={[
+                      { value: 'share', label: 'Share' },
+                      { value: 'count', label: 'Count' },
+                    ]}
+                    value={brandCitedMetric}
+                    onChange={(v) => setBrandCitedMetric(v as 'share' | 'count')}
+                  />
+                  <DateRangeSelector
+                    value={brandCitedDateRange}
+                    options={['Last 3 months', 'Last 6 months', 'Last 12 months', 'Last 24 months']}
+                    onChange={setBrandCitedDateRange}
+                  />
+                  <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
+                    <AiIcon size={16} />
+                  </button>
+                </div>
+              }
+            >
+              <div className="mb-lg">
+                <CardTabs
+                  tabs={PLATFORM_TABS_WITH_ALL}
+                  activeTab={brandCitedPlatform}
+                  onChange={(id) => setBrandCitedPlatform(id as CitationPlatform)}
+                />
+              </div>
+              <TrendLineChart
+                data={visibleBrandTrend}
+                series={brandTrendSeries}
+                height={280}
+                yTickFormatter={(v) => (brandCitedMetric === 'share' ? `${v}%` : String(v))}
+              />
+              <div className="flex flex-wrap items-center gap-xl mt-sm px-xs">
+                {brandTrendSeries.map((s) => (
+                  <div key={s.key} className="flex items-center gap-xs">
+                    <span className="inline-block size-3 rounded-full" style={{ backgroundColor: s.color }} />
+                    <span className="text-[12px] text-text-secondary">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </ChartCard>
+          )}
+
+          {/* 3. How often cited trend */}
           <ChartCard
             title={
               <span className="flex flex-wrap items-baseline gap-[4px] text-[16px] leading-[24px] text-text-secondary">
@@ -371,7 +439,7 @@ export function CitationsReportScreen() {
             </div>
           </ChartCard>
 
-          {/* 3. Citation share vs competitors */}
+          {/* 4. Citation share vs competitors */}
           <ChartCard
             title={
               <span className="flex flex-wrap items-baseline gap-[4px] text-[16px] leading-[24px] text-text-secondary">
@@ -425,7 +493,7 @@ export function CitationsReportScreen() {
             <DataTable columns={comparisonColumns} data={comparisonRows} rowHeight={56} />
           </ChartCard>
 
-          {/* 4. Citation ranking by theme */}
+          {/* 5. Citation ranking by theme */}
           <CompetitorRankingCard
             rows={citationRankingRows}
             rankCount={10}
@@ -446,7 +514,7 @@ export function CitationsReportScreen() {
             onPlatformChange={(id) => setRankingPlatform(id as CitationPlatform)}
           />
 
-          {/* 5. Popular source types */}
+          {/* 6. Popular source types */}
           <ChartCard
             title="What are the most popular source types for all themes"
             subtitle="Track how your source citation mix changes over time"
@@ -482,7 +550,7 @@ export function CitationsReportScreen() {
             </div>
           </ChartCard>
 
-          {/* 6. What sources do AI sites use */}
+          {/* 7. What sources do AI sites use */}
           <ChartCard title="What sources do AI sites use to generate answers for all themes" subtitle="Explore the specific sources that are frequently used by AI sites to generate answers">
             <div className="mb-lg">
               <CardTabs
@@ -494,7 +562,7 @@ export function CitationsReportScreen() {
             <DataTable columns={topSourcesColumns} data={topSourcesRows} rowHeight={48} maxVisibleRows={5} />
           </ChartCard>
 
-          {/* 7. Most commonly cited pages */}
+          {/* 8. Most commonly cited pages */}
           <ChartCard title="Which pages are most commonly cited by AI for all themes" subtitle="See which pages AI sites rely on most when generating answers for your tracked themes">
             <div className="mb-lg">
               <CardTabs
@@ -506,7 +574,7 @@ export function CitationsReportScreen() {
             <DataTable columns={citedPagesColumns} data={citedPagesRows} rowHeight={48} />
           </ChartCard>
 
-          {/* 8. Watched pages */}
+          {/* 9. Watched pages */}
           <ChartCard title="Watched pages" subtitle="Pages you are tracking for citation changes">
             <div className="mb-lg">
               <CardTabs

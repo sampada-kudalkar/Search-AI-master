@@ -27,7 +27,7 @@ export interface RowAction<T> {
 }
 
 export interface RowMenuItem<T> {
-  label: string
+  label: string | ((row: T) => string)
   onClick: (row: T) => void
   /** When omitted, the item is always shown. */
   visible?: (row: T) => boolean

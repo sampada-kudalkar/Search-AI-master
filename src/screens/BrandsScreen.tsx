@@ -22,14 +22,6 @@ export function BrandsScreen() {
     setDrawer(null)
   }
 
-  function stopTracking(brand: Brand) {
-    setBrands((prev) => prev.map((b) => (b.id === brand.id ? { ...b, status: 'Not tracking' } : b)))
-  }
-
-  function startTracking(brand: Brand) {
-    setBrands((prev) => prev.map((b) => (b.id === brand.id ? { ...b, status: 'Starts next cycle' } : b)))
-  }
-
   function confirmDelete() {
     if (!pendingDelete) return
     setBrands((prev) => prev.filter((b) => b.id !== pendingDelete.id))
@@ -74,7 +66,7 @@ export function BrandsScreen() {
       ),
       render: (_v, row) =>
         isZeroState(row) ? (
-          <span className="text-small text-text-tertiary">Add brand variations</span>
+          <span className="text-small text-text-tertiary group-hover/row:text-text-action">Add brand variations</span>
         ) : (
           <div className="flex flex-wrap gap-xs">
             {row.variations.map((variation) => (
@@ -92,27 +84,19 @@ export function BrandsScreen() {
         </span>
       ),
       render: (_v, row) =>
-        isZeroState(row) ? (
-          <span className="text-small text-text-tertiary">Add brand kit</span>
+        isZeroState(row) || row.brandKits.length === 0 ? (
+          <span className="text-small text-text-tertiary group-hover/row:text-text-action">Add brand kit</span>
         ) : (
           brandKitLabel(row.brandKits)
         ),
     },
-    {
-      key: 'status',
-      label: 'Tracking status',
-      render: (_v, row) => (
-        <Chip
-          label={row.status}
-          variant={row.status === 'Tracking' ? 'success' : row.status === 'Starts next cycle' ? 'info' : 'neutral'}
-        />
-      ),
-    },
   ]
 
   const rowMenuItems: RowMenuItem<Brand>[] = [
-    { label: 'Stop tracking', onClick: stopTracking, visible: (row) => row.status !== 'Not tracking' },
-    { label: 'Start tracking', onClick: startTracking, visible: (row) => row.status === 'Not tracking' },
+    {
+      label: (row) => (row.brandKits.length === 0 ? 'Add brand kit' : 'View brand kit'),
+      onClick: (row) => setDrawer({ mode: 'edit', brand: row, via: 'action' }),
+    },
     {
       label: 'Edit',
       onClick: (row) => setDrawer({ mode: 'edit', brand: row, via: 'action' }),
@@ -193,10 +177,9 @@ export function BrandsScreen() {
         <div className="mt-lg rounded-lg border border-border shadow-card">
           <div className="flex items-center justify-between px-2xl pb-lg pt-xl">
             <div>
-              <h2 className="text-h4 text-text-secondary">Competitor brands</h2>
-              <p className="mt-xs text-small text-text-secondary">
-                Manage competitor brand names and variations that AI may reference in responses to refer to these
-                competitors.
+              <h2 className="text-h4 text-text-secondary">Competitor brands variations</h2>
+              <p className="mt-0 text-small text-text-secondary">
+                Manage competitor brand variations that AI may reference in responses to refer to these competitors.
               </p>
             </div>
             <button

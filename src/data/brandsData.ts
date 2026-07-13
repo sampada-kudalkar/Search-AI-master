@@ -32,11 +32,7 @@ export const BRANDS: Brand[] = [
     domainUrl: 'myfamilydental.com',
     status: 'Tracking',
     variations: ['My Family Dentist', 'MFD', 'My Family Dental Care', 'Family Dental Care'],
-    brandKits: [
-      { id: 'bk-1', name: 'My Family Dental', locationScope: 'All locations' },
-      { id: 'bk-2', name: 'My Family Dental NYC', locationScope: '5 locations' },
-      { id: 'bk-3', name: 'My Family Dental Northern', locationScope: '20 locations' },
-    ],
+    brandKits: [{ id: 'bk-1', name: 'My Family Dental', locationScope: 'All locations' }],
   },
   {
     id: 'brand-2',

@@ -23,6 +23,35 @@ export const CITATION_TREND: CitationTrendPoint[] = [
   { label: 'Jun', overallShare: 5, overallCount: 27, chatgptShare: 10, chatgptCount: 9, geminiShare: 9, geminiCount: 18, perplexityShare: 4, perplexityCount: 12 },
 ]
 
+export interface BrandCitationTrendPoint extends Record<string, number | string | undefined> {
+  label: string
+  aspendentalShare: number; aspendentalCount: number
+  clearChoiceShare: number; clearChoiceCount: number
+  wellnessNowShare: number; wellnessNowCount: number
+}
+export const BRAND_CITATION_TREND: Record<CitationPlatform, BrandCitationTrendPoint[]> = {
+  ChatGPT: [
+    { label: 'Apr', aspendentalShare: 11, aspendentalCount: 14, clearChoiceShare: 7, clearChoiceCount: 10, wellnessNowShare: 5, wellnessNowCount: 7 },
+    { label: 'May', aspendentalShare: 11, aspendentalCount: 11, clearChoiceShare: 7, clearChoiceCount: 7, wellnessNowShare: 5, wellnessNowCount: 5 },
+    { label: 'Jun', aspendentalShare: 12, aspendentalCount: 11, clearChoiceShare: 8, clearChoiceCount: 7, wellnessNowShare: 6, wellnessNowCount: 6 },
+  ],
+  Gemini: [
+    { label: 'Apr', aspendentalShare: 8, aspendentalCount: 18, clearChoiceShare: 4, clearChoiceCount: 12, wellnessNowShare: 3, wellnessNowCount: 8 },
+    { label: 'May', aspendentalShare: 8, aspendentalCount: 17, clearChoiceShare: 4, clearChoiceCount: 11, wellnessNowShare: 3, wellnessNowCount: 8 },
+    { label: 'Jun', aspendentalShare: 11, aspendentalCount: 21, clearChoiceShare: 7, clearChoiceCount: 15, wellnessNowShare: 5, wellnessNowCount: 11 },
+  ],
+  Perplexity: [
+    { label: 'Apr', aspendentalShare: 7, aspendentalCount: 21, clearChoiceShare: 5, clearChoiceCount: 15, wellnessNowShare: 3, wellnessNowCount: 10 },
+    { label: 'May', aspendentalShare: 6, aspendentalCount: 19, clearChoiceShare: 4, clearChoiceCount: 13, wellnessNowShare: 3, wellnessNowCount: 9 },
+    { label: 'Jun', aspendentalShare: 5, aspendentalCount: 14, clearChoiceShare: 3, clearChoiceCount: 10, wellnessNowShare: 2, wellnessNowCount: 7 },
+  ],
+  All: [
+    { label: 'Apr', aspendentalShare: 9, aspendentalCount: 18, clearChoiceShare: 5, clearChoiceCount: 12, wellnessNowShare: 4, wellnessNowCount: 8 },
+    { label: 'May', aspendentalShare: 8, aspendentalCount: 16, clearChoiceShare: 5, clearChoiceCount: 10, wellnessNowShare: 4, wellnessNowCount: 7 },
+    { label: 'Jun', aspendentalShare: 9, aspendentalCount: 15, clearChoiceShare: 6, clearChoiceCount: 11, wellnessNowShare: 4, wellnessNowCount: 8 },
+  ],
+}
+
 export interface CitationComparisonRow extends Record<string, unknown> {
   timeRange: string
   sourceName: string

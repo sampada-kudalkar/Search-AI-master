@@ -93,6 +93,7 @@ export function SelectMenu({
                     isSel ? 'bg-surface-selected' : 'hover:bg-surface-hover'
                   }`}
                 >
+                  {opt.icon}
                   <span className="min-w-0 flex-1 truncate text-body text-text-primary">{opt.label}</span>
                   {isSel && <Icon name="check" size={20} className="shrink-0 text-text-icon" />}
                 </button>
@@ -107,6 +108,7 @@ export function SelectMenu({
                 className="flex w-full items-center gap-sm rounded-sm py-sm pr-sm text-left hover:bg-surface-hover"
               >
                 <CheckBox checked={isSel} />
+                {opt.icon}
                 <span className="min-w-0 flex-1 truncate text-body text-text-primary">{opt.label}</span>
               </button>
             )
