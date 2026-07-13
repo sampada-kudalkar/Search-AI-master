@@ -1,8 +1,4 @@
 import { useState } from 'react'
-import { BirdAIContext } from './context/BirdAIContext'
-import { ResizableRightChatPanel } from './components/AskBirdAI/layout/ResizableRightChatPanel'
-import { MynaChatPanel } from './components/AskBirdAI/MynaChatPanel.v1'
-import { useMynaConversations } from './myna/useMynaConversations'
 import { ProcedureStoreProvider } from './data/ProcedureStoreContext'
 import type { WizardAgentDraft } from './data/wizardAgentConfig.types'
 import { Icon, IconRail, Link, SideNav, TopNav, type NavSection, type RailGroup, type Product } from './components'
@@ -272,10 +268,6 @@ const AGENT_NAMES: Record<string, string> = {
 }
 
 
-const RAIL_SCREEN_TITLE: Record<string, string> = {
-  search: 'Search AI',
-}
-
 export function App() {
   const [railActive, setRailActive] = useState('search')
   const [navActive, setNavActive] = useState('by-brand')
@@ -305,41 +297,10 @@ export function App() {
 
   const [intakeDetail, setIntakeDetail] = useState<IntakeDetailArgs | null>(null)
 
-  // ── Ask BirdAI ──────────────────────────────────────────────────────────────
-  const aiScreenTitle = RAIL_SCREEN_TITLE[railActive] ?? railActive
-  const [birdAIOpen, setBirdAIOpen] = useState(false)
-  const [birdAIExpanded, setBirdAIExpanded] = useState(false)
-  const [mynaComposerFocusNonce, setMynaComposerFocusNonce] = useState(0)
-  const {
-    conversations,
-    activeConversationId,
-    setActiveConversationId,
-    activeConversation,
-    appendUserAndAssistant,
-    createConversationWithFirstMessage,
-    createEmptyConversation,
-    deleteConversation,
-  } = useMynaConversations(aiScreenTitle)
-
-  function handleMynaSend(text: string, options?: { ignoreConversationHistory?: boolean }) {
-    if (!activeConversationId) {
-      createConversationWithFirstMessage(text)
-    } else {
-      appendUserAndAssistant(text, options)
-    }
-  }
-
-  function startNewMynaChat() {
-    createEmptyConversation()
-    setMynaComposerFocusNonce((n) => n + 1)
-  }
-  // ────────────────────────────────────────────────────────────────────────────
-
   const isEditingWorkflow = editingAgentName !== null
   const isViewingDetail = intakeDetail !== null
 
   return (
-    <BirdAIContext.Provider value={{ openBirdAI: () => setBirdAIOpen(true) }}>
     <ProcedureStoreProvider>
     <div className="flex h-screen w-screen overflow-hidden bg-surface text-text-primary">
       <IconRail
@@ -500,25 +461,7 @@ export function App() {
           <ManageAppointmentsScreen product={activeProduct} />
         )}
       </main>
-
-      <ResizableRightChatPanel open={birdAIOpen} workspaceExpanded={birdAIOpen && birdAIExpanded} layoutRowWidth={0}>
-        <MynaChatPanel
-          messages={activeConversation?.messages ?? []}
-          onSend={handleMynaSend}
-          onClose={() => setBirdAIOpen(false)}
-          expanded={birdAIExpanded}
-          onToggleExpand={() => setBirdAIExpanded((e) => !e)}
-          conversations={conversations}
-          activeConversationId={activeConversationId}
-          onSelectConversation={setActiveConversationId}
-          onOpenNewChat={startNewMynaChat}
-          onDeleteConversation={deleteConversation}
-          screenTitle={aiScreenTitle}
-          composerFocusNonce={mynaComposerFocusNonce}
-        />
-      </ResizableRightChatPanel>
     </div>
     </ProcedureStoreProvider>
-    </BirdAIContext.Provider>
   )
 }
