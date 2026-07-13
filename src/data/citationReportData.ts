@@ -114,6 +114,64 @@ export const CITATION_COMPARISON: Record<CitationPlatform, CitationComparisonRow
   ],
 }
 
+export interface CitationSourceTrendPoint extends Record<string, number | string | undefined> {
+  label: string
+}
+
+export interface CitationTrendSeriesMeta {
+  key: string
+  label: string
+  isYou: boolean
+}
+
+function slugifySourceKey(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+// Derives a "You + top 4" trend series from CITATION_COMPARISON so the trend
+// chart and comparison table never drift out of sync with each other.
+export function buildCitationTrend(platform: CitationPlatform, metric: 'share' | 'count' = 'share'): {
+  points: CitationSourceTrendPoint[]
+  series: CitationTrendSeriesMeta[]
+} {
+  const rows = CITATION_COMPARISON[platform]
+  const metricValue = (row: CitationComparisonRow): number =>
+    metric === 'count' ? row.totalCitations ?? 0 : row.avgCitationShare
+
+  const byMonth = new Map<string, CitationComparisonRow[]>()
+  rows.forEach((row) => {
+    const list = byMonth.get(row.timeRange) ?? []
+    list.push(row)
+    byMonth.set(row.timeRange, list)
+  })
+  const months = [...byMonth.keys()]
+  const latestMonth = months[months.length - 1]
+  const latestRows = byMonth.get(latestMonth) ?? []
+
+  const youRow = latestRows.find((r) => r.isYou)
+  const otherRowsRanked = latestRows
+    .filter((r) => !r.isYou)
+    .sort((a, b) => metricValue(b) - metricValue(a))
+    .slice(0, 4)
+
+  const series: CitationTrendSeriesMeta[] = [
+    ...(youRow ? [{ key: slugifySourceKey(youRow.sourceName), label: youRow.sourceName, isYou: true }] : []),
+    ...otherRowsRanked.map((r) => ({ key: slugifySourceKey(r.sourceName), label: r.sourceName, isYou: false })),
+  ]
+
+  const points: CitationSourceTrendPoint[] = months.map((month) => {
+    const point: CitationSourceTrendPoint = { label: month }
+    const monthRows = byMonth.get(month) ?? []
+    series.forEach((s) => {
+      const match = monthRows.find((r) => slugifySourceKey(r.sourceName) === s.key)
+      point[s.key] = match ? metricValue(match) : 0
+    })
+    return point
+  })
+
+  return { points, series }
+}
+
 export interface SourceTypeRow extends Record<string, unknown> {
   timeRange: string; sourceType: string
   avgShare: number; avgCount: number

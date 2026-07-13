@@ -16,6 +16,8 @@ export function DataTable<T extends Record<string, unknown>>({
   scrollOnHover = false,
   rowClassName,
   rowHeight = 48,
+  maxVisibleRows,
+  autoRowHeight = false,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -85,15 +87,21 @@ export function DataTable<T extends Record<string, unknown>>({
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
   const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
+  const headerHeight = 48
+  const maxHeight = maxVisibleRows ? headerHeight + maxVisibleRows * rowHeight : undefined
+
   return (
-    <div className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}`}>
+    <div
+      className={`overflow-x-auto${scrollOnHover ? ' scroll-on-hover' : ''}${maxHeight ? ' overflow-y-auto' : ''}`}
+      style={maxHeight ? { maxHeight } : undefined}
+    >
       <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
         <colgroup>
           {columns.map((col) => (
             <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
           ))}
         </colgroup>
-        <thead>
+        <thead className={maxHeight ? 'sticky top-0 z-10 bg-surface' : undefined}>
           <tr>
             {columns.map((col, i) => {
               const key = String(col.key)
@@ -155,10 +163,10 @@ export function DataTable<T extends Record<string, unknown>>({
                 return (
                   <td
                     key={String(col.key)}
-                    style={{ height: rowHeight }}
-                    className={`px-[10px] align-middle text-body text-text-primary ${
-                      isLast ? 'relative' : 'truncate'
-                    } ${isFirst && (onRowClick || (rowAction && (!rowAction.visible || rowAction.visible(row)))) ? 'group-hover/row:text-text-action' : ''}`}
+                    style={autoRowHeight ? undefined : { height: rowHeight }}
+                    className={`px-[10px] align-top text-body text-text-primary ${
+                      autoRowHeight ? 'py-[12px]' : ''
+                    } ${isLast ? 'relative' : autoRowHeight ? '' : 'truncate'} ${isFirst && (onRowClick || (rowAction && (!rowAction.visible || rowAction.visible(row)))) ? 'group-hover/row:text-text-action' : ''}`}
                   >
                     {isLast ? <span className="block truncate">{content}</span> : content}
 
@@ -174,7 +182,7 @@ export function DataTable<T extends Record<string, unknown>>({
                               onClick={(e) => { e.stopPropagation(); rowAction.onClick(row) }}
                               onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tooltipText, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
                               onMouseLeave={() => setTooltip(null)}
-                              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              className="flex h-9 min-w-9 items-center justify-center rounded-sm border border-border-selected bg-surface px-2 text-text-icon hover:bg-surface-l2"
                             >
                               {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
                             </button>
@@ -197,7 +205,7 @@ export function DataTable<T extends Record<string, unknown>>({
                             </button>
                           )
                         })}
-                        {rowMenuItems && rowMenuItems.length > 0 && (
+                        {rowMenuItems && rowMenuItems.some((item) => !item.visible || item.visible(row)) && (
                           <button
                             type="button"
                             aria-label="More actions"

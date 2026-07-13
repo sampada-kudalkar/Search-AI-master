@@ -6,6 +6,9 @@ import { CompetitorByLocationScreen } from './CompetitorByLocationScreen'
 import { CompetitorByLocationDetailScreen } from './CompetitorByLocationDetailScreen'
 import { ManageCompetitorsScreen } from './ManageCompetitorsScreen'
 import { CitationsReportScreen } from './CitationsReportScreen'
+import { ThemesAndPromptsScreen } from './ThemesAndPromptsScreen'
+import { ReportSettingsScreen } from './ReportSettingsScreen'
+import { BrandsScreen } from './BrandsScreen'
 import {
   BY_LOCATION_DATA,
   COMPETITOR_BRAND_DATA,
@@ -54,7 +57,8 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
     id: 'settings',
     label: 'Settings',
     items: [
-      { id: 'search-prompts', label: 'Prompts'  },
+      { id: 'search-prompts', label: 'Themes and prompts'  },
+      { id: 'search-brands',  label: 'Brands'   },
       { id: 'search-report',  label: 'Report'   },
       { id: 'search-website', label: 'Website'  },
     ],
@@ -74,7 +78,8 @@ const LABEL_MAP: Record<string, string> = {
   'by-brand':           'Brand',
   'by-location':        'Location',
   'optimization-agents':'Optimization agents',
-  'search-prompts':     'Prompts',
+  'search-prompts':     'Themes and prompts',
+  'search-brands':      'Brands',
   'search-report':      'Report',
   'search-website':     'Website',
 }
@@ -229,6 +234,14 @@ export function SearchAIScreen() {
             />
           ) : navActive === 'citations' ? (
             <CitationsReportScreen />
+          ) : navActive === 'search-prompts' ? (
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <ThemesAndPromptsScreen />
+            </div>
+          ) : navActive === 'search-brands' ? (
+            <BrandsScreen />
+          ) : navActive === 'search-report' ? (
+            <ReportSettingsScreen />
           ) : navActive === 'by-location' ? (
             <CompetitorByLocationScreen
               onLocationClick={setLocationDetail}

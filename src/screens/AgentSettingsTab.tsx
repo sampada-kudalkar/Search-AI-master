@@ -1,5 +1,5 @@
 import { useState, useRef, type MouseEvent } from 'react'
-import { Icon, IntegrationsPickerDrawer, RefChip } from '../components'
+import { Icon, IntegrationsPickerDrawer, RefChip, Toggle } from '../components'
 import {
   DEFAULT_AUTO_ACCOUNT_CONNECTED_INTEGRATION_IDS,
   DEFAULT_AUTO_AGENT_SELECTED_INTEGRATION_ID,
@@ -11,27 +11,6 @@ interface AgentSettingsTabProps {
   product?: string
   agentName?: string
   onOpenIntegrationSettings?: (integrationId: string) => void
-}
-
-// ── Toggle ──────────────────────────────────────────────────────
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`relative h-[16px] w-[32px] shrink-0 cursor-pointer rounded-full transition-colors focus:outline-none ${
-        checked ? 'bg-primary' : 'bg-surface-selected'
-      }`}
-    >
-      <span
-        className={`absolute top-[2px] size-3 rounded-full bg-white shadow-sm transition-[left] ${
-          checked ? 'left-[18px]' : 'left-[2px]'
-        }`}
-      />
-    </button>
-  )
 }
 
 // ── Field borders (shared focus ring via primary border) ─────────
