@@ -20,4 +20,5 @@ export interface ThemesPromptsTableProps {
   onEditPrompt?: (themeName: string, prompt: ThemePrompt) => void
   onLocationsClick?: (themeName: string, prompt: ThemePrompt) => void
   onAddPrompt?: (themeName: string) => void
+  scope?: 'brand' | 'locations'
 }

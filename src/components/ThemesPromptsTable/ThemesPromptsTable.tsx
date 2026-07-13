@@ -6,6 +6,11 @@ import { DataTable } from '../DataTable/DataTable'
 import type { Column } from '../DataTable/DataTable.types'
 import type { ThemeConfig, ThemePrompt, TrackingStatus } from '../../data/themesData'
 import { ThemesPromptsTableProps, FlatThemeRow } from './ThemesPromptsTable.types'
+import geminiIcon from '../../assets/icon-gemini.svg'
+
+export const AI_SITE_ICONS: Record<string, string> = {
+  Gemini: geminiIcon,
+}
 
 export const AI_SITE_COLORS: Record<string, string> = {
   ChatGPT: '#10a37f',
@@ -27,14 +32,24 @@ function AiSitesCluster({ sites }: { sites: string[] }) {
   return (
     <div className="flex items-center gap-xs">
       {sites.map((site) => (
-        <span
-          key={site}
-          title={site}
-          className="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] text-white"
-          style={{ backgroundColor: AI_SITE_COLORS[site] ?? '#8f8f8f' }}
-        >
-          {site.charAt(0)}
-        </span>
+        AI_SITE_ICONS[site] ? (
+          <img
+            key={site}
+            src={AI_SITE_ICONS[site]}
+            alt={site}
+            title={site}
+            className="size-6 shrink-0 rounded-full"
+          />
+        ) : (
+          <span
+            key={site}
+            title={site}
+            className="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] text-white"
+            style={{ backgroundColor: AI_SITE_COLORS[site] ?? '#8f8f8f' }}
+          >
+            {site.charAt(0)}
+          </span>
+        )
       ))}
     </div>
   )
@@ -77,7 +92,7 @@ function flattenThemes(themes: ThemeConfig[], expanded: Set<string>): FlatThemeR
   return rows
 }
 
-export function ThemesPromptsTable({ themes, onEditPrompt, onLocationsClick, onAddPrompt }: ThemesPromptsTableProps) {
+export function ThemesPromptsTable({ themes, onEditPrompt, onLocationsClick, onAddPrompt, scope = 'locations' }: ThemesPromptsTableProps) {
   const [data, setData] = useState(themes)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
@@ -139,24 +154,34 @@ export function ThemesPromptsTable({ themes, onEditPrompt, onLocationsClick, onA
         return <span className="block truncate pl-[24px] text-body text-text-primary">{row.name}</span>
       },
     },
-    {
-      key: 'locationCount',
-      label: 'Locations',
-      width: 120,
-      sortable: true,
-      render: (_val, row) => (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            if (!row._isHeader && row._prompt) onLocationsClick?.(row._themeName, row._prompt)
-          }}
-          className={row._isHeader ? 'cursor-default text-body text-text-primary' : 'text-body text-text-primary hover:text-text-action'}
-        >
-          {row.locationCount}
-        </button>
-      ),
-    },
+    scope === 'brand'
+      ? {
+          key: 'locationCount',
+          label: 'Brands',
+          width: 120,
+          sortable: true,
+          render: (_val, row) => (
+            <span className="block truncate text-body text-text-primary">{row.locationCount}</span>
+          ),
+        }
+      : {
+          key: 'locationCount',
+          label: 'Locations',
+          width: 120,
+          sortable: true,
+          render: (_val, row) => (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (!row._isHeader && row._prompt) onLocationsClick?.(row._themeName, row._prompt)
+              }}
+              className={row._isHeader ? 'cursor-default text-body text-text-primary' : 'text-body text-text-primary hover:text-text-action'}
+            >
+              {row.locationCount}
+            </button>
+          ),
+        },
     {
       key: 'monthlySearch',
       label: (
@@ -200,7 +225,7 @@ export function ThemesPromptsTable({ themes, onEditPrompt, onLocationsClick, onA
     <DataTable<FlatThemeRow>
       columns={columns}
       data={rows}
-      rowHeight={56}
+      autoRowHeight
       rowAction={{
         icon: 'edit',
         label: 'Edit',
@@ -212,7 +237,7 @@ export function ThemesPromptsTable({ themes, onEditPrompt, onLocationsClick, onA
       rowActions={[
         {
           label: 'Add prompt',
-          iconElement: <span className="whitespace-nowrap text-body text-text-action">+ Add prompt</span>,
+          icon: 'add',
           visible: (row) => row._isHeader,
           onClick: (row) => onAddPrompt?.(row._themeName),
         },
@@ -222,6 +247,18 @@ export function ThemesPromptsTable({ themes, onEditPrompt, onLocationsClick, onA
           label: 'Stop tracking',
           visible: (row) => !row._isHeader && row.status !== 'Not tracking',
           onClick: (row) => updatePromptStatus(row._themeName, row.name, 'Not tracking'),
+        },
+        {
+          label: 'Start tracking',
+          visible: (row) => !row._isHeader && row.status === 'Not tracking',
+          onClick: (row) => updatePromptStatus(row._themeName, row.name, 'Tracking'),
+        },
+        {
+          label: 'Edit',
+          visible: (row) => !row._isHeader,
+          onClick: (row) => {
+            if (row._prompt) onEditPrompt?.(row._themeName, row._prompt)
+          },
         },
         {
           label: 'Delete',

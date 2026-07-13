@@ -54,4 +54,6 @@ export interface DataTableProps<T = Record<string, unknown>> {
   rowHeight?: number
   /** When set, caps the table body to this many rows and scrolls vertically beyond that (header stays fixed). */
   maxVisibleRows?: number
+  /** When true, rows grow to fit content (e.g. wrapping chips) with 20px vertical cell padding instead of a fixed rowHeight. Default false. */
+  autoRowHeight?: boolean
 }

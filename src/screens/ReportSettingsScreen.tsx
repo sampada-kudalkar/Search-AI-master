@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AiIcon, CardHeader, Icon, SelectMenu, Toggle } from '../components'
 import iconGoogle from '../assets/icon-google.svg'
+import iconGemini from '../assets/icon-gemini.svg'
 
 type Frequency = 'weekly' | 'daily' | 'monthly'
 
@@ -20,7 +21,7 @@ const FREQUENCY_OPTIONS = [
 
 const AI_SITES: { id: AiSiteId; label: string; iconSrc?: string; caption?: string }[] = [
   { id: 'chatgpt', label: 'ChatGPT' },
-  { id: 'gemini', label: 'Gemini' },
+  { id: 'gemini', label: 'Gemini', iconSrc: iconGemini },
   { id: 'perplexity', label: 'Perplexity' },
   { id: 'google-ai-overviews', label: 'Google AI Overviews', iconSrc: iconGoogle },
   { id: 'google-ai-mode', label: 'Google AI Mode', iconSrc: iconGoogle },

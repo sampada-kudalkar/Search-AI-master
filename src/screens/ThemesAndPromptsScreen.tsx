@@ -6,7 +6,7 @@ import { THEMES, ThemeConfig, ThemePrompt } from '../data/themesData'
 const AI_SITES = ['ChatGPT', 'Gemini', 'Perplexity']
 
 export function ThemesAndPromptsScreen() {
-  const [scope, setScope] = useState('locations')
+  const [scope, setScope] = useState<'brand' | 'locations'>('locations')
   const [themes, setThemes] = useState<ThemeConfig[]>(THEMES)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editing, setEditing] = useState<{ themeName: string; prompt: ThemePrompt } | null>(null)
@@ -68,7 +68,8 @@ export function ThemesAndPromptsScreen() {
               { value: 'locations', label: 'Locations' },
             ]}
             value={scope}
-            onChange={setScope}
+            onChange={(value) => setScope(value as 'brand' | 'locations')}
+            className="h-9"
           />
           <button
             type="button"
@@ -107,7 +108,7 @@ export function ThemesAndPromptsScreen() {
         </div>
 
         <div className="flex-1 overflow-auto pt-lg">
-          <ThemesPromptsTable themes={themes} onEditPrompt={handleEditPrompt} />
+          <ThemesPromptsTable themes={themes} onEditPrompt={handleEditPrompt} scope={scope} />
         </div>
       </div>
 

@@ -180,7 +180,7 @@ If a component exists here, import it — do not recreate it.
 | ThemesInsightBanner | components/ThemesInsightBanner/ThemesInsightBanner.tsx | text, linkLabel, onLinkClick? — light-blue full-width insight banner with lightbulb icon + trailing link, used atop ThemesAndPromptsScreen |
 | AddThemeDrawer | components/AddThemeDrawer/AddThemeDrawer.tsx | open, onClose, onAdd(theme: NewThemeData) — 650px right drawer (matches FormDrawer chrome): theme name input, sparkle-generated prompt list (auto-fills from `src/data/themeDrawerData.ts` templates on name entry, Regenerate, per-row delete, "+ Add prompt" manual row), "Track by" radio (location/brand) revealing a multi-select checkbox dropdown (all options pre-checked by default) sourced from `THEME_LOCATIONS`/`THEME_BRANDS` |
 | EditPromptDrawer | components/EditPromptDrawer/EditPromptDrawer.tsx | open, themeName, prompt: ThemePrompt \| null, onClose, onSave(themeName, values: EditPromptValues) — 650px right drawer (matches AddThemeDrawer chrome) for editing a tracked prompt: prompt textarea, Theme select (`THEME_NAMES`), Locations multi-select (`THEME_LOCATIONS`), AI sites inline checkbox row (colored-initial circles via `ALL_AI_SITES`/`AI_SITE_COLORS` exported from `ThemesPromptsTable`), Tags multi-select (`THEME_TAGS` in `themeDrawerData.ts`), "Track by" radio (location/brand/both) |
-| BrandDrawer | components/BrandDrawer/BrandDrawer.tsx | open, mode: 'add' \| 'edit', initialValues?: BrandDrawerValues, brandKitOptions: BrandKitOption[], onClose, onSave(values) — 650px right drawer for the Brands settings page: back-arrow + title ("Add"/"Edit") + Cancel/Save header (Save disabled until dirty), Name/Domain URL text inputs, Brand kit multi-select dropdown (`SelectMenu`) sourced from `BRAND_KITS` in `src/data/brandsData.ts` |
+| BrandDrawer | components/BrandDrawer/BrandDrawer.tsx | open, mode: 'add' \| 'edit', initialValues?: BrandDrawerValues, heading?: string, onClose, onSave(values) — 650px right drawer for the Brands settings page: back-arrow + title (defaults to "Add"/"Edit", or `heading` override — pass the brand name when opened via row click, "Edit {name}" when opened via the edit action) + Cancel/Save header (Save disabled until dirty), Name/Domain URL text inputs, Brand variations chip-input (type + Enter to add, click x to remove), Brand kit section listing per-brand `BrandKitInstance` rows (name + location scope, hover-reveal edit/remove icon buttons) with an inline "+ Add brand kit" add-row (no modal) — sourced entirely from `Brand.brandKits` in `src/data/brandsData.ts`, no external catalog prop |
 
 
 ### How to add a component to this registry
@@ -284,7 +284,11 @@ Before styling any header, button, switcher, menu, or input, copy the **exact cl
 - **Dropdown menu:** `min-w-[168px] rounded-sm border border-border bg-surface py-xs shadow-dropdown`; items `block w-full px-md py-sm text-left text-body text-text-primary hover:bg-surface-hover` (danger item → `text-chip-danger-text`). Matches `DataTable`'s row menu.
 - Use **`rounded-sm`** for chrome (buttons/inputs/menus) and spacing **tokens** (`gap-sm`, `px-2xl`, `py-xl`, `px-md`) — never raw `rounded-md`/`gap-1.5`/`px-4`.
 
-### 6.8 Copy capitalization — sentence case (hard rule)
+### 6.8 All UI copy — use the `birdeye-copy-intelligence` skill (hard rule)
+
+**Before writing or editing any user-facing text** — buttons, headers, labels, tooltips, placeholders, error/success/warning/empty-state copy, table headers, nav items, dialog copy — invoke the `birdeye-copy-intelligence` skill and follow it. It supersedes ad-hoc copywriting judgment: voice/tone selection, word-economy budgets, sentence case, canonical glossary terms, punctuation rules, and anti-patterns all come from that skill, not from guessing. The sentence-case rule below is one rule from that skill, kept here as a quick reference — the skill is the full source of truth.
+
+### 6.8.1 Copy capitalization — sentence case (hard rule)
 All UI copy uses **sentence case**: capitalize **only the first word** (plus proper nouns and acronyms such as AI, CRM, VIN). Applies to page titles, drawer headers, section labels, buttons, tabs, column headers, menu items, and empty states.
 
 | ❌ Wrong | ✅ Correct |

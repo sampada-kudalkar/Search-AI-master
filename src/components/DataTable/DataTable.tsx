@@ -17,6 +17,7 @@ export function DataTable<T extends Record<string, unknown>>({
   rowClassName,
   rowHeight = 48,
   maxVisibleRows,
+  autoRowHeight = false,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -162,10 +163,10 @@ export function DataTable<T extends Record<string, unknown>>({
                 return (
                   <td
                     key={String(col.key)}
-                    style={{ height: rowHeight }}
-                    className={`px-[10px] align-middle text-body text-text-primary ${
-                      isLast ? 'relative' : 'truncate'
-                    } ${isFirst && (onRowClick || (rowAction && (!rowAction.visible || rowAction.visible(row)))) ? 'group-hover/row:text-text-action' : ''}`}
+                    style={autoRowHeight ? undefined : { height: rowHeight }}
+                    className={`px-[10px] align-top text-body text-text-primary ${
+                      autoRowHeight ? 'py-[12px]' : ''
+                    } ${isLast ? 'relative' : autoRowHeight ? '' : 'truncate'} ${isFirst && (onRowClick || (rowAction && (!rowAction.visible || rowAction.visible(row)))) ? 'group-hover/row:text-text-action' : ''}`}
                   >
                     {isLast ? <span className="block truncate">{content}</span> : content}
 
