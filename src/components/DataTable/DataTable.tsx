@@ -181,7 +181,7 @@ export function DataTable<T extends Record<string, unknown>>({
                               onClick={(e) => { e.stopPropagation(); rowAction.onClick(row) }}
                               onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTooltip({ text: tooltipText, x: r.left + r.width / 2, y: r.bottom + 6 }) }}
                               onMouseLeave={() => setTooltip(null)}
-                              className="flex size-9 items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-l2"
+                              className="flex h-9 min-w-9 items-center justify-center rounded-sm border border-border-selected bg-surface px-2 text-text-icon hover:bg-surface-l2"
                             >
                               {rowAction.iconElement ?? <Icon name={rowAction.icon!} size={20} />}
                             </button>
@@ -204,7 +204,7 @@ export function DataTable<T extends Record<string, unknown>>({
                             </button>
                           )
                         })}
-                        {rowMenuItems && rowMenuItems.length > 0 && (
+                        {rowMenuItems && rowMenuItems.some((item) => !item.visible || item.visible(row)) && (
                           <button
                             type="button"
                             aria-label="More actions"
