@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BrandDrawer, Chip, DataTable, Icon, InfoTooltip, type Column, type RowAction, type RowMenuItem } from '../components'
-import { BRANDS, Brand, BrandKitInstance, brandKitLabel, isZeroState, OTHER_BRANDS, OtherBrand } from '../data/brandsData'
+import { BRANDS, Brand, BrandKitInstance, isZeroState, OTHER_BRANDS, OtherBrand } from '../data/brandsData'
 
 export function BrandsScreen() {
   const [brands, setBrands] = useState<Brand[]>(BRANDS)
@@ -52,9 +52,14 @@ export function BrandsScreen() {
       render: (_v, row) => (
         <div className="flex flex-col">
           <span className="text-body text-text-primary group-hover/row:text-text-action">{row.name}</span>
-          <span className="text-small text-text-secondary">{row.domainUrl}</span>
+          {row.id === brands[0]?.id && <span className="text-small text-text-secondary">Uses brand kit</span>}
         </div>
       ),
+    },
+    {
+      key: 'domainUrl',
+      label: 'Website',
+      render: (_v, row) => row.domainUrl,
     },
     {
       key: 'variations',
@@ -73,21 +78,6 @@ export function BrandsScreen() {
               <Chip key={variation} label={variation} variant="neutral" />
             ))}
           </div>
-        ),
-    },
-    {
-      key: 'brandKits',
-      label: (
-        <span className="flex items-center gap-xs">
-          Brand kit
-          <InfoTooltip text="The brand kit whose visual assets and styling are applied to this brand." />
-        </span>
-      ),
-      render: (_v, row) =>
-        isZeroState(row) || row.brandKits.length === 0 ? (
-          <span className="text-small text-text-tertiary group-hover/row:text-text-action">Add brand kit</span>
-        ) : (
-          brandKitLabel(row.brandKits)
         ),
     },
   ]
@@ -112,6 +102,7 @@ export function BrandsScreen() {
 
   const otherBrandColumns: Column<OtherBrand>[] = [
     { key: 'name', label: 'Brand', sortable: true },
+    { key: 'domainUrl', label: 'Website' },
     {
       key: 'variations',
       label: 'Brand variations',

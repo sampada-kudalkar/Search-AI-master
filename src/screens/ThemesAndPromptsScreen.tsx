@@ -117,6 +117,7 @@ export function ThemesAndPromptsScreen() {
         open={!!editing}
         themeName={editing?.themeName ?? ''}
         prompt={editing?.prompt ?? null}
+        scope={scope}
         onClose={() => setEditing(null)}
         onSave={handleSavePrompt}
       />

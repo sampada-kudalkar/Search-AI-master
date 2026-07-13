@@ -6,12 +6,6 @@ import { AI_SITE_COLORS, ALL_AI_SITES } from '../ThemesPromptsTable/ThemesPrompt
 import { THEME_LOCATIONS, THEME_BRANDS, THEME_TAGS } from '../../data/themeDrawerData'
 import { EditPromptDrawerProps, PromptTrackBy } from './EditPromptDrawer.types'
 
-const TRACK_BY_OPTIONS: { value: PromptTrackBy; label: string }[] = [
-  { value: 'location', label: 'By location' },
-  { value: 'brand', label: 'By brand' },
-  { value: 'both', label: 'By location & brand' },
-]
-
 type MenuKey = 'locations' | 'brands' | 'aiSites' | 'tags'
 
 function ColoredSiteAvatar({ site }: { site: string }) {
@@ -25,16 +19,17 @@ function ColoredSiteAvatar({ site }: { site: string }) {
   )
 }
 
-export function EditPromptDrawer({ open, themeName, prompt, onClose, onSave }: EditPromptDrawerProps) {
+export function EditPromptDrawer({ open, themeName, prompt, scope, onClose, onSave }: EditPromptDrawerProps) {
   const [text, setText] = useState('')
   const [theme, setTheme] = useState('')
   const [locationIds, setLocationIds] = useState<string[]>([])
   const [brandIds, setBrandIds] = useState<string[]>([])
   const [aiSites, setAiSites] = useState<string[]>([])
   const [tagIds, setTagIds] = useState<string[]>([])
-  const [trackBy, setTrackBy] = useState<PromptTrackBy>('location')
   const [openMenu, setOpenMenu] = useState<MenuKey | null>(null)
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null)
+
+  const trackBy: PromptTrackBy = scope === 'brand' ? 'brand' : 'location'
 
   useEffect(() => {
     if (open) {
@@ -44,7 +39,6 @@ export function EditPromptDrawer({ open, themeName, prompt, onClose, onSave }: E
       setBrandIds(THEME_BRANDS.map((b) => b.id))
       setAiSites(prompt?.aiSites ?? [])
       setTagIds([])
-      setTrackBy('location')
       setOpenMenu(null)
     }
   }, [open, themeName, prompt])
@@ -164,34 +158,8 @@ export function EditPromptDrawer({ open, themeName, prompt, onClose, onSave }: E
             />
           </div>
 
-          {/* Track prompt */}
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">
-              Track prompt <span className="text-chip-danger-text">*</span>
-            </label>
-            <div className="flex items-center gap-xl">
-              {TRACK_BY_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setTrackBy(option.value)}
-                  className="flex items-center gap-sm"
-                >
-                  <span
-                    className={`flex size-[18px] shrink-0 items-center justify-center rounded-full border ${
-                      trackBy === option.value ? 'border-primary' : 'border-control-border'
-                    }`}
-                  >
-                    {trackBy === option.value && <span className="size-[10px] rounded-full bg-primary" />}
-                  </span>
-                  <span className="text-body text-text-primary">{option.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Locations */}
-          {(trackBy === 'location' || trackBy === 'both') && (
+          {scope === 'locations' && (
             <div className="flex flex-col gap-xs">
               <label className="text-small text-text-primary">
                 Locations <span className="text-chip-danger-text">*</span>
@@ -210,7 +178,7 @@ export function EditPromptDrawer({ open, themeName, prompt, onClose, onSave }: E
           )}
 
           {/* Brands */}
-          {(trackBy === 'brand' || trackBy === 'both') && (
+          {scope === 'brand' && (
             <div className="flex flex-col gap-xs">
               <label className="text-small text-text-primary">
                 Brands <span className="text-chip-danger-text">*</span>

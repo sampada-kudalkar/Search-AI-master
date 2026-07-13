@@ -16,6 +16,7 @@ export interface EditPromptDrawerProps {
   open: boolean
   themeName: string
   prompt: ThemePrompt | null
+  scope: 'brand' | 'locations'
   onClose: () => void
   onSave: (themeName: string, values: EditPromptValues) => void
 }
