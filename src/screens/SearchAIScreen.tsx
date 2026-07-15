@@ -9,6 +9,7 @@ import { CitationsReportScreen } from './CitationsReportScreen'
 import { ThemesAndPromptsScreen } from './ThemesAndPromptsScreen'
 import { ReportSettingsScreen } from './ReportSettingsScreen'
 import { BrandsScreen } from './BrandsScreen'
+import { BrandV1Screen } from './BrandV1Screen'
 import {
   BY_LOCATION_DATA,
   COMPETITOR_BRAND_DATA,
@@ -59,6 +60,7 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'search-prompts', label: 'Themes and prompts'  },
       { id: 'search-brands',  label: 'Brands'   },
+      { id: 'search-brands-v1', label: 'Brand V1' },
       { id: 'search-report',  label: 'Report'   },
       { id: 'search-website', label: 'Website'  },
     ],
@@ -80,6 +82,7 @@ const LABEL_MAP: Record<string, string> = {
   'optimization-agents':'Optimization agents',
   'search-prompts':     'Themes and prompts',
   'search-brands':      'Brands',
+  'search-brands-v1':   'Brand V1',
   'search-report':      'Report',
   'search-website':     'Website',
 }
@@ -240,6 +243,8 @@ export function SearchAIScreen() {
             </div>
           ) : navActive === 'search-brands' ? (
             <BrandsScreen />
+          ) : navActive === 'search-brands-v1' ? (
+            <BrandV1Screen />
           ) : navActive === 'search-report' ? (
             <ReportSettingsScreen />
           ) : navActive === 'by-location' ? (

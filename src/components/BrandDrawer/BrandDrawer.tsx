@@ -7,7 +7,17 @@ import { BrandDrawerProps, BrandDrawerValues } from './BrandDrawer.types'
 
 const EMPTY_VALUES: BrandDrawerValues = { name: '', domainUrl: '', variations: [], brandKits: [] }
 
-export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, onClose, onSave }: BrandDrawerProps) {
+export function BrandDrawer({
+  open,
+  mode,
+  initialValues,
+  heading,
+  hideBrandKit,
+  hideVariations,
+  hideDomainUrl,
+  onClose,
+  onSave,
+}: BrandDrawerProps) {
   const [values, setValues] = useState<BrandDrawerValues>(initialValues ?? EMPTY_VALUES)
   const [variationDraft, setVariationDraft] = useState('')
   const [addKitAnchor, setAddKitAnchor] = useState<{ top: number; left: number } | null>(null)
@@ -125,51 +135,55 @@ export function BrandDrawer({ open, mode, initialValues, heading, hideBrandKit, 
             />
           </div>
 
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">
-              Domain URL <span className="text-danger">*</span>
-            </label>
-            <input
-              value={values.domainUrl}
-              onChange={(e) => setValues((v) => ({ ...v, domainUrl: e.target.value }))}
-              placeholder="Enter URL"
-              className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
-            />
-          </div>
-
-          <div className="flex flex-col gap-xs">
-            <label className="text-small text-text-primary">Brand variations</label>
-            <div className="flex min-h-[144px] flex-wrap content-start gap-xs rounded-sm border border-border-input p-md">
-              {values.variations.map((variation) => (
-                <span
-                  key={variation}
-                  className="flex items-center gap-xs rounded-sm bg-chip-neutral-bg px-sm py-xs text-small text-text-primary"
-                >
-                  {variation}
-                  <button
-                    type="button"
-                    aria-label={`Remove ${variation}`}
-                    onClick={() => removeVariation(variation)}
-                    className="flex items-center"
-                  >
-                    <Icon name="close" size={16} className="text-text-icon" />
-                  </button>
-                </span>
-              ))}
+          {!hideDomainUrl && (
+            <div className="flex flex-col gap-xs">
+              <label className="text-small text-text-primary">
+                Domain URL <span className="text-danger">*</span>
+              </label>
               <input
-                value={variationDraft}
-                onChange={(e) => setVariationDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addVariation()
-                  }
-                }}
-                placeholder={values.variations.length === 0 ? 'Type a variation and press Enter' : ''}
-                className="min-w-[120px] flex-1 bg-transparent text-small text-text-primary placeholder:text-text-tertiary outline-none"
+                value={values.domainUrl}
+                onChange={(e) => setValues((v) => ({ ...v, domainUrl: e.target.value }))}
+                placeholder="Enter URL"
+                className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
               />
             </div>
-          </div>
+          )}
+
+          {!hideVariations && (
+            <div className="flex flex-col gap-xs">
+              <label className="text-small text-text-primary">Brand variations</label>
+              <div className="flex min-h-[144px] flex-wrap content-start gap-xs rounded-sm border border-border-input p-md">
+                {values.variations.map((variation) => (
+                  <span
+                    key={variation}
+                    className="flex items-center gap-xs rounded-sm bg-chip-neutral-bg px-sm py-xs text-small text-text-primary"
+                  >
+                    {variation}
+                    <button
+                      type="button"
+                      aria-label={`Remove ${variation}`}
+                      onClick={() => removeVariation(variation)}
+                      className="flex items-center"
+                    >
+                      <Icon name="close" size={16} className="text-text-icon" />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  value={variationDraft}
+                  onChange={(e) => setVariationDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addVariation()
+                    }
+                  }}
+                  placeholder={values.variations.length === 0 ? 'Type a variation and press Enter' : ''}
+                  className="min-w-[120px] flex-1 bg-transparent text-small text-text-primary placeholder:text-text-tertiary outline-none"
+                />
+              </div>
+            </div>
+          )}
 
           {!hideBrandKit && (
             <div className="flex flex-col gap-md">

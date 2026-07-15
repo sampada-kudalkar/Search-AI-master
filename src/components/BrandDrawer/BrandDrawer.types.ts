@@ -13,6 +13,8 @@ export interface BrandDrawerProps {
   initialValues?: BrandDrawerValues
   heading?: string
   hideBrandKit?: boolean
+  hideVariations?: boolean
+  hideDomainUrl?: boolean
   onClose: () => void
   onSave: (values: BrandDrawerValues) => void
 }
