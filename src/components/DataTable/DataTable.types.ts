@@ -56,4 +56,6 @@ export interface DataTableProps<T = Record<string, unknown>> {
   maxVisibleRows?: number
   /** When true, rows grow to fit content (e.g. wrapping chips) with 20px vertical cell padding instead of a fixed rowHeight. Default false. */
   autoRowHeight?: boolean
+  /** Hide the column header row entirely — for headerless label/value tables. Default true. */
+  showHeader?: boolean
 }

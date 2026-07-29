@@ -6,6 +6,8 @@ import { CompetitorByLocationScreen } from './CompetitorByLocationScreen'
 import { CompetitorByLocationDetailScreen } from './CompetitorByLocationDetailScreen'
 import { ManageCompetitorsScreen } from './ManageCompetitorsScreen'
 import { CitationsReportScreen } from './CitationsReportScreen'
+import { DomainHealthReportScreen } from './DomainHealthReportScreen'
+import { DomainHealthReportScreenV2 } from './DomainHealthReportScreenV2'
 import { ThemesAndPromptsScreen } from './ThemesAndPromptsScreen'
 import { ReportSettingsScreen } from './ReportSettingsScreen'
 import { BrandsScreen } from './BrandsScreen'
@@ -38,6 +40,8 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
       { id: 'sentiment',   label: 'Sentiment'   },
       { id: 'prompt',      label: 'Prompt'      },
       { id: 'website',     label: 'Website'     },
+      { id: 'domain-health', label: 'Domain health' },
+      { id: 'domain-health-v2', label: 'Domain health v2' },
     ],
   },
   {
@@ -79,6 +83,8 @@ const LABEL_MAP: Record<string, string> = {
   sentiment:            'Sentiment',
   prompt:               'Prompt',
   website:              'Website',
+  'domain-health':      'Domain health',
+  'domain-health-v2':   'Domain health v2',
   'by-brand':           'Brand',
   'by-location':        'Location',
   'optimization-agents':'Optimization agents',
@@ -240,6 +246,10 @@ export function SearchAIScreen() {
             />
           ) : navActive === 'citations' ? (
             <CitationsReportScreen />
+          ) : navActive === 'domain-health' ? (
+            <DomainHealthReportScreen />
+          ) : navActive === 'domain-health-v2' ? (
+            <DomainHealthReportScreenV2 />
           ) : navActive === 'search-prompts' ? (
             <div className="flex flex-1 flex-col overflow-hidden">
               <ThemesAndPromptsScreen />

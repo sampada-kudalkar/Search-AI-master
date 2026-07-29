@@ -24,7 +24,7 @@ export function InfoTooltip({ text }: InfoTooltipProps) {
         type="button"
         onMouseEnter={show}
         onMouseLeave={() => setVisible(false)}
-        className="flex items-center justify-center text-text-tertiary hover:text-text-secondary"
+        className="flex cursor-default items-center justify-center text-text-tertiary hover:text-text-secondary"
         aria-label="More info"
       >
         <img src={infoIconUrl} alt="" width={16} height={16} />

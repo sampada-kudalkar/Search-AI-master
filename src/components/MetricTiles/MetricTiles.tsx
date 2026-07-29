@@ -1,4 +1,4 @@
-import { Icon } from '../Icon/Icon'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import { MetricTilesProps } from './MetricTiles.types'
 
 export function MetricTiles({ metrics }: MetricTilesProps) {
@@ -22,17 +22,8 @@ export function MetricTiles({ metrics }: MetricTilesProps) {
             )}
           </div>
           <div className="mt-xs flex items-center gap-xs">
-            <span className="text-body text-text-primary">{metric.label}</span>
-            {metric.info && (
-              <span className="relative group flex items-center">
-                <Icon name="info" size={16} className="text-text-tertiary cursor-default" />
-                {metric.tooltip && (
-                  <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-xs -translate-x-1/2 w-max max-w-[220px] rounded-sm bg-[#212121] px-sm py-xs text-xs text-white opacity-0 shadow-dropdown transition-opacity group-hover:opacity-100">
-                    {metric.tooltip}
-                  </span>
-                )}
-              </span>
-            )}
+            <span className="text-body text-text-secondary">{metric.label}</span>
+            {metric.info && metric.tooltip && <InfoTooltip text={metric.tooltip} />}
           </div>
         </div>
       ))}

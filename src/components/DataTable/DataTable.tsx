@@ -18,6 +18,7 @@ export function DataTable<T extends Record<string, unknown>>({
   rowHeight = 48,
   maxVisibleRows,
   autoRowHeight = false,
+  showHeader = true,
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
@@ -87,7 +88,7 @@ export function DataTable<T extends Record<string, unknown>>({
   const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
   const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
-  const headerHeight = 48
+  const headerHeight = showHeader ? 48 : 0
   const maxHeight = maxVisibleRows ? headerHeight + maxVisibleRows * rowHeight : undefined
 
   return (
@@ -101,6 +102,7 @@ export function DataTable<T extends Record<string, unknown>>({
             <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
           ))}
         </colgroup>
+        {showHeader && (
         <thead className={maxHeight ? 'sticky top-0 z-10 bg-surface' : undefined}>
           <tr>
             {columns.map((col, i) => {
@@ -147,6 +149,7 @@ export function DataTable<T extends Record<string, unknown>>({
             })}
           </tr>
         </thead>
+        )}
         <tbody>
           {sortedData.map((row, i) => (
             <tr
@@ -164,8 +167,8 @@ export function DataTable<T extends Record<string, unknown>>({
                   <td
                     key={String(col.key)}
                     style={autoRowHeight ? undefined : { height: rowHeight }}
-                    className={`px-[10px] align-top text-body text-text-primary ${
-                      autoRowHeight ? 'py-[12px]' : ''
+                    className={`px-[10px] text-body text-text-primary ${
+                      autoRowHeight ? 'align-top py-[12px]' : 'align-middle'
                     } ${isLast ? 'relative' : autoRowHeight ? '' : 'truncate'} ${isFirst && (onRowClick || (rowAction && (!rowAction.visible || rowAction.visible(row)))) ? 'group-hover/row:text-text-action' : ''}`}
                   >
                     {isLast ? <span className="block truncate">{content}</span> : content}
