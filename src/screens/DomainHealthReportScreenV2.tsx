@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CardHeader, DataTable, DateRangeSelector, Icon, MetricTiles, MoreMenu, type Column } from '../components'
+import { CardHeader, DataTable, DateRangeSelector, MetricTiles, MoreMenu, type Column } from '../components'
 import {
   DOMAIN_HEALTH_MONTH_OPTIONS,
   DOMAIN_HEALTH_ROWS_V2,
@@ -17,18 +17,7 @@ const COLUMNS: Column<DomainHealthRowV2>[] = [
     width: 280,
     render: (_value, row) => (
       <div className="flex flex-col gap-[2px]">
-        <span className="flex items-center gap-xs">
-          <span className="truncate text-body text-text-primary group-hover/row:text-text-action">{row.domain}</span>
-          <a
-            href={`https://${row.domain}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="hidden shrink-0 items-center text-text-action group-hover/row:flex"
-          >
-            <Icon name="open_in_new" size={16} />
-          </a>
-        </span>
+        <span className="truncate text-body text-text-primary group-hover/row:text-text-action">{row.domain}</span>
         <span className="text-small text-text-tertiary">{row.pageCount} pages</span>
       </div>
     ),
@@ -37,7 +26,6 @@ const COLUMNS: Column<DomainHealthRowV2>[] = [
   { key: 'aiReadiness', label: headerWithTooltip('AI readiness', HEALTH_METRIC_TOOLTIPS.aiReadiness), render: (v) => <ScoreChip value={v as number} /> },
   { key: 'discoverability', label: headerWithTooltip('Discoverability', HEALTH_METRIC_TOOLTIPS.discoverability), render: (v) => <ScoreChip value={v as number} /> },
   { key: 'freshness', label: headerWithTooltip('Freshness', HEALTH_METRIC_TOOLTIPS.freshness), render: (v) => <ScoreChip value={v as number} /> },
-  { key: 'issuesFound', label: headerWithTooltip('Issues', HEALTH_METRIC_TOOLTIPS.issues) },
   {
     key: 'recommendations',
     label: headerWithTooltip(

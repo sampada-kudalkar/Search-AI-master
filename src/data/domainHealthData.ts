@@ -104,6 +104,47 @@ export function seededScore(str: string): number {
   return 20 + (h % 80)
 }
 
+export function formatLastCrawled(daysAgo: number): string {
+  if (daysAgo <= 0) return 'Today'
+  if (daysAgo === 1) return 'Yesterday'
+  return `${daysAgo} days ago`
+}
+
+export interface DomainMeta {
+  totalPages: number
+  httpsSecure: boolean
+  loadTimeSec: string
+  httpStatus: number
+  lastCrawledDays: number
+}
+
+/** Seeded stat-tile values for the domain-level Domain health v2 screen (Total pages / HTTPS status / Load time / Last crawled). */
+export function getDomainMeta(domain: string): DomainMeta {
+  return {
+    totalPages: getDomainPagesPadded(domain).length,
+    httpsSecure: seededScore(domain + 'https') >= 50,
+    loadTimeSec: (1 + (seededScore(domain + 'load') % 30) / 10).toFixed(1),
+    httpStatus: seededScore(domain + 'httpStatus') >= 15 ? 200 : 404,
+    lastCrawledDays: seededScore(domain + 'crawled') % 60,
+  }
+}
+
+export interface PageMeta {
+  loadTimeSec: string
+  httpStatus: number
+  lastCrawledDays: number
+}
+
+/** Seeded stat-tile values for the page-level Domain health v2 screen (HTTP status / Load time / Last crawled). */
+export function getPageMeta(domain: string, path: string): PageMeta {
+  const seedBase = domain + path
+  return {
+    loadTimeSec: (1 + (seededScore(seedBase + 'load') % 30) / 10).toFixed(1),
+    httpStatus: seededScore(seedBase + 'httpStatus') >= 10 ? 200 : 404,
+    lastCrawledDays: seededScore(seedBase + 'crawled') % 60,
+  }
+}
+
 export const REC_TEMPLATES: { title: string; metric: string }[] = [
   { title: 'Add a contact email address', metric: 'Discoverability' },
   { title: 'Add HTTP caching headers', metric: 'Performance' },
@@ -176,6 +217,7 @@ export const PAGE_AI_BOT_ROWS: { name: string; status: string }[] = [
   { name: 'ClaudeBot (Anthropic)', status: 'Partially restricted' },
   { name: 'Google-Extended', status: 'Partially restricted' },
   { name: 'PerplexityBot', status: 'Partially restricted' },
+  { name: 'Applebot', status: 'Partially restricted' },
 ]
 
 export const PAGE_CONTENT_ROWS: { label: string; value: string }[] = [

@@ -1,4 +1,16 @@
-import { DataTable, DetailCard, DomainHealthScoreHeader, Icon, MetricTiles, type Column } from '../components'
+import { useState } from 'react'
+import {
+  DataTable,
+  DetailCard,
+  DomainHealthScoreHeader,
+  HealthBreakdownCard,
+  HealthBreakdownTableCard,
+  Icon,
+  MetricTiles,
+  ScoreBreakdownDrawer,
+  type BreakdownMetricKey,
+  type Column,
+} from '../components'
 import {
   PAGE_AI_BOT_ROWS,
   PAGE_CONTENT_ROWS,
@@ -6,6 +18,13 @@ import {
   PAGE_TECH_CHECKLIST,
   getDomainScores,
 } from '../data/domainHealthData'
+import {
+  METRIC_KEY_LABELS,
+  getBreakdownColumns,
+  getDrawerHighlights,
+  getDrawerSections,
+  getPageHealthImprovements,
+} from '../data/domainHealthDataV2'
 
 interface KVRow extends Record<string, unknown> {
   label: string
@@ -64,8 +83,13 @@ export function DomainHealthPageDetailScreen({
   path: string
   onBack: () => void
 }) {
+  const [breakdownMetric, setBreakdownMetric] = useState<BreakdownMetricKey | null>(null)
+
   const scores = getDomainScores(domain)
   const healthAvg = scores ? Math.round((scores.ai + scores.disc + scores.fresh) / 3) : null
+  const improvements = getPageHealthImprovements(domain, path)
+  const breakdownColumns = getBreakdownColumns(domain, path)
+  const activeColumn = breakdownColumns.find((c) => c.key === breakdownMetric) ?? null
 
   return (
     <div className="flex flex-1 min-h-0 min-w-0 flex-col">
@@ -95,6 +119,10 @@ export function DomainHealthPageDetailScreen({
             ]}
           />
 
+          <HealthBreakdownCard columns={breakdownColumns} onSeeBreakdown={setBreakdownMetric} />
+
+          <HealthBreakdownTableCard columns={breakdownColumns} onSeeBreakdown={setBreakdownMetric} />
+
           <div className="grid grid-cols-2 gap-lg">
             <DetailCard title="AI bot access">
               <DataTable
@@ -121,6 +149,16 @@ export function DomainHealthPageDetailScreen({
           </div>
         </div>
       </div>
+
+      <ScoreBreakdownDrawer
+        open={breakdownMetric !== null}
+        onClose={() => setBreakdownMetric(null)}
+        metricName={breakdownMetric ? METRIC_KEY_LABELS[breakdownMetric] : ''}
+        score={activeColumn?.score ?? null}
+        highlights={getDrawerHighlights(breakdownMetric, activeColumn?.score ?? null)}
+        sections={getDrawerSections(breakdownMetric, domain, path, improvements)}
+        scope="page"
+      />
     </div>
   )
 }

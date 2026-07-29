@@ -4,9 +4,13 @@ import {
   DataTable,
   DetailCard,
   DomainHealthScoreHeader,
+  HealthBreakdownCard,
+  HealthBreakdownTableCard,
   HealthScoreTrendCard,
   Icon,
   MetricTiles,
+  ScoreBreakdownDrawer,
+  type BreakdownMetricKey,
   type Column,
   type ChipVariant,
 } from '../components'
@@ -22,6 +26,13 @@ import {
   seededScore,
   type DomainHealthRecommendation,
 } from '../data/domainHealthData'
+import {
+  METRIC_KEY_LABELS,
+  getBreakdownColumns,
+  getDomainHealthImprovements,
+  getDrawerHighlights,
+  getDrawerSections,
+} from '../data/domainHealthDataV2'
 import { DomainHealthPageDetailScreen } from './DomainHealthPageDetailScreen'
 import { DomainHealthRecommendationScreen } from './DomainHealthRecommendationScreen'
 
@@ -46,12 +57,16 @@ function kvColumns(valueClassName: (row: KVRow) => string = () => 'text-text-pri
 export function DomainHealthDomainScreen({ domain, onBack }: { domain: string; onBack: () => void }) {
   const [selectedPage, setSelectedPage] = useState<string | null>(null)
   const [selectedRec, setSelectedRec] = useState<DomainHealthRecommendation | null>(null)
+  const [breakdownMetric, setBreakdownMetric] = useState<BreakdownMetricKey | null>(null)
 
   const pages = getDomainPagesPadded(domain)
   const scores = getDomainScores(domain)
   const healthAvg = scores ? Math.round((scores.ai + scores.disc + scores.fresh) / 3) : null
   const tech = DOMAIN_TECH_DETAILS[domain]
   const recommendations = getRecommendationsForDomain(domain, pages.length)
+  const improvements = getDomainHealthImprovements(domain)
+  const breakdownColumns = getBreakdownColumns(domain)
+  const activeColumn = breakdownColumns.find((c) => c.key === breakdownMetric) ?? null
 
   if (selectedPage) {
     return (
@@ -128,6 +143,10 @@ export function DomainHealthDomainScreen({ domain, onBack }: { domain: string; o
               { id: 'warnings', value: 2, label: 'Warnings' },
             ]}
           />
+
+          <HealthBreakdownCard columns={breakdownColumns} onSeeBreakdown={setBreakdownMetric} />
+
+          <HealthBreakdownTableCard columns={breakdownColumns} onSeeBreakdown={setBreakdownMetric} />
 
           <div className="flex items-center justify-between gap-lg rounded-md border border-[#e6e3f7] bg-[#f5f4fc] px-xl py-lg">
             <div className="flex min-w-0 flex-1 flex-col gap-xs">
@@ -226,6 +245,16 @@ export function DomainHealthDomainScreen({ domain, onBack }: { domain: string; o
           </div>
         </div>
       </div>
+
+      <ScoreBreakdownDrawer
+        open={breakdownMetric !== null}
+        onClose={() => setBreakdownMetric(null)}
+        metricName={breakdownMetric ? METRIC_KEY_LABELS[breakdownMetric] : ''}
+        score={activeColumn?.score ?? null}
+        highlights={getDrawerHighlights(breakdownMetric, activeColumn?.score ?? null)}
+        sections={getDrawerSections(breakdownMetric, domain, undefined, improvements)}
+        scope="domain"
+      />
     </div>
   )
 }

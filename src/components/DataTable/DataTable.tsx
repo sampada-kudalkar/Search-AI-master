@@ -22,7 +22,7 @@ export function DataTable<T extends Record<string, unknown>>({
 }: DataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
-    columns.forEach((c) => (init[String(c.key)] = c.width ?? DEFAULT_WIDTH))
+    columns.forEach((c) => (init[String(c.key)] = typeof c.width === 'number' ? c.width : DEFAULT_WIDTH))
     return init
   })
   const [sort, setSort] = useState<{ key: string | null; dir: SortDir }>({ key: null, dir: 'asc' })
@@ -33,7 +33,7 @@ export function DataTable<T extends Record<string, unknown>>({
   useEffect(() => {
     setWidths((prev) => {
       const next: Record<string, number> = {}
-      columns.forEach((c) => (next[String(c.key)] = prev[String(c.key)] ?? c.width ?? DEFAULT_WIDTH))
+      columns.forEach((c) => (next[String(c.key)] = prev[String(c.key)] ?? (typeof c.width === 'number' ? c.width : DEFAULT_WIDTH)))
       return next
     })
   }, [columns])
@@ -56,6 +56,7 @@ export function DataTable<T extends Record<string, unknown>>({
   }
 
   function startResize(col: Column<T>, e: React.MouseEvent) {
+    if (typeof col.width === 'string') return
     e.preventDefault()
     e.stopPropagation()
     const key = String(col.key)
@@ -85,7 +86,10 @@ export function DataTable<T extends Record<string, unknown>>({
     return <div className="flex h-48 items-center justify-center text-body text-text-secondary">No records found.</div>
   }
 
-  const totalWidth = columns.reduce((sum, c) => sum + (widths[String(c.key)] ?? DEFAULT_WIDTH), 0)
+  const totalWidth = columns.reduce(
+    (sum, c) => sum + (typeof c.width === 'string' ? 0 : widths[String(c.key)] ?? DEFAULT_WIDTH),
+    0,
+  )
   const hasRowCtas = !!rowAction || !!(rowActions && rowActions.length) || !!(rowMenuItems && rowMenuItems.length)
 
   const headerHeight = showHeader ? 48 : 0
@@ -99,7 +103,10 @@ export function DataTable<T extends Record<string, unknown>>({
       <table className="text-left" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalWidth }}>
         <colgroup>
           {columns.map((col) => (
-            <col key={String(col.key)} style={{ width: widths[String(col.key)] ?? DEFAULT_WIDTH }} />
+            <col
+              key={String(col.key)}
+              style={{ width: typeof col.width === 'string' ? col.width : widths[String(col.key)] ?? DEFAULT_WIDTH }}
+            />
           ))}
         </colgroup>
         {showHeader && (
@@ -171,7 +178,11 @@ export function DataTable<T extends Record<string, unknown>>({
                       autoRowHeight ? 'align-top py-[12px]' : 'align-middle'
                     } ${isLast ? 'relative' : autoRowHeight ? '' : 'truncate'} ${isFirst && (onRowClick || (rowAction && (!rowAction.visible || rowAction.visible(row)))) ? 'group-hover/row:text-text-action' : ''}`}
                   >
-                    {isLast ? <span className="block truncate">{content}</span> : content}
+                    {isLast ? (
+                      <span className={`block ${autoRowHeight ? 'whitespace-normal break-words' : 'truncate'}`}>{content}</span>
+                    ) : (
+                      content
+                    )}
 
                     {/* Row hover CTAs anchored to the right edge */}
                     {isLast && hasRowCtas && (
