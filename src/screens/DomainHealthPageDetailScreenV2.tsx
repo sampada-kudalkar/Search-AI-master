@@ -1,32 +1,33 @@
 import { useState } from 'react'
 import {
   CardHeader,
-  Chip,
   DataTable,
   DateRangeSelector,
   DomainHealthScoreHeaderV2,
+  HealthBreakdownSummaryCard,
   HealthScoreTrendCard,
   Icon,
   MetricTiles,
   MoreMenu,
-  type Column,
+  ScoreBreakdownDrawer,
+  type BreakdownMetricKey,
 } from '../components'
 import {
+  METRIC_KEY_LABELS,
   DOMAIN_HEALTH_MONTH_OPTIONS,
-  HEALTH_METRIC_TOOLTIPS,
+  getBreakdownColumns,
+  getDrawerHighlights,
+  getDrawerSections,
   getPageHealthImprovements,
-  getPageIssues,
   getPageScores,
-  type PageIssue,
+  getPageStatTiles,
 } from '../data/domainHealthDataV2'
 import {
-  DOMAIN_TECH_DETAILS,
   HEALTH_TREND_SERIES,
-  PAGE_AI_BOT_ROWS,
   getDomainHealthTrend,
   type DomainHealthRecommendation,
 } from '../data/domainHealthData'
-import { healthImprovementColumns, kvColumns } from './domainHealthV2Columns'
+import { healthImprovementColumns } from './domainHealthV2Columns'
 import { DomainHealthRecommendationScreen } from './DomainHealthRecommendationScreen'
 
 export function DomainHealthPageDetailScreenV2({
@@ -39,25 +40,18 @@ export function DomainHealthPageDetailScreenV2({
   onBack: () => void
 }) {
   const [selectedRec, setSelectedRec] = useState<DomainHealthRecommendation | null>(null)
+  const [breakdownMetric, setBreakdownMetric] = useState<BreakdownMetricKey | null>(null)
   const [month, setMonth] = useState(DOMAIN_HEALTH_MONTH_OPTIONS[0])
 
   const scores = getPageScores(domain, path)
   const healthAvg = Math.round((scores.ai + scores.disc + scores.fresh) / 3)
-  const issues = getPageIssues(domain, path)
-  const tech = DOMAIN_TECH_DETAILS[domain]
+  const improvements = getPageHealthImprovements(domain, path)
+  const breakdownColumns = getBreakdownColumns(domain, path)
+  const activeColumn = breakdownColumns.find((c) => c.key === breakdownMetric) ?? null
 
   if (selectedRec) {
     return <DomainHealthRecommendationScreen recommendation={selectedRec} onBack={() => setSelectedRec(null)} />
   }
-
-  const issueColumns: Column<PageIssue>[] = [
-    { key: 'label', label: 'Issue' },
-    {
-      key: 'type',
-      label: 'Type',
-      render: (v) => <Chip label={v as string} variant={v === 'Issue' ? 'danger' : 'warning'} />,
-    },
-  ]
 
   return (
     <div className="flex flex-1 min-h-0 min-w-0 flex-col">
@@ -87,26 +81,9 @@ export function DomainHealthPageDetailScreenV2({
             breakdown={{ ai: scores.ai, disc: scores.disc, fresh: scores.fresh }}
           />
 
-          <MetricTiles
-            metrics={[
-              { id: 'issues', value: issues.length, label: 'Issues found', info: true, tooltip: HEALTH_METRIC_TOOLTIPS.issues },
-              { id: 'http', value: 200, label: 'HTTP status' },
-              { id: 'load', value: '1.2s', label: 'Load time' },
-              { id: 'crawled', value: '42 days ago', label: 'Last crawled' },
-            ]}
-          />
+          <MetricTiles metrics={getPageStatTiles(domain, path)} />
 
-          <HealthScoreTrendCard
-            title="What is your health score over time?"
-            subtitle="Track how your page's health score has changed over time"
-            data={getDomainHealthTrend(domain + path, {
-              health: healthAvg,
-              ai: scores.ai,
-              disc: scores.disc,
-              fresh: scores.fresh,
-            })}
-            series={HEALTH_TREND_SERIES}
-          />
+          <HealthBreakdownSummaryCard columns={breakdownColumns} onSeeBreakdown={setBreakdownMetric} />
 
           <div className="rounded-md border border-border bg-surface">
             <div className="px-2xl pb-lg pt-2xl">
@@ -119,7 +96,7 @@ export function DomainHealthPageDetailScreenV2({
             <div className="px-2xl pb-xl">
               <DataTable
                 columns={healthImprovementColumns({ showAffected: false })}
-                data={getPageHealthImprovements(domain, path)}
+                data={improvements}
                 autoRowHeight
                 rowHeight={62}
                 maxVisibleRows={5}
@@ -128,97 +105,29 @@ export function DomainHealthPageDetailScreenV2({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-lg">
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="Crawlability" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns()}
-                  data={[
-                    { label: 'Pages in sitemap', value: tech.sitemap },
-                    { label: 'Sitemap coverage', value: tech.coverage },
-                    { label: 'Robots.txt health score', value: tech.robots },
-                    { label: 'Crawler-friendly score', value: tech.crawler },
-                    { label: 'Conflicting directives', value: tech.conflicts },
-                  ]}
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="Blocked folders" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns()}
-                  data={
-                    tech.blocked.length
-                      ? tech.blocked.map((folder) => ({ label: folder, value: 'Disallowed' }))
-                      : [{ label: 'No blocked folders found', value: '' }]
-                  }
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-lg">
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="Site-wide technical health" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns()}
-                  data={[
-                    { label: 'Canonical tags', value: tech.canon },
-                    { label: 'Redirects', value: tech.redir },
-                    { label: 'Duplicate content', value: tech.dup },
-                  ]}
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="AI bot access" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns(() => 'text-chip-warning-text')}
-                  data={PAGE_AI_BOT_ROWS.map((row) => ({ label: row.name, value: row.status }))}
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-md border border-border bg-surface">
-            <div className="px-2xl pb-lg pt-2xl">
-              <CardHeader title="Issues & warnings" />
-            </div>
-            <div className="px-2xl pb-xl">
-              <DataTable
-                columns={issueColumns}
-                data={issues}
-                rowHeight={44}
-                rowAction={{
-                  icon: 'lightbulb',
-                  label: 'View recommendation',
-                  onClick: (row) => setSelectedRec(row.recommendation),
-                }}
-              />
-            </div>
-          </div>
+          <HealthScoreTrendCard
+            title="What is your health score over time?"
+            subtitle="Track how your page's health score has changed over time"
+            data={getDomainHealthTrend(domain + path, {
+              health: healthAvg,
+              ai: scores.ai,
+              disc: scores.disc,
+              fresh: scores.fresh,
+            })}
+            series={HEALTH_TREND_SERIES}
+          />
         </div>
       </div>
+
+      <ScoreBreakdownDrawer
+        open={breakdownMetric !== null}
+        onClose={() => setBreakdownMetric(null)}
+        metricName={breakdownMetric ? METRIC_KEY_LABELS[breakdownMetric] : ''}
+        score={activeColumn?.score ?? null}
+        highlights={getDrawerHighlights(breakdownMetric, activeColumn?.score ?? null)}
+        sections={getDrawerSections(breakdownMetric, domain, path, improvements)}
+        scope="page"
+      />
     </div>
   )
 }

@@ -32,9 +32,9 @@ export function Slider({ value, onChange, min = 0, max = 100, defaultValue, colo
         onPointerMove={handlePointerMove}
         className="relative h-4 w-full cursor-pointer touch-none"
       >
-        <div className="absolute top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-surface-selected" />
+        <div className="absolute top-1/2 h-2 w-full -translate-y-1/2 rounded-full bg-surface-selected" />
         <div
-          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full"
+          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full"
           style={{ width: `${pct}%`, backgroundColor: color }}
         />
         {defaultPct !== undefined && (

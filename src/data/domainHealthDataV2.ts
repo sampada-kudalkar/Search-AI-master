@@ -4,13 +4,28 @@
 
 import {
   DOMAIN_HEALTH_ROWS,
+  DOMAIN_TECH_DETAILS,
+  PAGE_AI_BOT_ROWS,
+  PAGE_CONTENT_ROWS,
   PAGE_SCORE_BREAKDOWN,
+  formatLastCrawled,
+  getDomainMeta,
   getDomainPagesPadded,
   getDomainScores,
+  getPageMeta,
   seededScore,
   type DomainHealthRecommendation,
 } from './domainHealthData'
-import type { HorizontalBarDatum } from '../components'
+import type {
+  BreakdownColumn,
+  BreakdownMetricKey,
+  BreakdownSignal,
+  DrawerSection,
+  DrawerSignalRow,
+  DrawerTopFix,
+  HorizontalBarDatum,
+  Metric,
+} from '../components'
 
 /** Month options for the report-month selector shown in the Domain health v2 headers. */
 export const DOMAIN_HEALTH_MONTH_OPTIONS = ['Jul 2026', 'Jun 2026', 'May 2026', 'Apr 2026', 'Mar 2026', 'Feb 2026']
@@ -172,9 +187,6 @@ function resolveOpportunities(seedBase: string, score: number, signals: HealthSi
 function aiReadinessSignals(seedBase: string, score: number): HealthMetricSignals {
   const opportunities = resolveOpportunities(seedBase, score, [
     { key: 'faq', good: 'FAQ section covers common questions', bad: 'Expand your FAQ section to cover more questions' },
-    { key: 'phone', good: 'Phone number listed', bad: 'Add a phone number' },
-    { key: 'address', good: 'Physical address listed', bad: 'Add a physical address' },
-    { key: 'email', good: 'Email address listed', bad: 'Add an email address' },
   ])
   return { metric: 'AI readiness', tooltip: 'Shows how likely AI is to recommend you in generated answers', score, opportunities }
 }
@@ -204,7 +216,7 @@ function businessInformationSignals(seedBase: string, score: number): HealthMetr
     { key: 'org', good: 'Organization name listed', bad: 'Add your organization name' },
     { key: 'email', good: 'Email address listed', bad: 'Add an email address' },
   ])
-  return { metric: 'Discoverability', tooltip: 'Shows if your business details are complete and accurate', score, opportunities }
+  return { metric: 'AI readiness', tooltip: 'Shows if your business details are complete and accurate', score, opportunities }
 }
 
 function websiteTrustSignals(seedBase: string, score: number): HealthMetricSignals {
@@ -329,11 +341,15 @@ function tierBarColor(pct: number): string {
   return '#de1b0c'
 }
 
-/** All score-breakdown metrics, lowest first (worst first) — the ones most worth fixing. */
-export function getScoreBreakdownItems(): HorizontalBarDatum[] {
-  return [...PAGE_SCORE_BREAKDOWN]
-    .sort((a, b) => a.value - b.value)
-    .map((m) => ({ label: m.label, value: m.value, color: tierBarColor(m.value) }))
+/** The 7 score-breakdown metrics that belong under AI readiness, in a fixed (not value-sorted) order. */
+const AI_SCORE_BREAKDOWN_LABELS = ['FAQ', 'Structure', 'Entities', 'Readability', 'Content', 'Internal links', 'AI accessibility']
+
+function getAiReadinessScoreBreakdownBarData(): HorizontalBarDatum[] {
+  return AI_SCORE_BREAKDOWN_LABELS.map((label) => {
+    const m = PAGE_SCORE_BREAKDOWN.find((row) => row.label === label)
+    const value = m?.value ?? 0
+    return { label, value, color: tierBarColor(value) }
+  })
 }
 
 export interface TechnicalCheckRow extends Record<string, unknown> {
@@ -353,5 +369,432 @@ const TECHNICAL_CHECKLIST: { label: string; tooltip: string }[] = [
 
 export function getTechnicalChecklist(): TechnicalCheckRow[] {
   return TECHNICAL_CHECKLIST.map((t) => ({ label: t.label, tooltip: t.tooltip, checked: true as const }))
+}
+
+export const METRIC_KEY_LABELS: Record<BreakdownMetricKey, string> = {
+  ai: 'AI readiness',
+  disc: 'Discoverability',
+  fresh: 'Freshness',
+}
+
+const DRAWER_SUMMARIES: Record<BreakdownMetricKey, { pass: string; fail: string }> = {
+  ai: {
+    pass: 'AI assistants can find and recommend your business. One gap found: no email address on most pages.',
+    fail: 'AI assistants are having trouble recommending your business. Several key signals are missing.',
+  },
+  disc: {
+    pass: 'Your pages are set up correctly for search engines. Minor content issues noted.',
+    fail: 'Search engines are struggling to find your pages. Fix the issues below to improve visibility.',
+  },
+  fresh: {
+    pass: 'Your content freshness signals are mostly in place.',
+    fail: "Search engines can't tell how current your content is. No date signals found on your pages.",
+  },
+}
+
+/** Pass/fail-state summary copy for the Score breakdown drawer, taken verbatim from the Copy Reference table. */
+export function getDrawerSummary(key: BreakdownMetricKey, score: number | null): string {
+  const passing = (score ?? 0) >= 60
+  return passing ? DRAWER_SUMMARIES[key].pass : DRAWER_SUMMARIES[key].fail
+}
+
+/** Splits the drawer summary into bullet lines for the AI summary card's "Highlights" list. */
+export function getDrawerHighlights(key: BreakdownMetricKey | null, score: number | null): string[] {
+  if (!key) return []
+  return getDrawerSummary(key, score)
+    .split('. ')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => (s.endsWith('.') ? s : `${s}.`))
+}
+
+/** Domain-level stat tiles: Total pages | HTTPS status | Load time | Last crawled. */
+export function getStatTiles(domain: string): Metric[] {
+  const meta = getDomainMeta(domain)
+  return [
+    { id: 'totalPages', value: meta.totalPages, label: 'Total pages' },
+    { id: 'https', value: meta.httpsSecure ? 'Secure' : 'Not secure', label: 'HTTPS status' },
+    { id: 'load', value: `${meta.loadTimeSec}s`, label: 'Load time' },
+    { id: 'crawled', value: formatLastCrawled(meta.lastCrawledDays), label: 'Last crawled' },
+  ]
+}
+
+/** Page-level stat tiles: HTTP status | Load time | Last crawled. */
+export function getPageStatTiles(domain: string, path: string): Metric[] {
+  const meta = getPageMeta(domain, path)
+  return [
+    { id: 'http', value: meta.httpStatus, label: 'HTTP status' },
+    { id: 'load', value: `${meta.loadTimeSec}s`, label: 'Load time' },
+    { id: 'crawled', value: formatLastCrawled(meta.lastCrawledDays), label: 'Last crawled' },
+  ]
+}
+
+interface BreakdownSignalDef {
+  key: string
+  label: string
+}
+
+const AI_READINESS_SIGNAL_DEFS: BreakdownSignalDef[] = [
+  { key: 'bizName', label: 'Business name' },
+  { key: 'phone', label: 'Phone number' },
+  { key: 'email', label: 'Email address' },
+  { key: 'faq', label: 'FAQ section' },
+  { key: 'reviews', label: 'Customer reviews' },
+]
+
+const DISCOVERABILITY_SIGNAL_DEFS: BreakdownSignalDef[] = [
+  { key: 'sitemap', label: 'Found in sitemap' },
+  { key: 'title', label: 'Title tag' },
+  { key: 'metaDesc', label: 'Meta description' },
+  { key: 'noDup', label: 'No duplicate pages' },
+  { key: 'canonical', label: 'Canonical URL' },
+]
+
+const FRESHNESS_SIGNAL_DEFS: BreakdownSignalDef[] = [
+  { key: 'pubDate', label: 'Publish date' },
+  { key: 'modDate', label: 'Last modified date' },
+  { key: 'etag', label: 'ETag header' },
+  { key: 'loadsFast', label: 'Page loads fast' },
+  { key: 'reachable', label: 'Page is reachable' },
+]
+
+/** Builds the 5 pass/fail signals for one breakdown column, seeded so failing signals stay stable and carry an "affects N pages" annotation at domain scope. */
+function buildBreakdownSignals(seedBase: string, score: number, defs: BreakdownSignalDef[], totalPages: number): BreakdownSignal[] {
+  return defs.map((d) => {
+    const pass = seededScore(seedBase + d.key) < score
+    const affected = totalPages > 1 ? 1 + (seededScore(seedBase + d.key + 'aff') % totalPages) : 0
+    return {
+      label: d.label,
+      status: pass ? 'pass' : 'fail',
+      affectedLabel: !pass && affected > 0 ? `affects ${affected} pages` : undefined,
+    }
+  })
+}
+
+function seededDelta(seedBase: string, key: string): number {
+  const seed = seededScore(seedBase + key + 'delta')
+  return Math.round((seed % 90) - 45) / 10
+}
+
+/** The 3-column health breakdown (AI readiness / Discoverability / Freshness), 5 signals each — feeds HealthBreakdownCard and ScoreBreakdownDrawer. */
+export function getBreakdownColumns(domain: string, path?: string): BreakdownColumn[] {
+  const scores = path ? getPageScores(domain, path) : getDomainScores(domain)
+  if (!scores) return []
+  const seedBase = path ? domain + path : domain
+  const totalPages = path ? 1 : getDomainPagesPadded(domain).length
+
+  return [
+    {
+      key: 'ai',
+      title: 'AI Readiness',
+      score: scores.ai,
+      delta: seededDelta(seedBase, 'ai'),
+      signals: buildBreakdownSignals(seedBase, scores.ai, AI_READINESS_SIGNAL_DEFS, totalPages),
+    },
+    {
+      key: 'disc',
+      title: 'Discoverability',
+      score: scores.disc,
+      delta: seededDelta(seedBase, 'disc'),
+      signals: buildBreakdownSignals(seedBase, scores.disc, DISCOVERABILITY_SIGNAL_DEFS, totalPages),
+    },
+    {
+      key: 'fresh',
+      title: 'Freshness',
+      score: scores.fresh,
+      delta: seededDelta(seedBase, 'fresh'),
+      signals: buildBreakdownSignals(seedBase, scores.fresh, FRESHNESS_SIGNAL_DEFS, totalPages),
+    },
+  ]
+}
+
+interface DrawerSignalDef {
+  key: string
+  label: string
+  passNote?: string
+  failNote?: string
+}
+
+/** Builds one drawer signal group from seeded pass/fail defs — richer per-drawer detail than the card's 5-signal summary. */
+function buildDrawerSignals(seedBase: string, score: number, defs: DrawerSignalDef[], totalPages: number): DrawerSignalRow[] {
+  return defs.map((d) => {
+    const pass = seededScore(seedBase + d.key) < score
+    const affected = totalPages > 1 ? 1 + (seededScore(seedBase + d.key + 'aff') % totalPages) : 0
+    const note = pass ? d.passNote : d.failNote ?? (affected > 0 ? `affects ${affected} pages` : undefined)
+    return { label: d.label, status: pass ? 'pass' as const : 'fail' as const, note }
+  })
+}
+
+const AI_BUSINESS_INFO_DEFS: DrawerSignalDef[] = [
+  { key: 'bizName', label: 'Business name present' },
+  { key: 'phone', label: 'Phone number present' },
+  { key: 'email', label: 'Email address missing' },
+  { key: 'address', label: 'Physical address present' },
+  { key: 'orgSchema', label: 'Organization schema in place' },
+]
+
+const AI_CONTENT_STRUCTURE_DEFS: DrawerSignalDef[] = [
+  { key: 'faqPresent', label: 'FAQ section present' },
+  { key: 'faqCoverage', label: 'FAQ coverage is partial' },
+  { key: 'reviewsPresent', label: 'Customer reviews present' },
+  { key: 'reviewSchema', label: 'No review schema markup' },
+  { key: 'localBizSchema', label: 'LocalBusiness schema in place' },
+]
+
+export const AI_BOT_ACCESS_NOTE = 'Blocked folders like /admin/ are normal. Confirm no service pages are accidentally blocked.'
+
+const AI_CONTENT_FIELDS = ['Words', 'Reading score', 'Images', 'Internal links']
+
+/** Top 3 recommendations for one metric's drawer, ranked by point value. */
+export function getTopFixesForMetric(rows: HealthImprovementRow[], key: BreakdownMetricKey, limit = 3): DrawerTopFix[] {
+  return rows
+    .filter((r) => r.metric === METRIC_KEY_LABELS[key])
+    .sort((a, b) => b.points - a.points)
+    .slice(0, limit)
+    .map((r, i) => ({
+      rank: i + 1,
+      title: r.title,
+      points: r.points,
+      affectedLabel: r.affectedLabel === 'This page' ? undefined : `Affects ${r.affectedLabel}`,
+    }))
+}
+
+/** AI readiness drawer: business info, domain structure, content structure, AI bot access, score breakdown, blocked folders, top fixes, and page-only content. */
+function getAiReadinessDrawerSections(domain: string, path: string | undefined, improvements: HealthImprovementRow[]): DrawerSection[] {
+  const scores = path ? getPageScores(domain, path) : getDomainScores(domain)
+  const score = scores?.ai ?? 50
+  const seedBase = path ? domain + path : domain
+  const totalPages = path ? 1 : getDomainPagesPadded(domain).length
+  const tech = DOMAIN_TECH_DETAILS[domain]
+
+  const contentStructure = buildDrawerSignals(seedBase + 'content', score, AI_CONTENT_STRUCTURE_DEFS, totalPages).map((s) =>
+    s.label === 'FAQ coverage is partial' ? { ...s, status: 'warning' as const, note: undefined } : s,
+  )
+
+  return [
+    {
+      key: 'business-info',
+      title: 'Business information',
+      kind: 'signals',
+      defaultOpen: true,
+      description: 'Does your site give AI the basic facts about you?',
+      signals: buildDrawerSignals(seedBase + 'biz', score, AI_BUSINESS_INFO_DEFS, totalPages),
+    },
+    {
+      key: 'domain-structure',
+      title: 'Domain structure',
+      kind: 'kv',
+      rows: [
+        { label: 'Robots.txt health score', value: tech.robots },
+        { label: 'Crawler-friendly score', value: tech.crawler },
+        { label: 'Conflicting directives', value: tech.conflicts },
+      ],
+    },
+    {
+      key: 'content-structure',
+      title: 'Content structure',
+      kind: 'signals',
+      description: 'Does your content help AI answer questions about you?',
+      signals: contentStructure,
+    },
+    {
+      key: 'ai-bot-access',
+      title: 'AI bot access',
+      kind: 'bots',
+      rows: PAGE_AI_BOT_ROWS.map((row) => ({ name: row.name, status: row.status })),
+      note: AI_BOT_ACCESS_NOTE,
+    },
+    { key: 'score-breakdown', title: 'Score breakdown', kind: 'bar', data: getAiReadinessScoreBreakdownBarData() },
+    {
+      key: 'blocked-folders',
+      title: 'Blocked folders',
+      kind: 'kv',
+      rows: tech.blocked.length
+        ? tech.blocked.map((folder) => ({ label: folder, value: 'Disallowed' }))
+        : [{ label: 'No blocked folders found', value: '' }],
+    },
+    { key: 'top-fixes', title: 'Top fixes', kind: 'fixes', fixes: getTopFixesForMetric(improvements, 'ai') },
+    {
+      key: 'content',
+      title: 'Content',
+      kind: 'kv',
+      pageOnly: true,
+      rows: PAGE_CONTENT_ROWS.filter((row) => AI_CONTENT_FIELDS.includes(row.label)).map((row) => ({ label: row.label, value: row.value })),
+    },
+  ]
+}
+
+const DISCOVERABILITY_PAGE_BASICS_DEFS: DrawerSignalDef[] = [
+  { key: 'titleTag', label: 'Title tag present' },
+  { key: 'metaDesc', label: 'Meta description present' },
+  { key: 'canonical', label: 'Canonical URL set' },
+  { key: 'https', label: 'HTTPS turned on' },
+  { key: 'sitemap', label: 'Found in sitemap' },
+  { key: 'structuredData', label: 'Structured data present' },
+]
+
+/** Discoverability drawer: page basics, content signals, site-wide health, crawlability, blocked folders, top fixes, and page-only content detail. */
+function getDiscoverabilityDrawerSections(domain: string, path: string | undefined, improvements: HealthImprovementRow[]): DrawerSection[] {
+  const scores = path ? getPageScores(domain, path) : getDomainScores(domain)
+  const score = scores?.disc ?? 50
+  const seedBase = path ? domain + path : domain
+  const tech = DOMAIN_TECH_DETAILS[domain]
+  const httpsSecure = path ? getPageMeta(domain, path).httpStatus === 200 : getDomainMeta(domain).httpsSecure
+
+  const pageBasics = buildDrawerSignals(seedBase + 'basics', score, DISCOVERABILITY_PAGE_BASICS_DEFS, 0).map((s) =>
+    s.label === 'HTTPS turned on' ? { ...s, status: httpsSecure ? ('pass' as const) : ('fail' as const), note: undefined } : s,
+  )
+
+  const h1Count = 1 + (seededScore(seedBase + 'h1') % 3)
+  const h1Signal: DrawerSignalRow = {
+    label: h1Count > 1 ? `${h1Count} H1 tags found` : '1 H1 tag found',
+    status: h1Count > 1 ? 'warning' : 'pass',
+    note: h1Count > 1 ? 'use 1 per page' : undefined,
+  }
+
+  const contentDetailRows = PAGE_CONTENT_ROWS.filter((row) => AI_CONTENT_FIELDS.includes(row.label)).map((row) => ({
+    label: row.label,
+    value: row.label === 'Words' ? `${row.value} — good depth` : row.value,
+  }))
+
+  const siteWideHealth: DrawerSignalRow[] = [
+    { label: 'No duplicate pages', status: tech.dup >= 80 ? 'pass' : 'fail' },
+    { label: 'No broken redirects', status: tech.redir >= 80 ? 'pass' : 'fail' },
+    { label: 'Canonical tags consistent', status: tech.canon >= 80 ? 'pass' : 'fail' },
+    { label: `All pages in sitemap (${tech.sitemap})`, status: tech.coverage === '100%' ? 'pass' : 'warning' },
+  ]
+
+  return [
+    { key: 'page-basics', title: 'Page basics', kind: 'signals', defaultOpen: true, description: 'The signals every page needs to be found', signals: pageBasics },
+    { key: 'content-signals', title: 'Content signals', kind: 'signals', description: 'What search engines read about your content', signals: [h1Signal] },
+    { key: 'content-detail', title: 'Content detail', kind: 'kv', pageOnly: true, rows: contentDetailRows },
+    { key: 'site-wide-health', title: 'Site-wide health', kind: 'signals', description: 'Checks that run across your whole domain', signals: siteWideHealth },
+    {
+      key: 'crawlability',
+      title: 'Crawlability',
+      kind: 'kv',
+      rows: [
+        { label: 'Pages in sitemap', value: tech.sitemap },
+        { label: 'Sitemap coverage', value: tech.coverage },
+        { label: 'Robots.txt health score', value: tech.robots },
+        { label: 'Crawler-friendly score', value: tech.crawler },
+        { label: 'Conflicting directives', value: tech.conflicts },
+      ],
+    },
+    {
+      key: 'blocked-folders',
+      title: 'Blocked folders',
+      kind: 'kv',
+      rows: tech.blocked.length
+        ? tech.blocked.map((folder) => ({ label: folder, value: 'Disallowed' }))
+        : [{ label: 'No blocked folders found', value: '' }],
+    },
+    { key: 'top-fixes', title: 'Top fixes', kind: 'fixes', fixes: getTopFixesForMetric(improvements, 'disc') },
+  ]
+}
+
+const FRESHNESS_DATE_SIGNAL_DEFS: DrawerSignalDef[] = [
+  { key: 'pubDate', label: 'No publish date on pages' },
+  { key: 'updatedDate', label: 'No last updated date on pages' },
+  { key: 'dateSchema', label: 'No date metadata in schema' },
+]
+
+/** Freshness drawer: date signals, cache signals, crawl status, freshness breakdown, page-only HTTP/schema/performance detail, and top fixes. */
+function getFreshnessDrawerSections(domain: string, path: string | undefined, improvements: HealthImprovementRow[]): DrawerSection[] {
+  const scores = path ? getPageScores(domain, path) : getDomainScores(domain)
+  const score = scores?.fresh ?? 50
+  const seedBase = path ? domain + path : domain
+
+  const dateSignals = buildDrawerSignals(seedBase + 'date', score, FRESHNESS_DATE_SIGNAL_DEFS, 0).map((s) => ({
+    ...s,
+    status: s.status === 'pass' ? ('pass' as const) : ('fail' as const),
+  }))
+
+  const lastModifiedPass = seededScore(seedBase + 'lastModified') < score
+  const etagPass = seededScore(seedBase + 'etag') < score
+  const cacheSignals: DrawerSignalRow[] = [
+    {
+      label: lastModifiedPass ? 'Last-Modified header present' : 'Last-Modified header missing',
+      status: lastModifiedPass ? 'pass' : 'fail',
+      note: lastModifiedPass ? undefined : "Search engines can't detect when you updated",
+    },
+    {
+      label: etagPass ? 'ETag header present' : 'ETag header missing',
+      status: etagPass ? 'pass' : 'fail',
+      note: etagPass ? undefined : "Precise cache control isn't set",
+    },
+  ]
+
+  const meta = path ? getPageMeta(domain, path) : getDomainMeta(domain)
+  const loadTimeSec = Number(meta.loadTimeSec)
+  const crawlStatus: DrawerSignalRow[] = [
+    { label: `Last crawled: ${formatLastCrawled(meta.lastCrawledDays)}`, status: 'neutral' },
+    {
+      label: `HTTP status: ${meta.httpStatus}`,
+      status: meta.httpStatus === 200 ? 'pass' : 'fail',
+      note: meta.httpStatus === 200 ? 'page is reachable' : 'page is unreachable',
+    },
+    {
+      label: `Load time: ${meta.loadTimeSec}s`,
+      status: loadTimeSec < 2 ? 'pass' : 'warning',
+      note: loadTimeSec < 2 ? 'acceptable' : 'slow',
+    },
+  ]
+
+  const breakdownByLabel = new Map(PAGE_SCORE_BREAKDOWN.map((m) => [m.label, m.value]))
+  const freshnessBreakdownRows = [
+    { label: 'Freshness score', value: `${breakdownByLabel.get('Freshness') ?? 0}%` },
+    { label: 'Performance score', value: `${breakdownByLabel.get('Performance') ?? 0}%` },
+    { label: 'Citation readiness', value: `${breakdownByLabel.get('Citation readiness') ?? 0}%` },
+  ]
+
+  return [
+    { key: 'date-signals', title: 'Date signals', kind: 'signals', defaultOpen: true, description: 'How search engines know your content is up to date', signals: dateSignals },
+    { key: 'cache-signals', title: 'Cache signals', kind: 'signals', description: 'How servers tell crawlers when something changed', signals: cacheSignals },
+    { key: 'crawl-status', title: 'Crawl status', kind: 'signals', description: 'When did we last check your site?', signals: crawlStatus },
+    { key: 'freshness-breakdown', title: 'Freshness breakdown', kind: 'kv', rows: freshnessBreakdownRows },
+    {
+      key: 'http-headers',
+      title: 'HTTP headers',
+      kind: 'kv',
+      pageOnly: true,
+      rows: [
+        { label: 'Last-Modified', value: 'Missing' },
+        { label: 'ETag', value: 'Missing' },
+        { label: 'HTTP caching headers', value: 'Missing' },
+      ],
+    },
+    {
+      key: 'schema-metadata',
+      title: 'Schema metadata',
+      kind: 'kv',
+      pageOnly: true,
+      rows: [
+        { label: 'datePublished', value: 'Not found' },
+        { label: 'dateModified', value: 'Not found' },
+      ],
+    },
+    {
+      key: 'performance',
+      title: 'Performance',
+      kind: 'kv',
+      pageOnly: true,
+      rows: path ? [{ label: 'Load time', value: `${meta.loadTimeSec}s` }, { label: 'HTTP status', value: meta.httpStatus }] : [],
+    },
+    { key: 'top-fixes', title: 'Top fixes', kind: 'fixes', fixes: getTopFixesForMetric(improvements, 'fresh') },
+  ]
+}
+
+/** Dispatches to the right per-metric drawer section builder — used by both screens when a breakdown drawer opens. */
+export function getDrawerSections(
+  key: BreakdownMetricKey | null,
+  domain: string,
+  path: string | undefined,
+  improvements: HealthImprovementRow[],
+): DrawerSection[] {
+  if (key === 'ai') return getAiReadinessDrawerSections(domain, path, improvements)
+  if (key === 'disc') return getDiscoverabilityDrawerSections(domain, path, improvements)
+  if (key === 'fresh') return getFreshnessDrawerSections(domain, path, improvements)
+  return []
 }
 

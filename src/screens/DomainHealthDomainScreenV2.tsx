@@ -1,10 +1,20 @@
 import { useState } from 'react'
-import { CardHeader, DataTable, DateRangeSelector, DomainHealthScoreHeaderV2, HealthScoreTrendCard, Icon, MoreMenu, type Column } from '../components'
 import {
-  DOMAIN_ISSUES_WARNINGS,
-  DOMAIN_TECH_DETAILS,
+  CardHeader,
+  DataTable,
+  DateRangeSelector,
+  DomainHealthScoreHeaderV2,
+  HealthBreakdownSummaryCard,
+  HealthScoreTrendCard,
+  Icon,
+  MetricTiles,
+  MoreMenu,
+  ScoreBreakdownDrawer,
+  type BreakdownMetricKey,
+  type Column,
+} from '../components'
+import {
   HEALTH_TREND_SERIES,
-  PAGE_AI_BOT_ROWS,
   getDomainHealthTrend,
   getDomainPagesPadded,
   getDomainScores,
@@ -13,24 +23,32 @@ import {
 import {
   DOMAIN_HEALTH_MONTH_OPTIONS,
   HEALTH_METRIC_TOOLTIPS,
+  METRIC_KEY_LABELS,
+  getBreakdownColumns,
   getDomainHealthImprovements,
+  getDrawerHighlights,
+  getDrawerSections,
   getPageIssues,
   getPageScores,
+  getStatTiles,
   isPageInSitemap,
 } from '../data/domainHealthDataV2'
-import { ScoreChip, healthImprovementColumns, headerWithTooltip, kvColumns } from './domainHealthV2Columns'
+import { ScoreChip, healthImprovementColumns, headerWithTooltip } from './domainHealthV2Columns'
 import { DomainHealthPageDetailScreenV2 } from './DomainHealthPageDetailScreenV2'
 import { DomainHealthRecommendationScreen } from './DomainHealthRecommendationScreen'
 
 export function DomainHealthDomainScreenV2({ domain, onBack }: { domain: string; onBack: () => void }) {
   const [selectedPage, setSelectedPage] = useState<string | null>(null)
   const [selectedRec, setSelectedRec] = useState<DomainHealthRecommendation | null>(null)
+  const [breakdownMetric, setBreakdownMetric] = useState<BreakdownMetricKey | null>(null)
   const [month, setMonth] = useState(DOMAIN_HEALTH_MONTH_OPTIONS[0])
 
   const pages = getDomainPagesPadded(domain)
   const scores = getDomainScores(domain)
   const healthAvg = scores ? Math.round((scores.ai + scores.disc + scores.fresh) / 3) : null
-  const tech = DOMAIN_TECH_DETAILS[domain]
+  const improvements = getDomainHealthImprovements(domain)
+  const breakdownColumns = getBreakdownColumns(domain)
+  const activeColumn = breakdownColumns.find((c) => c.key === breakdownMetric) ?? null
 
   if (selectedRec) {
     return <DomainHealthRecommendationScreen recommendation={selectedRec} onBack={() => setSelectedRec(null)} />
@@ -118,15 +136,9 @@ export function DomainHealthDomainScreenV2({ domain, onBack }: { domain: string;
             breakdown={scores ? { ai: scores.ai, disc: scores.disc, fresh: scores.fresh } : { ai: null, disc: null, fresh: null }}
           />
 
-          <HealthScoreTrendCard
-            data={getDomainHealthTrend(domain, {
-              health: healthAvg ?? 70,
-              ai: scores?.ai ?? 70,
-              disc: scores?.disc ?? 70,
-              fresh: scores?.fresh ?? 70,
-            })}
-            series={HEALTH_TREND_SERIES}
-          />
+          <MetricTiles metrics={getStatTiles(domain)} />
+
+          <HealthBreakdownSummaryCard columns={breakdownColumns} onSeeBreakdown={setBreakdownMetric} />
 
           <div className="rounded-md border border-border bg-surface">
             <div className="px-2xl pb-lg pt-2xl">
@@ -139,7 +151,7 @@ export function DomainHealthDomainScreenV2({ domain, onBack }: { domain: string;
             <div className="px-2xl pb-xl">
               <DataTable
                 columns={healthImprovementColumns()}
-                data={getDomainHealthImprovements(domain)}
+                data={improvements}
                 autoRowHeight
                 rowHeight={62}
                 maxVisibleRows={5}
@@ -171,93 +183,27 @@ export function DomainHealthDomainScreenV2({ domain, onBack }: { domain: string;
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-lg">
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="Crawlability" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns()}
-                  data={[
-                    { label: 'Pages in sitemap', value: tech.sitemap },
-                    { label: 'Sitemap coverage', value: tech.coverage },
-                    { label: 'Robots.txt health score', value: tech.robots },
-                    { label: 'Crawler-friendly score', value: tech.crawler },
-                    { label: 'Conflicting directives', value: tech.conflicts },
-                  ]}
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="Blocked folders" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns()}
-                  data={
-                    tech.blocked.length
-                      ? tech.blocked.map((folder) => ({ label: folder, value: 'Disallowed' }))
-                      : [{ label: 'No blocked folders found', value: '' }]
-                  }
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-lg">
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="Site-wide technical health" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns()}
-                  data={[
-                    { label: 'Canonical tags', value: tech.canon },
-                    { label: 'Redirects', value: tech.redir },
-                    { label: 'Duplicate content', value: tech.dup },
-                  ]}
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-            <div className="rounded-md border border-border bg-surface">
-              <div className="px-2xl pb-lg pt-2xl">
-                <CardHeader title="AI bot access" />
-              </div>
-              <div className="px-2xl pb-xl">
-                <DataTable
-                  columns={kvColumns(() => 'text-chip-warning-text')}
-                  data={PAGE_AI_BOT_ROWS.map((row) => ({ label: row.name, value: row.status }))}
-                  showHeader={false}
-                  rowHeight={44}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-md border border-border bg-surface">
-            <div className="px-2xl pb-lg pt-2xl">
-              <CardHeader title="Issues & warnings" />
-            </div>
-            <div className="px-2xl pb-xl">
-              <DataTable
-                columns={kvColumns((row) => (row.value === 'Issue' ? 'text-chip-danger-text' : 'text-chip-warning-text'))}
-                data={DOMAIN_ISSUES_WARNINGS.map((row) => ({ label: row.label, value: row.type }))}
-                showHeader={false}
-                rowHeight={44}
-              />
-            </div>
-          </div>
+          <HealthScoreTrendCard
+            data={getDomainHealthTrend(domain, {
+              health: healthAvg ?? 70,
+              ai: scores?.ai ?? 70,
+              disc: scores?.disc ?? 70,
+              fresh: scores?.fresh ?? 70,
+            })}
+            series={HEALTH_TREND_SERIES}
+          />
         </div>
       </div>
+
+      <ScoreBreakdownDrawer
+        open={breakdownMetric !== null}
+        onClose={() => setBreakdownMetric(null)}
+        metricName={breakdownMetric ? METRIC_KEY_LABELS[breakdownMetric] : ''}
+        score={activeColumn?.score ?? null}
+        highlights={getDrawerHighlights(breakdownMetric, activeColumn?.score ?? null)}
+        sections={getDrawerSections(breakdownMetric, domain, undefined, improvements)}
+        scope="domain"
+      />
     </div>
   )
 }

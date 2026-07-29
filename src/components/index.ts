@@ -168,3 +168,25 @@ export { DetailCard } from './DetailCard/DetailCard'
 export type { DetailCardProps } from './DetailCard/DetailCard.types'
 export { HealthScoreTrendCard } from './HealthScoreTrendCard/HealthScoreTrendCard'
 export type { HealthScoreTrendCardProps } from './HealthScoreTrendCard/HealthScoreTrendCard.types'
+export { HealthBreakdownCard } from './HealthBreakdownCard/HealthBreakdownCard'
+export type {
+  HealthBreakdownCardProps,
+  BreakdownColumn,
+  BreakdownSignal,
+  BreakdownMetricKey,
+  SignalStatus,
+} from './HealthBreakdownCard/HealthBreakdownCard.types'
+export { HealthBreakdownTableCard } from './HealthBreakdownTableCard/HealthBreakdownTableCard'
+export type { HealthBreakdownTableCardProps } from './HealthBreakdownTableCard/HealthBreakdownTableCard.types'
+export { HealthBreakdownSummaryCard } from './HealthBreakdownSummaryCard/HealthBreakdownSummaryCard'
+export type { HealthBreakdownSummaryCardProps } from './HealthBreakdownSummaryCard/HealthBreakdownSummaryCard.types'
+export { ScoreBreakdownDrawer } from './ScoreBreakdownDrawer/ScoreBreakdownDrawer'
+export type {
+  ScoreBreakdownDrawerProps,
+  DrawerSection,
+  DrawerTopFix,
+  KVRow as ScoreBreakdownKVRow,
+  DrawerSignalRow,
+  DrawerSignalStatus,
+  DrawerBotRow,
+} from './ScoreBreakdownDrawer/ScoreBreakdownDrawer.types'

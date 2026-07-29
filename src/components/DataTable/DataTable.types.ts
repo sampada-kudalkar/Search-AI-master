@@ -3,8 +3,8 @@ import type { ReactNode } from 'react'
 export interface Column<T> {
   key: keyof T
   label: ReactNode
-  /** Initial column width in px (default 160). */
-  width?: number
+  /** Initial column width in px (default 160), or a CSS width string (e.g. '40%') for a flexible column. */
+  width?: number | string
   /** Minimum width when resizing (default 80). */
   minWidth?: number
   sortable?: boolean
