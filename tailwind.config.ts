@@ -56,6 +56,7 @@ export default {
         lg: '16px', // Spacing/lg
         xl: '20px', // Spacing/xl
         '2xl': '24px', // Spacing/2xl
+        '3xl': '80px', // Spacing/3xl
       },
       borderRadius: {
         sm: '4px', // Corner Radius/sm (Default-Web)
