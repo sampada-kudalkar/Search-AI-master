@@ -180,6 +180,17 @@ export { HealthBreakdownTableCard } from './HealthBreakdownTableCard/HealthBreak
 export type { HealthBreakdownTableCardProps } from './HealthBreakdownTableCard/HealthBreakdownTableCard.types'
 export { HealthBreakdownSummaryCard } from './HealthBreakdownSummaryCard/HealthBreakdownSummaryCard'
 export type { HealthBreakdownSummaryCardProps } from './HealthBreakdownSummaryCard/HealthBreakdownSummaryCard.types'
+export { SentimentSwotGrid } from './SentimentSwotGrid/SentimentSwotGrid'
+export type { SentimentSwotGridProps } from './SentimentSwotGrid/SentimentSwotGrid.types'
+export { SentimentComparisonMatrix } from './SentimentComparisonMatrix/SentimentComparisonMatrix'
+export type {
+  SentimentComparisonMatrixProps,
+  SentimentComparisonMatrixCompetitor,
+} from './SentimentComparisonMatrix/SentimentComparisonMatrix.types'
+export { CitationSentimentDrawer } from './CitationSentimentDrawer/CitationSentimentDrawer'
+export type { CitationSentimentDrawerProps } from './CitationSentimentDrawer/CitationSentimentDrawer.types'
+export { CompetitorSentimentDrawer } from './CompetitorSentimentDrawer/CompetitorSentimentDrawer'
+export type { CompetitorSentimentDrawerProps } from './CompetitorSentimentDrawer/CompetitorSentimentDrawer.types'
 export { ScoreBreakdownDrawer } from './ScoreBreakdownDrawer/ScoreBreakdownDrawer'
 export type {
   ScoreBreakdownDrawerProps,

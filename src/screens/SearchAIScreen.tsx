@@ -13,6 +13,8 @@ import { ReportSettingsScreen } from './ReportSettingsScreen'
 import { BrandsScreen } from './BrandsScreen'
 import { BrandV1Screen } from './BrandV1Screen'
 import { SearchAiScoreSettingsScreen } from './SearchAiScoreSettingsScreen'
+import { SentimentReportScreen } from './SentimentReportScreen'
+import { SentimentV2ReportScreen } from './SentimentV2ReportScreen'
 import {
   BY_LOCATION_DATA,
   COMPETITOR_BRAND_DATA,
@@ -38,6 +40,7 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
       { id: 'rankings',    label: 'Rankings'    },
       { id: 'accuracy',    label: 'Accuracy'    },
       { id: 'sentiment',   label: 'Sentiment'   },
+      { id: 'sentiment-v2', label: 'Sentiment V2' },
       { id: 'prompt',      label: 'Prompt'      },
       { id: 'website',     label: 'Website'     },
       { id: 'domain-health', label: 'Domain health' },
@@ -81,6 +84,7 @@ const LABEL_MAP: Record<string, string> = {
   rankings:             'Rankings',
   accuracy:             'Accuracy',
   sentiment:            'Sentiment',
+  'sentiment-v2':       'Sentiment V2',
   prompt:               'Prompt',
   website:              'Website',
   'domain-health':      'Domain health',
@@ -246,6 +250,10 @@ export function SearchAIScreen() {
             />
           ) : navActive === 'citations' ? (
             <CitationsReportScreen />
+          ) : navActive === 'sentiment' ? (
+            <SentimentReportScreen />
+          ) : navActive === 'sentiment-v2' ? (
+            <SentimentV2ReportScreen />
           ) : navActive === 'domain-health' ? (
             <DomainHealthReportScreen />
           ) : navActive === 'domain-health-v2' ? (
