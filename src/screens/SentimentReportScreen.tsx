@@ -75,10 +75,52 @@ function SentimentScoreStat({ score, delta, label }: { score: number; delta: str
   )
 }
 
+// ── Location dropdown (private, inline in title) ─────────────────────────────
+
+const SWOT_LOCATIONS = ['All locations', ...SENTIMENT_BY_LOCATION.map((l) => l.location)]
+
+function LocationDropdown({ selected, onChange }: { selected: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="relative inline-flex items-center">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-[4px] text-[#1976D2] text-[18px] leading-[26px]"
+      >
+        {selected}
+        <Icon name="expand_more" size={16} className="text-[#1976D2]" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-[4px] z-20 min-w-[180px] bg-surface rounded-sm border border-border shadow-dropdown py-xs">
+            {SWOT_LOCATIONS.map((l) => (
+              <button
+                key={l}
+                onClick={() => { onChange(l); setOpen(false) }}
+                className={`w-full text-left px-md py-sm text-body hover:bg-surface-hover flex items-center gap-sm ${
+                  l === selected ? 'text-primary' : 'text-text-primary'
+                }`}
+              >
+                {l === selected && <Icon name="check" size={16} className="text-primary shrink-0" />}
+                {l !== selected && <span className="w-[16px] shrink-0" />}
+                {l}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Overview tab ──────────────────────────────────────────────────────────────
 
 function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: SentimentCitationRow) => void }) {
   const [swotPlatform, setSwotPlatform] = useState<SentimentSwotPlatform>('ChatGPT')
+  const [swotLocation, setSwotLocation] = useState('All locations')
 
   const improvementColumns: Column<SentimentImprovementRow>[] = [
     { key: 'aiSite', label: 'AI site', width: 160 },
@@ -146,8 +188,8 @@ function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: Sentim
       </div>
 
       <ChartCard
-        title="Sentiment score over time"
-        subtitle="Track how often your content is positive and track the sentiment of your content across AI sites over time."
+        title="What is your sentiment score over time?"
+        subtitle="Track your positive sentiment across AI sites over time."
         toolbar={
           <div className="flex items-center gap-sm">
             <DateRangeSelector
@@ -187,7 +229,15 @@ function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: Sentim
       </div>
 
       <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="What strengths and weaknesses do AI sites see" />
+        <CardHeader
+          title={
+            <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+              What are your strengths and weaknesses across AI sites for
+              <LocationDropdown selected={swotLocation} onChange={setSwotLocation} />
+            </span>
+          }
+          subtitle="Track AI-identified strengths and opportunities and take prioritized actions to improve."
+        />
         <CardTabs
           tabs={SENTIMENT_SWOT_PLATFORMS.map((p) => ({ id: p, label: p }))}
           activeTab={swotPlatform}
@@ -342,6 +392,8 @@ function SentimentPromptTab() {
 // ── Competitors tab ───────────────────────────────────────────────────────────
 
 function SentimentCompetitorsTab({ onOpenCompetitor }: { onOpenCompetitor: (row: SentimentCompetitorRow) => void }) {
+  const [competitorLocation, setCompetitorLocation] = useState('All locations')
+
   const competitorColumns: Column<SentimentCompetitorRow>[] = [
     {
       key: 'name',
@@ -350,7 +402,11 @@ function SentimentCompetitorsTab({ onOpenCompetitor }: { onOpenCompetitor: (row:
       render: (v, row) => (
         <span className="flex items-center gap-sm">
           <span className="text-text-primary">{v as string}</span>
-          {row.isYou && <span className="rounded-full bg-primary px-sm py-[2px] text-small text-white">You</span>}
+          {row.isYou && (
+            <span className="shrink-0 rounded-full border border-white bg-gradient-to-b from-[#0f7195] to-[#094459] px-[8px] py-[2px] text-small text-white">
+              You
+            </span>
+          )}
         </span>
       ),
     },
@@ -395,7 +451,15 @@ function SentimentCompetitorsTab({ onOpenCompetitor }: { onOpenCompetitor: (row:
       </div>
 
       <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="Sentiment breakdown by competitors" />
+        <CardHeader
+          title={
+            <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+              What are your strengths and weaknesses compared to your competitors for
+              <LocationDropdown selected={competitorLocation} onChange={setCompetitorLocation} />?
+            </span>
+          }
+          subtitle="Analyze your strengths and weaknesses versus your competitors across answers generated by AI sites."
+        />
         <DataTable<SentimentCompetitorRow>
           columns={competitorColumns}
           data={SENTIMENT_BY_COMPETITOR}

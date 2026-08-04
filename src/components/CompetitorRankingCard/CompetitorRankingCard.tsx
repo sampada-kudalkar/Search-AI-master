@@ -157,7 +157,7 @@ const LOCATION_COLUMNS: Column<ByLocationTableRow>[] = [
 
 // ── Shared toolbar ────────────────────────────────────────────────────────────
 
-const TOOLBAR = (
+export const COMPETITOR_RANKING_TOOLBAR = (
   <>
     <button
       type="button"
@@ -166,6 +166,25 @@ const TOOLBAR = (
     >
       <Icon name="search" size={16} className="text-text-icon" />
     </button>
+    <button
+      type="button"
+      className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
+      title="Summarize"
+    >
+      <AiIcon size={16} />
+    </button>
+    <button
+      type="button"
+      className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
+      title="More options"
+    >
+      <Icon name="more_vert" size={16} className="text-text-icon" />
+    </button>
+  </>
+)
+
+export const AI_SUMMARY_TOOLBAR = (
+  <>
     <button
       type="button"
       className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
@@ -210,6 +229,33 @@ export function CompetitorRankingCard(props: CompetitorRankingCardProps) {
   if (isLocations) {
     const rows = props.data[activeLocationPlatform]
     const onLocationRowClick = props.mode === 'locations' ? props.onLocationRowClick : undefined
+    const hideHeader = props.mode === 'locations' ? props.hideHeader : false
+
+    const tableContent = (
+      <>
+        <CardTabs
+          tabs={locationPlatformTabs}
+          activeTab={activeLocationPlatform}
+          onChange={(id) => setActiveLocationPlatform(id as RankingPlatform)}
+        />
+        <DataTable<ByLocationTableRow>
+          columns={LOCATION_COLUMNS}
+          data={rows}
+          rowHeight={56}
+          onRowClick={onLocationRowClick}
+          rowAction={onLocationRowClick ? {
+            iconElement: <ArrowDiagonalIcon />,
+            label: 'View comparison',
+            onClick: (row) => onLocationRowClick(row),
+          } : undefined}
+        />
+      </>
+    )
+
+    if (hideHeader) {
+      return <div className="flex flex-col gap-lg">{tableContent}</div>
+    }
+
     return (
       <div className="w-full rounded-md border border-border bg-surface overflow-hidden">
         <div className="px-[20px] py-[16px]">
@@ -244,7 +290,7 @@ export function CompetitorRankingCard(props: CompetitorRankingCardProps) {
               </span>
             }
             subtitle="Discover locations where your visibility has the highest impact across AI platforms"
-            toolbar={TOOLBAR}
+            toolbar={COMPETITOR_RANKING_TOOLBAR}
           />
         </div>
         <div className="px-[24px]">

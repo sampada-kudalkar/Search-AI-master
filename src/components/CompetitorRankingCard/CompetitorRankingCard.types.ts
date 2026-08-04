@@ -40,4 +40,4 @@ export type CompetitorRankingCardProps =
       activePlatform?: string
       onPlatformChange?: (id: string) => void
     }
-  | { mode: 'locations'; data: Record<RankingPlatform, ByLocationTableRow[]>; onLocationRowClick?: (row: ByLocationTableRow) => void }
+  | { mode: 'locations'; data: Record<RankingPlatform, ByLocationTableRow[]>; onLocationRowClick?: (row: ByLocationTableRow) => void; hideHeader?: boolean }

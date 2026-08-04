@@ -26,7 +26,7 @@ function Pill({ label, variant, align }: { label: string; variant: ChipProps['va
 
 export function SentimentSwotGrid({ strengths, weaknesses, opportunities, threats }: SentimentSwotGridProps) {
   return (
-    <div className="relative grid grid-cols-2 rounded-md bg-surface-l2">
+    <div className="relative grid grid-cols-2 rounded-md bg-[#E2D6F4]">
       <div className="flex flex-col gap-lg border-b border-r border-border p-xl">
         <Pill label="Strengths" variant="success" align="start" />
         <ItemList items={strengths} />

@@ -7,12 +7,13 @@ import {
   DataTable,
   TrendLineChart,
   CompetitorRankingCard,
+  COMPETITOR_RANKING_TOOLBAR,
+  AI_SUMMARY_TOOLBAR,
   Chip,
   Icon,
   InfoTooltip,
   DateRangeSelector,
   SegmentedControl,
-  AiIcon,
   SentimentSwotGrid,
   SentimentComparisonMatrix,
   CompetitorSentimentDrawer,
@@ -49,11 +50,14 @@ function SentimentText({ value }: { value: number }) {
 }
 
 function SentimentScoreStat({ score, delta, label }: { score: number; delta: string; label: string }) {
+  const isPositive = !delta.trim().startsWith('-')
   return (
     <div>
       <div className="flex items-baseline gap-sm">
         <span className="text-[32px] leading-10 tracking-[-0.64px] text-[#212121]">{score}%</span>
-        <span className="text-small text-[#212121]">+{delta}</span>
+        <span className={`text-small ${isPositive ? 'text-chip-success-text' : 'text-chip-danger-text'}`}>
+          {isPositive ? '+' : ''}{delta}
+        </span>
       </div>
       <p className="mt-[4px] text-body text-[#212121]">{label}</p>
     </div>
@@ -76,6 +80,56 @@ function LocationBreakdownTable() {
   return <DataTable<SentimentLocationRow> columns={columns} data={SENTIMENT_BY_LOCATION} />
 }
 
+// ── Location dropdown (private, inline in title) ─────────────────────────────
+
+const SWOT_LOCATIONS = ['All locations', ...SENTIMENT_BY_LOCATION.map((l) => l.location)]
+const THEME_LOCATIONS = ['all locations', ...SENTIMENT_BY_LOCATION.map((l) => l.location)]
+
+function LocationDropdown({
+  selected,
+  onChange,
+  options = SWOT_LOCATIONS,
+}: {
+  selected: string
+  onChange: (v: string) => void
+  options?: string[]
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="relative inline-flex items-center">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-[4px] text-[#1976D2] text-[18px] leading-[26px]"
+      >
+        {selected}
+        <Icon name="expand_more" size={16} className="text-[#1976D2]" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-[4px] z-20 min-w-[180px] bg-surface rounded-sm border border-border shadow-dropdown py-xs">
+            {options.map((l) => (
+              <button
+                key={l}
+                onClick={() => { onChange(l); setOpen(false) }}
+                className={`w-full text-left px-md py-sm text-body hover:bg-surface-hover flex items-center gap-sm ${
+                  l === selected ? 'text-primary' : 'text-text-primary'
+                }`}
+              >
+                {l === selected && <Icon name="check" size={16} className="text-primary shrink-0" />}
+                {l !== selected && <span className="w-[16px] shrink-0" />}
+                {l}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 const MONTH_OPTIONS = ['Jun 2026', 'May 2026', 'Apr 2026', 'Mar 2026', 'Feb 2026', 'Jan 2026']
@@ -96,6 +150,10 @@ export function SentimentV2ReportScreen() {
   const [month, setMonth] = useState(MONTH_OPTIONS[0])
   const [scopeView, setScopeView] = useState<'location' | 'brand'>('location')
   const [swotPlatform, setSwotPlatform] = useState<SentimentSwotPlatform>('ChatGPT')
+  const [swotLocation, setSwotLocation] = useState('All locations')
+  const [themeLocation, setThemeLocation] = useState('all locations')
+  const [rankingLocation, setRankingLocation] = useState('all locations')
+  const [competitorLocation, setCompetitorLocation] = useState('all locations')
   const [trendRange, setTrendRange] = useState('Last 3 months')
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
 
@@ -161,11 +219,10 @@ export function SentimentV2ReportScreen() {
             <span className="text-[13px] text-[#212121]">{row.theme}</span>
           </button>
         ) : (
-          <span className="pl-[32px] text-small text-[#212121] italic">{row.theme}</span>
+          <span className="pl-[32px] text-small text-[#555555]">{row.theme}</span>
         ),
     },
-    { key: 'locations', label: 'Locations', width: 120 },
-    { key: 'sentiment', label: 'Sentiment', width: 120, render: (v) => <SentimentText value={v as number} /> },
+    { key: 'sentiment', label: 'Avg sentiment', width: 140, render: (v) => <SentimentText value={v as number} /> },
     { key: 'chatgpt', label: 'ChatGPT', width: 120, render: (v) => <SentimentText value={v as number} /> },
     { key: 'gemini', label: 'Gemini', width: 120, render: (v) => <SentimentText value={v as number} /> },
     { key: 'perplexity', label: 'Perplexity', width: 120, render: (v) => <SentimentText value={v as number} /> },
@@ -179,7 +236,11 @@ export function SentimentV2ReportScreen() {
       render: (v, row) => (
         <span className="flex items-center gap-sm">
           <span className="text-[#212121]">{v as string}</span>
-          {row.isYou && <span className="rounded-full bg-primary px-sm py-[2px] text-small text-white">You</span>}
+          {row.isYou && (
+            <span className="shrink-0 rounded-full border border-white bg-gradient-to-b from-[#0f7195] to-[#094459] px-[8px] py-[2px] text-small text-white">
+              You
+            </span>
+          )}
         </span>
       ),
     },
@@ -245,20 +306,28 @@ export function SentimentV2ReportScreen() {
       <div className="flex-1 min-h-0 overflow-y-auto bg-white">
         <div className="flex flex-col gap-xl px-2xl py-xl">
           {/* 1. Sentiment score */}
-          <div className="rounded-md border border-border bg-surface px-2xl py-xl">
-            <div className="mb-md text-body text-[#212121]">Sentiment score</div>
-            <div className="flex gap-[100px]">
-              <SentimentScoreStat score={SENTIMENT_SUMMARY.overall.score} delta={SENTIMENT_SUMMARY.overall.delta} label="Sentiment score" />
-              <SentimentScoreStat score={SENTIMENT_SUMMARY.promptScore.score} delta={SENTIMENT_SUMMARY.promptScore.delta} label="Prompt score" />
-              <SentimentScoreStat score={SENTIMENT_SUMMARY.brand.score} delta={SENTIMENT_SUMMARY.brand.delta} label="Brand sentiment" />
-              <SentimentScoreStat score={SENTIMENT_SUMMARY.prompt.score} delta={SENTIMENT_SUMMARY.prompt.delta} label="Prompt sentiment" />
+          <div className="flex gap-lg">
+            <div className="flex-1 rounded-md border border-border bg-surface px-2xl py-xl">
+              <div className="mb-md flex items-center justify-between">
+                <span className="text-body text-[#212121]">Sentiment score</span>
+              </div>
+              <SentimentScoreStat score={SENTIMENT_SUMMARY.overall.score} delta={SENTIMENT_SUMMARY.overall.delta} label="Your score" />
+            </div>
+            <div className="flex-1 rounded-md border border-border bg-surface px-2xl py-xl">
+              <div className="mb-md flex items-center justify-between">
+                <span className="text-body text-[#212121]">Sentiment score consists of</span>
+              </div>
+              <div className="flex gap-[100px]">
+                <SentimentScoreStat score={SENTIMENT_SUMMARY.brand.score} delta={SENTIMENT_SUMMARY.brand.delta} label="Brand sentiment" />
+                <SentimentScoreStat score={SENTIMENT_SUMMARY.prompt.score} delta={SENTIMENT_SUMMARY.prompt.delta} label="Prompt sentiment" />
+              </div>
             </div>
           </div>
 
           {/* 2. Sentiment score over time */}
           <ChartCard
-            title="Sentiment score over time"
-            subtitle="Track how often your content is positive and track the sentiment of your content across AI sites over time."
+            title="What is your sentiment score over time"
+            subtitle="Track your positive sentiment across AI sites over time"
             toolbar={
               <div className="flex items-center gap-sm">
                 <DateRangeSelector
@@ -266,12 +335,7 @@ export function SentimentV2ReportScreen() {
                   options={['Last 3 months', 'Last 6 months', 'Last 12 months']}
                   onChange={setTrendRange}
                 />
-                <button
-                  type="button"
-                  className="flex h-[32px] w-[32px] items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover"
-                >
-                  <AiIcon size={16} />
-                </button>
+                {AI_SUMMARY_TOOLBAR}
               </div>
             }
           >
@@ -288,20 +352,51 @@ export function SentimentV2ReportScreen() {
 
           {/* 3. Sentiment score breakdown by site */}
           <SummaryCard
-            title="Sentiment score breakdown by site"
-            subtitle="The percentage of positive sentiment across each AI site"
-            stats={SENTIMENT_BY_AI_SITE.map((m) => ({ id: m.id, value: String(m.value), label: m.label }))}
+            title="What is sentiment score breakdown by site"
+            subtitle="Analyze the percentage of positive sentiment across AI sites"
+            stats={SENTIMENT_BY_AI_SITE.map((m) => ({ id: m.id, value: String(m.value), label: m.label, delta: m.delta, trend: m.trend }))}
           />
 
-          {/* 4. Sentiment across sites */}
+          {/* 4. Sentiment across sites — hidden for now, kept for future use */}
+          {false && (
+            <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+              <CardHeader title="Sentiment across sites" toolbar={AI_SUMMARY_TOOLBAR} />
+              <DataTable<SentimentImprovementRow> columns={improvementColumns} data={SENTIMENT_IMPROVEMENT_AREAS} autoRowHeight />
+            </div>
+          )}
+
+          {/* 5. Sentiment by theme and prompts across all locations */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Sentiment across sites" />
-            <DataTable<SentimentImprovementRow> columns={improvementColumns} data={SENTIMENT_IMPROVEMENT_AREAS} autoRowHeight />
+            <CardHeader
+              title={
+                <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+                  What is your sentiment by theme and prompts across
+                  <LocationDropdown selected={themeLocation} onChange={setThemeLocation} options={THEME_LOCATIONS} />
+                </span>
+              }
+              subtitle="Track your positive sentiment in answers generated by AI sites"
+              toolbar={AI_SUMMARY_TOOLBAR}
+            />
+            <DataTable<PromptFlatRow>
+              columns={themeColumns}
+              data={themeFlatRows}
+              autoRowHeight
+              rowClassName={(row) => (row._isHeader ? '' : 'bg-[#FAFAFA]')}
+            />
           </div>
 
-          {/* 5. Strengths and weaknesses */}
+          {/* 6. Strengths and weaknesses */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Strengths and weaknesses" />
+            <CardHeader
+              title={
+                <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+                  What are your strengths and weaknesses across AI sites for
+                  <LocationDropdown selected={swotLocation} onChange={setSwotLocation} />
+                </span>
+              }
+              subtitle="Track AI-identified strengths and opportunities and take prioritized actions to improve"
+              toolbar={AI_SUMMARY_TOOLBAR}
+            />
             <CardTabs
               tabs={SENTIMENT_SWOT_PLATFORMS.map((p) => ({ id: p, label: p }))}
               activeTab={swotPlatform}
@@ -310,67 +405,86 @@ export function SentimentV2ReportScreen() {
             <SentimentSwotGrid {...SENTIMENT_SWOT[swotPlatform]} />
           </div>
 
-          {/* 6. Sentiment by theme and across all locations */}
-          <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Sentiment by theme and across all locations" />
-            <DataTable<PromptFlatRow>
-              columns={themeColumns}
-              data={themeFlatRows}
-              rowHeight={48}
-              rowClassName={(row) => (row._isHeader ? '' : 'bg-surface-hover')}
-            />
-          </div>
-
-          {/* 7. Breakdown by location */}
-          <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Breakdown by location" />
-            <LocationBreakdownTable />
-          </div>
+          {/* 7. Breakdown by location — hidden for now, kept for future use */}
+          {false && (
+            <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+              <CardHeader title="Breakdown by location" toolbar={AI_SUMMARY_TOOLBAR} />
+              <LocationBreakdownTable />
+            </div>
+          )}
 
           {/* 8. How are you ranking against competitors across all locations */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="How are you ranking against competitors across all locations" />
-            <CompetitorRankingCard mode="locations" data={SENTIMENT_RANK_BY_LOCATION} />
+            <CardHeader
+              title={
+                <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+                  How are you ranking against competitors across
+                  <LocationDropdown selected={rankingLocation} onChange={setRankingLocation} options={THEME_LOCATIONS} />
+                </span>
+              }
+              subtitle="Analyze your positive sentiment versus your competitors across AI sites"
+              toolbar={COMPETITOR_RANKING_TOOLBAR}
+            />
+            <CompetitorRankingCard mode="locations" data={SENTIMENT_RANK_BY_LOCATION} hideHeader />
           </div>
 
-          {/* 9. Sentiment across locations */}
-          <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Sentiment across locations" />
-            <LocationBreakdownTable />
-          </div>
-
-          {/* 10. Brand sentiment */}
-          <SummaryCard
-            title="Brand sentiment"
-            stats={[{ id: 'score', value: `${SENTIMENT_SUMMARY.brand.score}%`, label: `+${SENTIMENT_SUMMARY.brand.delta} vs last period` }]}
-          />
-
-          {/* 11. Brand sentiment breakdown */}
-          <SummaryCard
-            title="Brand sentiment breakdown"
-            subtitle="The percentage of positive brand sentiment across each AI site"
-            stats={BRAND_SENTIMENT_BY_AI_SITE.map((m) => ({ id: m.id, value: String(m.value), label: m.label }))}
-          />
-
-          {/* 12. Sentiment across competitors */}
-          <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Sentiment across competitors" />
-            <div className="flex flex-wrap items-center gap-md">
-              {SENTIMENT_COMPETITORS.map((c, i) => (
-                <div key={c.name} className="flex items-center gap-md">
-                  {i > 0 && <span className="text-small text-[#212121]">vs</span>}
-                  <div className="flex items-center gap-xs rounded-sm border border-border px-lg py-sm">
-                    <span className="text-body text-[#212121]">{c.isYou ? 'You' : c.name}</span>
-                    <SentimentText value={c.sentiment} />
-                  </div>
-                </div>
-              ))}
+          {/* 9. Sentiment across locations — hidden for now, kept for future use */}
+          {false && (
+            <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+              <CardHeader title="Sentiment across locations" toolbar={AI_SUMMARY_TOOLBAR} />
+              <LocationBreakdownTable />
             </div>
-          </div>
+          )}
+
+          {/* 10. Brand sentiment — hidden for now, kept for future use */}
+          {false && (
+            <SummaryCard
+              title="Brand sentiment"
+              stats={[{ id: 'score', value: `${SENTIMENT_SUMMARY.brand.score}%`, label: `+${SENTIMENT_SUMMARY.brand.delta} vs last period` }]}
+              toolbar={AI_SUMMARY_TOOLBAR}
+            />
+          )}
+
+          {/* 11. Brand sentiment breakdown — hidden for now, kept for future use */}
+          {false && (
+            <SummaryCard
+              title="Brand sentiment breakdown"
+              subtitle="The percentage of positive brand sentiment across each AI site"
+              stats={BRAND_SENTIMENT_BY_AI_SITE.map((m) => ({ id: m.id, value: String(m.value), label: m.label }))}
+              toolbar={AI_SUMMARY_TOOLBAR}
+            />
+          )}
+
+          {/* 12. Sentiment across competitors — hidden for now, kept for future use */}
+          {false && (
+            <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+              <CardHeader title="Sentiment across competitors" toolbar={AI_SUMMARY_TOOLBAR} />
+              <div className="flex flex-wrap items-center gap-md">
+                {SENTIMENT_COMPETITORS.map((c, i) => (
+                  <div key={c.name} className="flex items-center gap-md">
+                    {i > 0 && <span className="text-small text-[#212121]">vs</span>}
+                    <div className="flex items-center gap-xs rounded-sm border border-border px-lg py-sm">
+                      <span className="text-body text-[#212121]">{c.isYou ? 'You' : c.name}</span>
+                      <SentimentText value={c.sentiment} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 13. Sentiment breakdown by competitors */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Sentiment breakdown by competitors" />
+            <CardHeader
+              title={
+                <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+                  What are your strengths and weaknesses compared to your competitors for
+                  <LocationDropdown selected={competitorLocation} onChange={setCompetitorLocation} options={THEME_LOCATIONS} />
+                </span>
+              }
+              subtitle="Analyze your strengths and weaknesses versus your competitors across answers generated by AI sites"
+              toolbar={AI_SUMMARY_TOOLBAR}
+            />
             <DataTable<SentimentCompetitorRow>
               columns={competitorColumns}
               data={SENTIMENT_BY_COMPETITOR}
@@ -381,7 +495,7 @@ export function SentimentV2ReportScreen() {
 
           {/* 14. Competitive strengths and weakness matrix */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Competitive strengths and weakness matrix" />
+            <CardHeader title="Competitive strengths and weakness matrix" toolbar={AI_SUMMARY_TOOLBAR} />
             <SentimentComparisonMatrix
               traits={SENTIMENT_MATRIX_TRAITS}
               competitors={SENTIMENT_MATRIX_COMPETITORS}
@@ -389,11 +503,13 @@ export function SentimentV2ReportScreen() {
             />
           </div>
 
-          {/* 15. Sentiment rank across themes and prompts */}
-          <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Sentiment rank across themes and prompts" />
-            <CompetitorRankingCard rows={SENTIMENT_RANK_BY_THEME} rankCount={5} avatarOnly />
-          </div>
+          {/* 15. Sentiment rank across themes and prompts — hidden for now, kept for future use */}
+          {false && (
+            <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+              <CardHeader title="Sentiment rank across themes and prompts" />
+              <CompetitorRankingCard rows={SENTIMENT_RANK_BY_THEME} rankCount={5} avatarOnly />
+            </div>
+          )}
         </div>
       </div>
 
