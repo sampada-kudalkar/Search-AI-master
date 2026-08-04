@@ -1,5 +1,6 @@
 import { BackArrowIcon } from '../../assets/BackArrowIcon'
 import { Chip } from '../Chip/Chip'
+import type { SentimentNegativeDriverRow } from '../../data/sentimentReportData'
 import type { CitationSentimentDrawerProps } from './CitationSentimentDrawer.types'
 
 function DetailField({ label, value }: { label: string; value: string }) {
@@ -11,8 +12,13 @@ function DetailField({ label, value }: { label: string; value: string }) {
   )
 }
 
+function isNegativeDriverRow(row: NonNullable<CitationSentimentDrawerProps['row']>): row is SentimentNegativeDriverRow {
+  return 'negativeClaim' in row
+}
+
 export function CitationSentimentDrawer({ open, onClose, row }: CitationSentimentDrawerProps) {
   if (!row) return null
+  const isNegativeDriver = isNegativeDriverRow(row)
 
   return (
     <div className={`fixed inset-0 z-[100] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
@@ -35,7 +41,9 @@ export function CitationSentimentDrawer({ open, onClose, row }: CitationSentimen
           >
             <BackArrowIcon />
           </button>
-          <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">Citation sentiment details</h2>
+          <h2 className="text-[16px] leading-6 tracking-[-0.32px] text-text-primary">
+            {isNegativeDriver ? 'Negative sentiment driver details' : 'Citation sentiment details'}
+          </h2>
         </div>
 
         <div className="flex flex-1 flex-col gap-lg overflow-y-auto px-2xl pb-2xl">
@@ -44,33 +52,47 @@ export function CitationSentimentDrawer({ open, onClose, row }: CitationSentimen
             <p className="text-body text-text-primary">{row.webPage}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-lg gap-y-lg">
-            <DetailField label="Category" value={row.category} />
-            <DetailField label="Positive sentiment" value={`${row.positiveSentiment}%`} />
-            <DetailField label="Claim occurrence" value={String(row.claimOccurrence)} />
-          </div>
+          {isNegativeDriver ? (
+            <>
+              <DetailField label="Negative claim" value={row.negativeClaim} />
+              <DetailField label="Claim detail" value={row.claimDetail} />
+              <div className="grid grid-cols-2 gap-x-lg gap-y-lg">
+                <DetailField label="Claim occurrence" value={`${row.claimOccurrence}%`} />
+                <DetailField label="Citation share" value={`${row.citationShare}%`} />
+                <DetailField label="Sentiment" value={`${row.sentiment}%`} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-x-lg gap-y-lg">
+                <DetailField label="Category" value={row.category} />
+                <DetailField label="Positive sentiment" value={`${row.positiveSentiment}%`} />
+                <DetailField label="Claim occurrence" value={String(row.claimOccurrence)} />
+              </div>
 
-          <div className="border-t border-border pt-lg">
-            <p className="text-body text-text-primary">Strengths</p>
-            <div className="mt-sm flex flex-wrap gap-xs">
-              {row.strengths.length ? (
-                row.strengths.map((s) => <Chip key={s} label={s} variant="success" />)
-              ) : (
-                <span className="text-small text-text-tertiary">None noted</span>
-              )}
-            </div>
-          </div>
+              <div className="border-t border-border pt-lg">
+                <p className="text-body text-text-primary">Strengths</p>
+                <div className="mt-sm flex flex-wrap gap-xs">
+                  {row.strengths.length ? (
+                    row.strengths.map((s) => <Chip key={s} label={s} variant="success" />)
+                  ) : (
+                    <span className="text-small text-text-tertiary">None noted</span>
+                  )}
+                </div>
+              </div>
 
-          <div className="border-t border-border pt-lg">
-            <p className="text-body text-text-primary">Weaknesses</p>
-            <div className="mt-sm flex flex-wrap gap-xs">
-              {row.weaknesses.length ? (
-                row.weaknesses.map((w) => <Chip key={w} label={w} variant="danger" />)
-              ) : (
-                <span className="text-small text-text-tertiary">None noted</span>
-              )}
-            </div>
-          </div>
+              <div className="border-t border-border pt-lg">
+                <p className="text-body text-text-primary">Weaknesses</p>
+                <div className="mt-sm flex flex-wrap gap-xs">
+                  {row.weaknesses.length ? (
+                    row.weaknesses.map((w) => <Chip key={w} label={w} variant="danger" />)
+                  ) : (
+                    <span className="text-small text-text-tertiary">None noted</span>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </aside>
     </div>

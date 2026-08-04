@@ -7,7 +7,7 @@ import { DataTable } from '../DataTable/DataTable'
 import { DateRangeSelector } from '../DateRangeSelector/DateRangeSelector'
 import { SegmentedControl } from '../SegmentedControl/SegmentedControl'
 import { Icon } from '../Icon/Icon'
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import { chartColors } from '../charts/chartColors'
 import type { CompetitorRowData } from '../../data/competitorData'
 import { THEME_NAMES } from '../../data/themesData'
@@ -216,7 +216,7 @@ export function CitationShareCard({ themes = DEFAULT_THEMES, pageContext = 'bran
                 onChange={setDateRange}
               />
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                <AiIcon size={16} />
+                <SummarizeIcon size={16} />
               </button>
               <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
                 <Icon name="more_vert" size={16} className="text-text-icon" />

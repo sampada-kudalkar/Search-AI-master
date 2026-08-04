@@ -1,10 +1,7 @@
 export const AVATAR_COLORS = [
-  'bg-primary',
-  'bg-[#e91e63]',
-  'bg-[#ff9800]',
-  'bg-[#009688]',
-  'bg-[#607d8b]',
-  'bg-[#9c27b0]',
+  'bg-[#DAEAFB] text-[#1C78D3]',
+  'bg-[#DCF1D9] text-[#52B143]',
+  'bg-[#FDE3E1] text-[#F65D51]',
 ]
 
 export function getInitials(name: string): string {

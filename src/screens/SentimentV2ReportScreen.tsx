@@ -17,6 +17,8 @@ import {
   SentimentSwotGrid,
   SentimentComparisonMatrix,
   CompetitorSentimentDrawer,
+  CitationSentimentDrawer,
+  VisibilityRankingCard,
   type Column,
 } from '../components'
 import {
@@ -37,12 +39,14 @@ import {
   SENTIMENT_COMPARISON_MATRIX,
   SENTIMENT_RANK_BY_THEME,
   SENTIMENT_RANK_BY_LOCATION,
+  SENTIMENT_NEGATIVE_DRIVERS,
   type SentimentSwotPlatform,
   type SentimentImprovementRow,
   type SentimentLocationRow,
   type SentimentThemeRow,
   type SentimentPromptSubRow,
   type SentimentCompetitorRow,
+  type SentimentNegativeDriverRow,
 } from '../data/sentimentReportData'
 
 function SentimentText({ value }: { value: number }) {
@@ -147,6 +151,7 @@ interface PromptFlatRow extends Record<string, unknown> {
 
 export function SentimentV2ReportScreen() {
   const [competitorRow, setCompetitorRow] = useState<SentimentCompetitorRow | null>(null)
+  const [negativeDriverRow, setNegativeDriverRow] = useState<SentimentNegativeDriverRow | null>(null)
   const [month, setMonth] = useState(MONTH_OPTIONS[0])
   const [scopeView, setScopeView] = useState<'location' | 'brand'>('location')
   const [swotPlatform, setSwotPlatform] = useState<SentimentSwotPlatform>('ChatGPT')
@@ -267,6 +272,33 @@ export function SentimentV2ReportScreen() {
     },
   ]
 
+  const negativeDriverColumns: Column<SentimentNegativeDriverRow>[] = [
+    { key: 'webPage', label: 'Webpage', render: (v) => <span className="truncate text-[#212121]">{v as string}</span> },
+    {
+      key: 'negativeClaim',
+      label: 'Negative claim',
+      render: (_, row) => (
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-[#212121]">{row.negativeClaim}</span>
+          <span className="text-small text-text-tertiary">{row.claimDetail}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'claimOccurrence',
+      label: (
+        <span className="flex items-center gap-xs">
+          Claim occurrence
+          <InfoTooltip text="Frequency of this claim among responses that have sentiment for your brand" />
+        </span>
+      ),
+      width: 160,
+      render: (v) => <span className="text-[#212121]">{v as number}%</span>,
+    },
+    { key: 'citationShare', label: 'Citation share', width: 140, render: (v) => <span className="text-[#212121]">{v as number}%</span> },
+    { key: 'sentiment', label: 'Sentiment', width: 120, render: (v) => <SentimentText value={v as number} /> },
+  ]
+
   return (
     <div className="flex flex-1 flex-col min-h-0 min-w-0">
       <div className="flex h-[64px] shrink-0 items-center gap-sm px-2xl py-sm bg-surface">
@@ -385,6 +417,20 @@ export function SentimentV2ReportScreen() {
             />
           </div>
 
+          {/* 5c. Top negative sentiment drivers */}
+          <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+            <CardHeader
+              title="What are your top negative sentiment drivers?"
+              subtitle="Web pages most frequently cited for top negative claims across AI sites."
+            />
+            <DataTable<SentimentNegativeDriverRow>
+              columns={negativeDriverColumns}
+              data={SENTIMENT_NEGATIVE_DRIVERS}
+              autoRowHeight
+              onRowClick={setNegativeDriverRow}
+            />
+          </div>
+
           {/* 6. Strengths and weaknesses */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
             <CardHeader
@@ -413,20 +459,22 @@ export function SentimentV2ReportScreen() {
             </div>
           )}
 
-          {/* 8. How are you ranking against competitors across all locations */}
-          <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader
-              title={
-                <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
-                  How are you ranking against competitors across
-                  <LocationDropdown selected={rankingLocation} onChange={setRankingLocation} options={THEME_LOCATIONS} />
-                </span>
-              }
-              subtitle="Analyze your positive sentiment versus your competitors across AI sites"
-              toolbar={COMPETITOR_RANKING_TOOLBAR}
-            />
-            <CompetitorRankingCard mode="locations" data={SENTIMENT_RANK_BY_LOCATION} hideHeader />
-          </div>
+          {/* 8. How are you ranking against competitors across all locations — hidden, superseded by VisibilityRankingCard above */}
+          {false && (
+            <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+              <CardHeader
+                title={
+                  <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+                    How are you ranking against competitors across
+                    <LocationDropdown selected={rankingLocation} onChange={setRankingLocation} options={THEME_LOCATIONS} />
+                  </span>
+                }
+                subtitle="Analyze your positive sentiment versus your competitors across AI sites"
+                toolbar={COMPETITOR_RANKING_TOOLBAR}
+              />
+              <CompetitorRankingCard mode="locations" data={SENTIMENT_RANK_BY_LOCATION} hideHeader />
+            </div>
+          )}
 
           {/* 9. Sentiment across locations — hidden for now, kept for future use */}
           {false && (
@@ -473,6 +521,9 @@ export function SentimentV2ReportScreen() {
             </div>
           )}
 
+          {/* 5b. Review — visibility ranking card (themes/prompts, 10 ranks, avatar-only) */}
+          <VisibilityRankingCard />
+
           {/* 13. Sentiment breakdown by competitors */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
             <CardHeader
@@ -495,7 +546,11 @@ export function SentimentV2ReportScreen() {
 
           {/* 14. Competitive strengths and weakness matrix */}
           <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-            <CardHeader title="Competitive strengths and weakness matrix" toolbar={AI_SUMMARY_TOOLBAR} />
+            <CardHeader
+              title="What are your competitive strengths and weaknesses by strengths and traits?"
+              subtitle="Analyzed across the traits: what are your strengths, how is your positive sentiment compared to competitors?"
+              toolbar={AI_SUMMARY_TOOLBAR}
+            />
             <SentimentComparisonMatrix
               traits={SENTIMENT_MATRIX_TRAITS}
               competitors={SENTIMENT_MATRIX_COMPETITORS}
@@ -514,6 +569,7 @@ export function SentimentV2ReportScreen() {
       </div>
 
       <CompetitorSentimentDrawer open={!!competitorRow} row={competitorRow} onClose={() => setCompetitorRow(null)} />
+      <CitationSentimentDrawer open={!!negativeDriverRow} row={negativeDriverRow} onClose={() => setNegativeDriverRow(null)} />
     </div>
   )
 }

@@ -209,6 +209,26 @@ export const SENTIMENT_BY_CITATION: SentimentCitationRow[] = [
   { id: 'cit-6', webPage: 'facebook.com/myfamilydentalqld', category: 'Social', positiveSentiment: 88, strengths: ['Patient-first approach', 'Affordable care'], weaknesses: [], claimOccurrence: 33 },
 ]
 
+// ── Top negative sentiment drivers ───────────────────────────────────────────
+
+export interface SentimentNegativeDriverRow extends Record<string, unknown> {
+  id: string
+  webPage: string
+  negativeClaim: string
+  claimDetail: string
+  claimOccurrence: number
+  citationShare: number
+  sentiment: number
+}
+
+export const SENTIMENT_NEGATIVE_DRIVERS: SentimentNegativeDriverRow[] = [
+  { id: 'neg-1', webPage: 'myfamilydentalqld.com.au/pricing', negativeClaim: 'Overkill for a routine checkup', claimDetail: '"recommended treatment beyond a standard cleaning"', claimOccurrence: 34, citationShare: 22, sentiment: 41 },
+  { id: 'neg-2', webPage: 'ratemyclinic.com.au', negativeClaim: 'Long wait times for appointments', claimDetail: '"had to wait 3 weeks for a slot"', claimOccurrence: 27, citationShare: 18, sentiment: 38 },
+  { id: 'neg-3', webPage: 'google.com/maps/reviews', negativeClaim: 'Pushy upsell on cosmetic services', claimDetail: '"kept pushing whitening add-ons"', claimOccurrence: 19, citationShare: 15, sentiment: 45 },
+  { id: 'neg-4', webPage: 'reddit.com/r/townsville', negativeClaim: 'Billing confusion after visits', claimDetail: '"the quote didn\'t match the final bill"', claimOccurrence: 16, citationShare: 11, sentiment: 47 },
+  { id: 'neg-5', webPage: 'facebook.com/myfamilydentalqld', negativeClaim: 'Difficult to reschedule online', claimDetail: '"had to call three times to move an appointment"', claimOccurrence: 12, citationShare: 9, sentiment: 52 },
+]
+
 // ── Sentiment by location ────────────────────────────────────────────────────
 
 export interface SentimentLocationRow extends Record<string, unknown> {
@@ -340,14 +360,14 @@ export const SENTIMENT_MATRIX_COMPETITORS: { name: string; isYou?: boolean }[] =
   { name: 'Riverside Family Dental' },
 ]
 
-// trait -> competitor name -> present
-export const SENTIMENT_COMPARISON_MATRIX: Record<string, Record<string, boolean>> = {
-  'Friendly staff': { [BRAND_NAME]: true, 'Bowen Dental': true, 'Innisfail Dentists': false, 'Deeragun Dental': true, 'Absolutely Dental @ Kirwan Plaza': false, 'Serenity Dental CQ': true, 'National Dental Care': false, 'Riverside Family Dental': true },
-  'Fast appointment availability': { [BRAND_NAME]: true, 'Bowen Dental': false, 'Innisfail Dentists': true, 'Deeragun Dental': true, 'Absolutely Dental @ Kirwan Plaza': false, 'Serenity Dental CQ': false, 'National Dental Care': true, 'Riverside Family Dental': false },
-  'Transparent pricing': { [BRAND_NAME]: true, 'Bowen Dental': false, 'Innisfail Dentists': false, 'Deeragun Dental': false, 'Absolutely Dental @ Kirwan Plaza': true, 'Serenity Dental CQ': false, 'National Dental Care': false, 'Riverside Family Dental': true },
-  'Modern equipment': { [BRAND_NAME]: false, 'Bowen Dental': true, 'Innisfail Dentists': true, 'Deeragun Dental': false, 'Absolutely Dental @ Kirwan Plaza': false, 'Serenity Dental CQ': true, 'National Dental Care': true, 'Riverside Family Dental': false },
-  'Gentle with anxious patients': { [BRAND_NAME]: true, 'Bowen Dental': false, 'Innisfail Dentists': false, 'Deeragun Dental': false, 'Absolutely Dental @ Kirwan Plaza': false, 'Serenity Dental CQ': true, 'National Dental Care': false, 'Riverside Family Dental': false },
-  'Emergency care availability': { [BRAND_NAME]: true, 'Bowen Dental': true, 'Innisfail Dentists': false, 'Deeragun Dental': true, 'Absolutely Dental @ Kirwan Plaza': true, 'Serenity Dental CQ': false, 'National Dental Care': false, 'Riverside Family Dental': false },
+// trait -> competitor name -> positive sentiment score (0-100), or undefined if no data
+export const SENTIMENT_COMPARISON_MATRIX: Record<string, Record<string, number | undefined>> = {
+  'Friendly staff': { [BRAND_NAME]: 97, 'Bowen Dental': 86, 'Innisfail Dentists': 42, 'Deeragun Dental': 91, 'Absolutely Dental @ Kirwan Plaza': 38, 'Serenity Dental CQ': 84, 'National Dental Care': 61, 'Riverside Family Dental': 88 },
+  'Fast appointment availability': { [BRAND_NAME]: 92, 'Bowen Dental': 47, 'Innisfail Dentists': 79, 'Deeragun Dental': 90, 'Absolutely Dental @ Kirwan Plaza': 33, 'Serenity Dental CQ': 55, 'National Dental Care': 81, 'Riverside Family Dental': 44 },
+  'Transparent pricing': { [BRAND_NAME]: 88, 'Bowen Dental': 41, 'Innisfail Dentists': undefined, 'Deeragun Dental': 39, 'Absolutely Dental @ Kirwan Plaza': 83, 'Serenity Dental CQ': 45, 'National Dental Care': 29, 'Riverside Family Dental': 90 },
+  'Modern equipment': { [BRAND_NAME]: 62, 'Bowen Dental': 81, 'Innisfail Dentists': 85, 'Deeragun Dental': 48, 'Absolutely Dental @ Kirwan Plaza': undefined, 'Serenity Dental CQ': 79, 'National Dental Care': 87, 'Riverside Family Dental': 51 },
+  'Gentle with anxious patients': { [BRAND_NAME]: 94, 'Bowen Dental': 36, 'Innisfail Dentists': 44, 'Deeragun Dental': 40, 'Absolutely Dental @ Kirwan Plaza': 27, 'Serenity Dental CQ': 82, 'National Dental Care': 35, 'Riverside Family Dental': 46 },
+  'Emergency care availability': { [BRAND_NAME]: 91, 'Bowen Dental': 85, 'Innisfail Dentists': 41, 'Deeragun Dental': 89, 'Absolutely Dental @ Kirwan Plaza': 78, 'Serenity Dental CQ': undefined, 'National Dental Care': 32, 'Riverside Family Dental': 37 },
 }
 
 // ── Sentiment rank across themes/prompts and locations ──────────────────────

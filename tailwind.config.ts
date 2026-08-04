@@ -47,6 +47,9 @@ export default {
           danger: { bg: '#fef6f5', text: '#de1b0c' }, // Red/10 · negative
           neutral: { bg: '#eaeaea', text: '#555555' }, // Gray/40 · Gray/300
           info: { bg: '#e8f1fc', text: '#1976d2' }, // Blue/10 · Blue/300 — "Starts next cycle"
+          'swot-strength': { bg: '#4CAE3D', text: '#ffffff' }, // Sentiment SWOT — Strengths pill
+          'swot-weakness': { bg: '#F3382B', text: '#ffffff' }, // Sentiment SWOT — Weaknesses pill
+          'swot-neutral': { bg: '#8F8F8F', text: '#ffffff' }, // Sentiment SWOT — Opportunities/Threats pill
         },
       },
       spacing: {

@@ -3,7 +3,7 @@ import { CardHeader } from '../CardHeader/CardHeader'
 import { CardTabs } from '../CardTabs/CardTabs'
 import { DataTable } from '../DataTable/DataTable'
 import { Icon } from '../Icon/Icon'
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import {
   THEME_VISIBILITY_DATA,
   THEME_VISIBILITY_PLATFORMS,
@@ -181,7 +181,7 @@ export function ThemeVisibilityCard({ rows = THEME_VISIBILITY_DATA }: ThemeVisib
         className="flex items-center justify-center rounded-sm border border-border-selected bg-surface p-[8px] hover:bg-surface-hover"
         title="Summarize"
       >
-        <AiIcon size={16} />
+        <SummarizeIcon size={16} />
       </button>
       <button
         type="button"

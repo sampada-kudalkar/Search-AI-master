@@ -1,4 +1,4 @@
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import { Chip } from '../Chip/Chip'
 import type { ChipProps } from '../Chip/Chip.types'
 import type { SentimentSwotGridProps, SentimentSwotItem } from './SentimentSwotGrid.types'
@@ -26,26 +26,26 @@ function Pill({ label, variant, align }: { label: string; variant: ChipProps['va
 
 export function SentimentSwotGrid({ strengths, weaknesses, opportunities, threats }: SentimentSwotGridProps) {
   return (
-    <div className="relative grid grid-cols-2 rounded-md bg-[#E2D6F4]">
+    <div className="relative grid grid-cols-2 rounded-md bg-ai-summary">
       <div className="flex flex-col gap-lg border-b border-r border-border p-xl">
-        <Pill label="Strengths" variant="success" align="start" />
+        <Pill label="Strengths" variant="swot-strength" align="start" />
         <ItemList items={strengths} />
       </div>
       <div className="flex flex-col gap-lg border-b border-border p-xl">
-        <Pill label="Weaknesses" variant="danger" align="end" />
+        <Pill label="Weaknesses" variant="swot-weakness" align="end" />
         <ItemList items={weaknesses} />
       </div>
       <div className="flex flex-col gap-lg border-r border-border p-xl">
         <ItemList items={opportunities} />
-        <Pill label="Opportunities" variant="neutral" align="start" />
+        <Pill label="Opportunities" variant="swot-neutral" align="start" />
       </div>
       <div className="flex flex-col gap-lg p-xl">
         <ItemList items={threats} />
-        <Pill label="Threats" variant="neutral" align="end" />
+        <Pill label="Threats" variant="swot-neutral" align="end" />
       </div>
 
       <div className="absolute left-1/2 top-1/2 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface">
-        <AiIcon size={16} />
+        <SummarizeIcon size={16} />
       </div>
     </div>
   )

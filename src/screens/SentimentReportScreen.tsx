@@ -13,7 +13,7 @@ import {
   InfoTooltip,
   DateRangeSelector,
   SegmentedControl,
-  AiIcon,
+  SummarizeIcon,
   SentimentSwotGrid,
   SentimentComparisonMatrix,
   CitationSentimentDrawer,
@@ -201,7 +201,7 @@ function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: Sentim
               type="button"
               className="flex h-[32px] w-[32px] items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover"
             >
-              <AiIcon size={16} />
+              <SummarizeIcon size={16} />
             </button>
           </div>
         }

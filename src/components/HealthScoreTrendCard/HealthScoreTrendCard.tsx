@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CardHeader } from '../CardHeader/CardHeader'
 import { TrendLineChart } from '../charts/TrendLineChart'
 import { DateRangeSelector } from '../DateRangeSelector/DateRangeSelector'
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import { MoreMenu } from '../charts/ChartCard'
 import type { HealthScoreTrendCardProps } from './HealthScoreTrendCard.types'
 
@@ -29,7 +29,7 @@ export function HealthScoreTrendCard({
                 type="button"
                 className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover"
               >
-                <AiIcon size={16} />
+                <SummarizeIcon size={16} />
               </button>
               <MoreMenu />
             </div>

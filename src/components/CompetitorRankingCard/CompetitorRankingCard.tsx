@@ -15,7 +15,7 @@ function ArrowDiagonalIcon() {
   )
 }
 import { Icon } from '../Icon/Icon'
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import { CardHeader } from '../CardHeader/CardHeader'
 import { CardTabs } from '../CardTabs/CardTabs'
 import { DataTable } from '../DataTable/DataTable'
@@ -44,7 +44,7 @@ function RankCell({ entry, avatarOnly = false }: { entry?: RankingEntry | { name
   }
   return (
     <div className="flex items-center gap-[8px]">
-      <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${getCompetitorColor(entry.name)} text-[10px] font-medium text-white`}>
+      <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${getCompetitorColor(entry.name)} text-[10px]`}>
         {getInitials(entry.name)}
       </span>
       {!avatarOnly && <span className="text-[13px] text-text-primary truncate">{entry.name}</span>}
@@ -171,7 +171,7 @@ export const COMPETITOR_RANKING_TOOLBAR = (
       className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
       title="Summarize"
     >
-      <AiIcon size={16} />
+      <SummarizeIcon size={16} />
     </button>
     <button
       type="button"
@@ -190,7 +190,7 @@ export const AI_SUMMARY_TOOLBAR = (
       className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
       title="Summarize"
     >
-      <AiIcon size={16} />
+      <SummarizeIcon size={16} />
     </button>
     <button
       type="button"
@@ -463,7 +463,7 @@ function ThemesCard({
                 className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-hover"
                 title="Summarize"
               >
-                <AiIcon size={16} />
+                <SummarizeIcon size={16} />
               </button>
               <button
                 type="button"

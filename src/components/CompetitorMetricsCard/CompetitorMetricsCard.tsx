@@ -8,7 +8,7 @@ function ArrowDiagonalIcon() {
   )
 }
 import { Icon } from '../Icon/Icon'
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import { DataTable } from '../DataTable/DataTable'
 import type { Column } from '../DataTable/DataTable.types'
@@ -128,7 +128,7 @@ export function CompetitorMetricsCard({ rows, onRowClick, selectedCompetitor, pa
                 className="flex items-center justify-center rounded-sm border border-border bg-surface p-[8px] hover:bg-surface-l2"
                 title="Summarize"
               >
-                <AiIcon size={16} />
+                <SummarizeIcon size={16} />
               </button>
               <button
                 type="button"

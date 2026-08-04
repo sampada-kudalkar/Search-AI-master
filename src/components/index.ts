@@ -1,4 +1,5 @@
 export { AiIcon } from './AiIcon/AiIcon'
+export { SummarizeIcon } from './SummarizeIcon/SummarizeIcon'
 export { Toggle } from './Toggle/Toggle'
 export type { ToggleProps } from './Toggle/Toggle.types'
 export { PromptDetailModal } from './PromptDetailModal/PromptDetailModal'

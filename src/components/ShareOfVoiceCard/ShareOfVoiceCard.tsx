@@ -5,7 +5,7 @@ import { CardTabs } from '../CardTabs/CardTabs'
 import { ChartTooltip } from '../charts/ChartTooltip'
 import { DataTable } from '../DataTable/DataTable'
 import { Icon } from '../Icon/Icon'
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 import {
   SHARE_OF_VOICE_DATA,
@@ -125,7 +125,7 @@ export function ShareOfVoiceCard({ selectedCompetitor }: ShareOfVoiceCardProps) 
         <Icon name="expand_more" size={20} className="text-text-icon" />
       </button>
       <button className="relative flex size-[36px] items-center justify-center rounded-sm border border-border-selected bg-surface hover:bg-surface-hover">
-        <AiIcon size={16} />
+        <SummarizeIcon size={16} />
       </button>
       <button className="flex size-[36px] items-center justify-center rounded-sm border border-border-selected bg-surface text-text-icon hover:bg-surface-hover">
         <Icon name="more_vert" size={20} />

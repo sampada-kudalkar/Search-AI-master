@@ -1,7 +1,7 @@
-import type { SentimentCitationRow } from '../../data/sentimentReportData'
+import type { SentimentCitationRow, SentimentNegativeDriverRow } from '../../data/sentimentReportData'
 
 export interface CitationSentimentDrawerProps {
   open: boolean
   onClose: () => void
-  row: SentimentCitationRow | null
+  row: SentimentCitationRow | SentimentNegativeDriverRow | null
 }

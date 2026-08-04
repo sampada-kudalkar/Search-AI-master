@@ -11,7 +11,7 @@ import {
 import { ChartCard } from '../charts/ChartCard'
 import { CardTabs } from '../CardTabs/CardTabs'
 import { chartColors } from '../charts/chartColors'
-import { AiIcon } from '../AiIcon/AiIcon'
+import { SummarizeIcon } from '../SummarizeIcon/SummarizeIcon'
 import { getInitials } from '../../utils/competitorAvatar'
 import { RANKING_PLATFORMS, BRAND_NAME } from '../../data/competitorData'
 import type { BrandDot, RankingPlatform } from '../../data/competitorData'
@@ -190,7 +190,7 @@ function BrandLegend({ dots }: { dots: BrandDot[] }) {
 
 const aiToolbar = (
   <button className="flex size-[36px] items-center justify-center rounded-sm border border-border-selected bg-surface hover:bg-surface-hover">
-    <AiIcon size={16} />
+    <SummarizeIcon size={16} />
   </button>
 )
 

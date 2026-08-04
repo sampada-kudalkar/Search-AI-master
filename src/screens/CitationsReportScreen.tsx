@@ -7,7 +7,7 @@ import {
   ChartCard,
   CardTabs,
   SegmentedControl,
-  AiIcon,
+  SummarizeIcon,
   TrendLineChart,
   DataTable,
   chartColors,
@@ -364,7 +364,7 @@ export function CitationsReportScreen() {
                     onChange={setBrandCitedDateRange}
                   />
                   <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                    <AiIcon size={16} />
+                    <SummarizeIcon size={16} />
                   </button>
                 </div>
               }
@@ -418,7 +418,7 @@ export function CitationsReportScreen() {
                   onChange={setCitedDateRange}
                 />
                 <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                  <AiIcon size={16} />
+                  <SummarizeIcon size={16} />
                 </button>
               </div>
             }
@@ -464,7 +464,7 @@ export function CitationsReportScreen() {
                   onChange={setComparisonDateRange}
                 />
                 <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                  <AiIcon size={16} />
+                  <SummarizeIcon size={16} />
                 </button>
               </div>
             }
@@ -534,7 +534,7 @@ export function CitationsReportScreen() {
                   onChange={setSourceTypeDateRange}
                 />
                 <button className="flex items-center justify-center w-[32px] h-[32px] rounded-sm border border-border bg-surface hover:bg-surface-hover">
-                  <AiIcon size={16} />
+                  <SummarizeIcon size={16} />
                 </button>
               </div>
             }
