@@ -13,6 +13,7 @@ import {
 } from './competitorData'
 import { THEMES } from './themesData'
 import type { Metric } from '../components/MetricTiles/MetricTiles.types'
+import type { SummaryCardStat } from '../components/SummaryCard/SummaryCard.types'
 import type { TrendPoint, SeriesConfig } from '../components/charts/TrendLineChart'
 
 export const SENTIMENT_AI_SITES = ['ChatGPT', 'Gemini', 'Perplexity', 'Google AI Mode', 'Grok', 'Claude'] as const
@@ -75,6 +76,121 @@ export const BRAND_SENTIMENT_BY_AI_SITE: Metric[] = [
   { id: 'google-ai-mode', value: '84%', label: 'Google AI Mode', delta: '2.2%', trend: 'up' },
   { id: 'grok', value: '80%', label: 'Grok', delta: '1.1%', trend: 'up' },
   { id: 'claude', value: '82%', label: 'Claude', delta: '0.3%', trend: 'up' },
+]
+
+// ── Sentiment breakdown by AI site, collapsed to 4 tiles (Brand/Prompt tab section) ──
+// "Others" combines the remaining AI sites (Google AI Mode / Grok / Claude) behind a tooltip.
+
+export const BRAND_SENTIMENT_BY_AI_SITE_TILES: SummaryCardStat[] = [
+  { id: 'chatgpt', value: '85%', label: 'ChatGPT', delta: '1.8%', trend: 'up' },
+  { id: 'gemini', value: '81%', label: 'Gemini', delta: '0.9%', trend: 'up' },
+  { id: 'perplexity', value: '77%', label: 'Perplexity', delta: '0.4%', trend: 'down' },
+  {
+    id: 'others',
+    value: '83%',
+    label: 'Others',
+    delta: '1.3%',
+    trend: 'up',
+    tooltip: 'Google AI Mode: 84%\nGrok: 80%\nClaude: 82%',
+  },
+]
+
+export const PROMPT_SENTIMENT_BY_AI_SITE_TILES: SummaryCardStat[] = [
+  { id: 'chatgpt', value: '82%', label: 'ChatGPT', delta: '1.2%', trend: 'up' },
+  { id: 'gemini', value: '78%', label: 'Gemini', delta: '0.6%', trend: 'up' },
+  { id: 'perplexity', value: '73%', label: 'Perplexity', delta: '0.5%', trend: 'down' },
+  {
+    id: 'others',
+    value: '79%',
+    label: 'Others',
+    delta: '0.9%',
+    trend: 'up',
+    tooltip: 'Google AI Mode: 80%\nGrok: 76%\nClaude: 79%',
+  },
+]
+
+// ── Most mentioned traits (Brand tab) ────────────────────────────────────────
+
+export interface SentimentTraitClaimRow extends Record<string, unknown> {
+  _id: string
+  claim: string
+  occurrences: number
+  occurrencePercent: number
+  citedWebsites: string[]
+  sentiment: 'positive' | 'negative'
+}
+
+export interface SentimentTraitRow extends Record<string, unknown> {
+  _id: string
+  trait: string
+  occurrences: number
+  occurrencePercent: number
+  citedWebsites: string[]
+  sentimentPercent: number
+  claims: SentimentTraitClaimRow[]
+}
+
+export const SENTIMENT_TRAITS: SentimentTraitRow[] = [
+  {
+    _id: 'trait-root-canal',
+    trait: 'Root canal',
+    occurrences: 41,
+    occurrencePercent: 18,
+    citedWebsites: ['myfamilydentalqld.com.au/reviews', 'google.com/maps/reviews', 'healthdirect.gov.au'],
+    sentimentPercent: 92,
+    claims: [
+      { _id: 'claim-root-canal-1', claim: 'Painless root canal treatment', occurrences: 24, occurrencePercent: 10, citedWebsites: ['myfamilydentalqld.com.au/reviews', 'google.com/maps/reviews'], sentiment: 'positive' },
+      { _id: 'claim-root-canal-2', claim: 'Root canal treatment took longer than expected', occurrences: 17, occurrencePercent: 7, citedWebsites: ['healthdirect.gov.au'], sentiment: 'negative' },
+    ],
+  },
+  {
+    _id: 'trait-teeth-whitening',
+    trait: 'Teeth whitening',
+    occurrences: 33,
+    occurrencePercent: 14,
+    citedWebsites: ['myfamilydentalqld.com.au/reviews', 'facebook.com/myfamilydentalqld'],
+    sentimentPercent: 88,
+    claims: [
+      { _id: 'claim-teeth-whitening-1', claim: 'Noticeably brighter smile after treatment', occurrences: 21, occurrencePercent: 9, citedWebsites: ['facebook.com/myfamilydentalqld'], sentiment: 'positive' },
+      { _id: 'claim-teeth-whitening-2', claim: 'Whitening results faded faster than expected', occurrences: 12, occurrencePercent: 5, citedWebsites: ['ratemyclinic.com.au'], sentiment: 'negative' },
+    ],
+  },
+  {
+    _id: 'trait-emergency-care',
+    trait: 'Emergency care',
+    occurrences: 27,
+    occurrencePercent: 12,
+    citedWebsites: ['myfamilydentalqld.com.au/reviews', 'reddit.com/r/townsville'],
+    sentimentPercent: 74,
+    claims: [
+      { _id: 'claim-emergency-care-1', claim: 'Same-day emergency appointment availability', occurrences: 18, occurrencePercent: 8, citedWebsites: ['myfamilydentalqld.com.au/reviews'], sentiment: 'positive' },
+      { _id: 'claim-emergency-care-2', claim: 'Difficult to reach after-hours for urgent care', occurrences: 9, occurrencePercent: 4, citedWebsites: ['reddit.com/r/townsville'], sentiment: 'negative' },
+    ],
+  },
+  {
+    _id: 'trait-invisalign',
+    trait: 'Invisalign',
+    occurrences: 19,
+    occurrencePercent: 8,
+    citedWebsites: ['google.com/maps/reviews'],
+    sentimentPercent: 69,
+    claims: [
+      { _id: 'claim-invisalign-1', claim: 'Clear aligners preferred over traditional braces', occurrences: 11, occurrencePercent: 5, citedWebsites: ['google.com/maps/reviews'], sentiment: 'positive' },
+      { _id: 'claim-invisalign-2', claim: 'Invisalign treatment cost higher than quoted', occurrences: 8, occurrencePercent: 3, citedWebsites: ['ratemyclinic.com.au'], sentiment: 'negative' },
+    ],
+  },
+  {
+    _id: 'trait-pediatric-dentistry',
+    trait: 'Pediatric dentistry',
+    occurrences: 12,
+    occurrencePercent: 5,
+    citedWebsites: ['healthdirect.gov.au', 'facebook.com/myfamilydentalqld'],
+    sentimentPercent: 81,
+    claims: [
+      { _id: 'claim-pediatric-dentistry-1', claim: 'Kid-friendly, calming environment for first visits', occurrences: 8, occurrencePercent: 3, citedWebsites: ['facebook.com/myfamilydentalqld'], sentiment: 'positive' },
+      { _id: 'claim-pediatric-dentistry-2', claim: 'Limited pediatric appointment slots on weekends', occurrences: 4, occurrencePercent: 2, citedWebsites: ['healthdirect.gov.au'], sentiment: 'negative' },
+    ],
+  },
 ]
 
 // ── Improvement areas table ──────────────────────────────────────────────────
@@ -251,6 +367,15 @@ export const SENTIMENT_BY_LOCATION: SentimentLocationRow[] = [
   { id: 'loc-cairns', location: 'Cairns', sentiment: 75, delta: 0.3, chatgpt: 77, gemini: 73, perplexity: 69, googleAiMode: 76, grok: 72, claude: 74 },
   { id: 'loc-deeragun', location: 'Deeragun', sentiment: 82, delta: 1.9, chatgpt: 84, gemini: 80, perplexity: 76, googleAiMode: 83, grok: 79, claude: 81 },
   { id: 'loc-kirwan-plaza', location: 'Kirwan Plaza', sentiment: 79, delta: 0.7, chatgpt: 81, gemini: 77, perplexity: 73, googleAiMode: 80, grok: 76, claude: 78 },
+]
+
+export const PROMPT_SENTIMENT_BY_LOCATION: SentimentLocationRow[] = [
+  { id: 'loc-townsville', location: 'Townsville', sentiment: 80, delta: 1.7, chatgpt: 82, gemini: 78, perplexity: 74, googleAiMode: 81, grok: 77, claude: 79 },
+  { id: 'loc-bowen', location: 'Bowen', sentiment: 75, delta: -0.9, chatgpt: 77, gemini: 73, perplexity: 69, googleAiMode: 76, grok: 72, claude: 74 },
+  { id: 'loc-innisfail', location: 'Innisfail', sentiment: 77, delta: 1.1, chatgpt: 79, gemini: 75, perplexity: 71, googleAiMode: 78, grok: 74, claude: 76 },
+  { id: 'loc-cairns', location: 'Cairns', sentiment: 72, delta: 0.1, chatgpt: 74, gemini: 70, perplexity: 66, googleAiMode: 73, grok: 69, claude: 71 },
+  { id: 'loc-deeragun', location: 'Deeragun', sentiment: 79, delta: 1.5, chatgpt: 81, gemini: 77, perplexity: 73, googleAiMode: 80, grok: 76, claude: 78 },
+  { id: 'loc-kirwan-plaza', location: 'Kirwan Plaza', sentiment: 76, delta: 0.4, chatgpt: 78, gemini: 74, perplexity: 70, googleAiMode: 77, grok: 73, claude: 75 },
 ]
 
 // ── Prompt tab ────────────────────────────────────────────────────────────────

@@ -1,11 +1,15 @@
 import { SummaryCardProps } from './SummaryCard.types'
+import { InfoTooltip } from '../InfoTooltip/InfoTooltip'
 
-export function SummaryCard({ title, subtitle, stats, toolbar }: SummaryCardProps) {
+export function SummaryCard({ title, subtitle, titleTooltip, stats, toolbar }: SummaryCardProps) {
   return (
     <section className="rounded-md border border-border bg-surface p-2xl">
       <div className="flex items-start justify-between gap-md">
         <div>
-          <h3 className="text-[16px] leading-6 tracking-[-0.32px] text-text-secondary">{title}</h3>
+          <h3 className="flex items-center gap-xs text-[16px] leading-6 tracking-[-0.32px] text-text-secondary">
+            {title}
+            {titleTooltip && <InfoTooltip text={titleTooltip} />}
+          </h3>
           {subtitle && <p className="mt-[2px] text-small text-text-secondary">{subtitle}</p>}
         </div>
         {toolbar && <div className="flex items-center gap-[8px] shrink-0 ml-md">{toolbar}</div>}
@@ -23,7 +27,10 @@ export function SummaryCard({ title, subtitle, stats, toolbar }: SummaryCardProp
                   </span>
                 )}
               </div>
-              <p className="mt-[4px] text-body text-text-secondary">{s.label}</p>
+              <p className="mt-[4px] flex items-center gap-xs text-body text-text-secondary">
+                {s.label}
+                {s.tooltip && <InfoTooltip text={s.tooltip} />}
+              </p>
             </div>
           )
         })}

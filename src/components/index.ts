@@ -151,6 +151,13 @@ export { BrandScatterplotCard } from './BrandScatterplotCard/BrandScatterplotCar
 export type { BrandScatterplotCardProps } from './BrandScatterplotCard/BrandScatterplotCard.types'
 export { SummaryCard } from './SummaryCard/SummaryCard'
 export type { SummaryCardProps, SummaryCardStat } from './SummaryCard/SummaryCard.types'
+
+export { SentimentAiSiteSection, SentimentAiSiteTable } from './SentimentAiSiteSection/SentimentAiSiteSection'
+export type {
+  SentimentAiSiteSectionProps,
+  SentimentAiSiteTableProps,
+  SentimentAiSiteLocationRow,
+} from './SentimentAiSiteSection/SentimentAiSiteSection.types'
 export { ThemesPromptsTable } from './ThemesPromptsTable/ThemesPromptsTable'
 export type { ThemesPromptsTableProps } from './ThemesPromptsTable/ThemesPromptsTable.types'
 export { ThemesInsightBanner } from './ThemesInsightBanner/ThemesInsightBanner'
@@ -192,6 +199,8 @@ export { CitationSentimentDrawer } from './CitationSentimentDrawer/CitationSenti
 export type { CitationSentimentDrawerProps } from './CitationSentimentDrawer/CitationSentimentDrawer.types'
 export { CompetitorSentimentDrawer } from './CompetitorSentimentDrawer/CompetitorSentimentDrawer'
 export type { CompetitorSentimentDrawerProps } from './CompetitorSentimentDrawer/CompetitorSentimentDrawer.types'
+export { MostMentionedTraitsCard } from './MostMentionedTraitsCard/MostMentionedTraitsCard'
+export type { MostMentionedTraitsCardProps } from './MostMentionedTraitsCard/MostMentionedTraitsCard.types'
 export { ScoreBreakdownDrawer } from './ScoreBreakdownDrawer/ScoreBreakdownDrawer'
 export type {
   ScoreBreakdownDrawerProps,

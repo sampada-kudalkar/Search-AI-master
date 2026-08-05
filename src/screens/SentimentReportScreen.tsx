@@ -4,10 +4,8 @@ import {
   CardHeader,
   CardTabs,
   ChartCard,
-  SummaryCard,
   DataTable,
   TrendLineChart,
-  CompetitorRankingCard,
   Chip,
   Icon,
   InfoTooltip,
@@ -16,8 +14,10 @@ import {
   SummarizeIcon,
   SentimentSwotGrid,
   SentimentComparisonMatrix,
+  SentimentAiSiteSection,
   CitationSentimentDrawer,
   CompetitorSentimentDrawer,
+  MostMentionedTraitsCard,
   type Tab,
   type Column,
 } from '../components'
@@ -25,22 +25,22 @@ import {
   SENTIMENT_SUMMARY,
   SENTIMENT_TREND,
   SENTIMENT_TREND_SERIES,
-  SENTIMENT_BY_AI_SITE,
-  BRAND_SENTIMENT_BY_AI_SITE,
+  BRAND_SENTIMENT_BY_AI_SITE_TILES,
+  PROMPT_SENTIMENT_BY_AI_SITE_TILES,
   SENTIMENT_SWOT_PLATFORMS,
   SENTIMENT_SWOT,
   SENTIMENT_IMPROVEMENT_AREAS,
   SENTIMENT_BY_CITATION,
   SENTIMENT_BY_LOCATION,
-  PROMPT_SENTIMENT_BREAKDOWN,
+  PROMPT_SENTIMENT_BY_LOCATION,
   SENTIMENT_BY_THEME_AND_PROMPT,
   SENTIMENT_COMPETITORS,
   SENTIMENT_BY_COMPETITOR,
   SENTIMENT_MATRIX_TRAITS,
   SENTIMENT_MATRIX_COMPETITORS,
   SENTIMENT_COMPARISON_MATRIX,
-  SENTIMENT_RANK_BY_THEME,
-  SENTIMENT_RANK_BY_LOCATION,
+  SENTIMENT_TRAITS,
+  SENTIMENT_NEGATIVE_DRIVERS,
   type SentimentSwotPlatform,
   type SentimentImprovementRow,
   type SentimentCitationRow,
@@ -48,6 +48,7 @@ import {
   type SentimentThemeRow,
   type SentimentPromptSubRow,
   type SentimentCompetitorRow,
+  type SentimentNegativeDriverRow,
 } from '../data/sentimentReportData'
 
 const TABS: Tab[] = [
@@ -77,9 +78,15 @@ function SentimentScoreStat({ score, delta, label }: { score: number; delta: str
 
 // ── Location dropdown (private, inline in title) ─────────────────────────────
 
-const SWOT_LOCATIONS = ['All locations', ...SENTIMENT_BY_LOCATION.map((l) => l.location)]
+const SWOT_LOCATIONS = ['all locations', ...SENTIMENT_BY_LOCATION.map((l) => l.location)]
 
-function LocationDropdown({ selected, onChange }: { selected: string; onChange: (v: string) => void }) {
+function LocationDropdown({
+  selected,
+  onChange,
+}: {
+  selected: string
+  onChange: (v: string) => void
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -118,41 +125,11 @@ function LocationDropdown({ selected, onChange }: { selected: string; onChange: 
 
 // ── Overview tab ──────────────────────────────────────────────────────────────
 
-function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: SentimentCitationRow) => void }) {
-  const [swotPlatform, setSwotPlatform] = useState<SentimentSwotPlatform>('ChatGPT')
-  const [swotLocation, setSwotLocation] = useState('All locations')
-
+function SentimentOverviewTab() {
   const improvementColumns: Column<SentimentImprovementRow>[] = [
     { key: 'aiSite', label: 'AI site', width: 160 },
     { key: 'sentiment', label: 'Sentiment', width: 120, render: (v) => <SentimentPercent value={v as number} /> },
     { key: 'summary', label: 'Summary', width: 480 },
-  ]
-
-  const citationColumns: Column<SentimentCitationRow>[] = [
-    { key: 'webPage', label: 'Web page', width: 260 },
-    { key: 'category', label: 'Category', width: 140 },
-    { key: 'positiveSentiment', label: 'Positive sentiment', width: 140, render: (v) => <SentimentPercent value={v as number} /> },
-    {
-      key: 'strengths',
-      label: 'Strengths',
-      width: 220,
-      render: (v) => (
-        <div className="flex flex-wrap gap-xs">
-          {(v as string[]).map((s) => <Chip key={s} label={s} variant="success" />)}
-        </div>
-      ),
-    },
-    {
-      key: 'weaknesses',
-      label: 'Weaknesses',
-      width: 220,
-      render: (v) => (
-        <div className="flex flex-wrap gap-xs">
-          {(v as string[]).map((w) => <Chip key={w} label={w} variant="danger" />)}
-        </div>
-      ),
-    },
-    { key: 'claimOccurrence', label: 'Claim occurrence', width: 140 },
   ]
 
   const locationColumns: Column<SentimentLocationRow>[] = [
@@ -217,16 +194,103 @@ function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: Sentim
         </div>
       </ChartCard>
 
-      <SummaryCard
-        title="Sentiment breakdown by AI site"
-        subtitle="The percentage of positive sentiment across each AI site"
-        stats={SENTIMENT_BY_AI_SITE.map((m) => ({ id: m.id, value: String(m.value), label: m.label }))}
-      />
-
       <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="What is the sentiment and areas for improvement across AI sites" />
+        <CardHeader
+          title="What is your sentiment score across AI sites?"
+          subtitle="Analyze your sentiment score and find areas for improvement."
+        />
         <DataTable<SentimentImprovementRow> columns={improvementColumns} data={SENTIMENT_IMPROVEMENT_AREAS} autoRowHeight />
       </div>
+
+      <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+        <CardHeader
+          title="Sentiment breakdown by location"
+          subtitle="Analyze how your sentiment score across all locations in answers generated by AI sites."
+        />
+        <DataTable<SentimentLocationRow> columns={locationColumns} data={SENTIMENT_BY_LOCATION} />
+      </div>
+    </>
+  )
+}
+
+// ── Brand tab ─────────────────────────────────────────────────────────────────
+
+function SentimentBrandTab({
+  onOpenCitation,
+  onOpenNegativeDriver,
+}: {
+  onOpenCitation: (row: SentimentCitationRow) => void
+  onOpenNegativeDriver: (row: SentimentNegativeDriverRow) => void
+}) {
+  const [swotPlatform, setSwotPlatform] = useState<SentimentSwotPlatform>('ChatGPT')
+  const [swotLocation, setSwotLocation] = useState('all locations')
+
+  const negativeDriverColumns: Column<SentimentNegativeDriverRow>[] = [
+    { key: 'webPage', label: 'Webpage', render: (v) => <span className="truncate text-text-primary">{v as string}</span> },
+    {
+      key: 'negativeClaim',
+      label: 'Negative claim',
+      render: (_, row) => (
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-text-primary">{row.negativeClaim}</span>
+          <span className="text-small text-text-tertiary">{row.claimDetail}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'claimOccurrence',
+      label: (
+        <span className="flex items-center gap-xs">
+          Claim occurrence
+          <InfoTooltip text="Frequency of this claim among responses that have sentiment for your brand" />
+        </span>
+      ),
+      width: 160,
+      render: (v) => <span className="text-text-primary">{v as number}%</span>,
+    },
+    { key: 'citationShare', label: 'Citation share', width: 140, render: (v) => <span className="text-text-primary">{v as number}%</span> },
+    { key: 'sentiment', label: 'Sentiment', width: 120, render: (v) => <SentimentPercent value={v as number} /> },
+  ]
+
+  const citationColumns: Column<SentimentCitationRow>[] = [
+    { key: 'webPage', label: 'Web page', width: 260 },
+    { key: 'category', label: 'Category', width: 140 },
+    { key: 'positiveSentiment', label: 'Positive sentiment', width: 140, render: (v) => <SentimentPercent value={v as number} /> },
+    {
+      key: 'strengths',
+      label: 'Strengths',
+      width: 220,
+      render: (v) => (
+        <div className="flex flex-wrap gap-xs">
+          {(v as string[]).map((s) => <Chip key={s} label={s} variant="success" />)}
+        </div>
+      ),
+    },
+    {
+      key: 'weaknesses',
+      label: 'Weaknesses',
+      width: 220,
+      render: (v) => (
+        <div className="flex flex-wrap gap-xs">
+          {(v as string[]).map((w) => <Chip key={w} label={w} variant="danger" />)}
+        </div>
+      ),
+    },
+    { key: 'claimOccurrence', label: 'Claim occurrence', width: 140 },
+  ]
+
+  return (
+    <>
+      <SentimentAiSiteSection
+        scoreTitle="Brand sentiment"
+        scoreValue={`${SENTIMENT_SUMMARY.brand.score}%`}
+        breakdownSubtitle="The percentage of positive brand sentiment across AI sites"
+        breakdownStats={BRAND_SENTIMENT_BY_AI_SITE_TILES}
+        tableTitle="What is the sentiment across AI sites for all locations?"
+        tableSubtitle="Analyze your positive sentiment occurrences in answers generated by AI sites for all locations."
+        rows={SENTIMENT_BY_LOCATION}
+        showTable={false}
+      />
 
       <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
         <CardHeader
@@ -247,7 +311,25 @@ function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: Sentim
       </div>
 
       <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="Sentiment breakdown by citation" />
+        <CardHeader
+          title="What are your top negative sentiment drivers"
+          subtitle="Web pages most frequently cited for top negative claims across AI sites."
+        />
+        <DataTable<SentimentNegativeDriverRow>
+          columns={negativeDriverColumns}
+          data={SENTIMENT_NEGATIVE_DRIVERS}
+          autoRowHeight
+          onRowClick={onOpenNegativeDriver}
+        />
+      </div>
+
+      <MostMentionedTraitsCard rows={SENTIMENT_TRAITS} />
+
+      <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
+        <CardHeader
+          title="What is your sentiment breakdown by citation?"
+          subtitle="Analyze your sentiment across web pages that are cited in answers generated by AI sites."
+        />
         <DataTable<SentimentCitationRow>
           columns={citationColumns}
           data={SENTIMENT_BY_CITATION}
@@ -255,29 +337,6 @@ function SentimentOverviewTab({ onOpenCitation }: { onOpenCitation: (row: Sentim
           onRowClick={onOpenCitation}
         />
       </div>
-
-      <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="Sentiment breakdown by location" />
-        <DataTable<SentimentLocationRow> columns={locationColumns} data={SENTIMENT_BY_LOCATION} />
-      </div>
-    </>
-  )
-}
-
-// ── Brand tab ─────────────────────────────────────────────────────────────────
-
-function SentimentBrandTab() {
-  return (
-    <>
-      <SummaryCard
-        title="Brand sentiment"
-        stats={[{ id: 'score', value: `${SENTIMENT_SUMMARY.brand.score}%`, label: `+${SENTIMENT_SUMMARY.brand.delta} vs last period` }]}
-      />
-      <SummaryCard
-        title="Brand sentiment breakdown"
-        subtitle="The percentage of positive brand sentiment across each AI site"
-        stats={BRAND_SENTIMENT_BY_AI_SITE.map((m) => ({ id: m.id, value: String(m.value), label: m.label }))}
-      />
     </>
   )
 }
@@ -297,6 +356,7 @@ interface PromptFlatRow extends Record<string, unknown> {
 
 function SentimentPromptTab() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const [themeLocation, setThemeLocation] = useState('all locations')
 
   function toggle(id: string) {
     setExpandedIds((prev) => {
@@ -354,11 +414,10 @@ function SentimentPromptTab() {
             <span className="text-[13px] text-text-primary">{row.theme}</span>
           </button>
         ) : (
-          <span className="pl-[32px] text-small text-text-tertiary italic">{row.theme}</span>
+          <span className="pl-[32px] text-small text-[#555555]">{row.theme}</span>
         ),
     },
-    { key: 'locations', label: 'Locations', width: 120 },
-    { key: 'sentiment', label: 'Sentiment', width: 120, render: (v) => <SentimentPercent value={v as number} /> },
+    { key: 'sentiment', label: 'Avg sentiment', width: 140, render: (v) => <SentimentPercent value={v as number} /> },
     { key: 'chatgpt', label: 'ChatGPT', width: 120, render: (v) => <SentimentPercent value={v as number} /> },
     { key: 'gemini', label: 'Gemini', width: 120, render: (v) => <SentimentPercent value={v as number} /> },
     { key: 'perplexity', label: 'Perplexity', width: 120, render: (v) => <SentimentPercent value={v as number} /> },
@@ -366,22 +425,31 @@ function SentimentPromptTab() {
 
   return (
     <>
-      <SummaryCard
-        title="Prompt sentiment"
-        stats={[
-          { id: 'score', value: `${SENTIMENT_SUMMARY.prompt.score}%`, label: `+${SENTIMENT_SUMMARY.prompt.delta} vs last period` },
-          { id: 'positive', value: `${PROMPT_SENTIMENT_BREAKDOWN.positive}%`, label: 'Positive' },
-          { id: 'neutral', value: `${PROMPT_SENTIMENT_BREAKDOWN.neutral}%`, label: 'Neutral' },
-          { id: 'negative', value: `${PROMPT_SENTIMENT_BREAKDOWN.negative}%`, label: 'Negative' },
-        ]}
+      <SentimentAiSiteSection
+        scoreTitle="Prompt sentiment"
+        scoreValue={`${SENTIMENT_SUMMARY.prompt.score}%`}
+        breakdownSubtitle="The percentage of positive prompt sentiment across AI sites"
+        breakdownStats={PROMPT_SENTIMENT_BY_AI_SITE_TILES}
+        tableTitle="What is the sentiment across AI sites for all locations?"
+        tableSubtitle="Analyze your sentiment scores and positive sentiment occurrences in answers generated by AI sites for all locations."
+        rows={PROMPT_SENTIMENT_BY_LOCATION}
+        showTable={false}
       />
 
       <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="Sentiment by theme and prompt" />
+        <CardHeader
+          title={
+            <span className="flex flex-wrap items-baseline gap-[4px] text-[18px] leading-[26px] text-text-secondary">
+              What is your sentiment by theme and prompts across
+              <LocationDropdown selected={themeLocation} onChange={setThemeLocation} />
+            </span>
+          }
+          subtitle="Track your positive sentiment in answers generated by AI sites."
+        />
         <DataTable<PromptFlatRow>
           columns={columns}
           data={flatRows}
-          rowHeight={48}
+          autoRowHeight
           rowClassName={(row) => (row._isHeader ? '' : 'bg-surface-hover')}
         />
       </div>
@@ -392,7 +460,7 @@ function SentimentPromptTab() {
 // ── Competitors tab ───────────────────────────────────────────────────────────
 
 function SentimentCompetitorsTab({ onOpenCompetitor }: { onOpenCompetitor: (row: SentimentCompetitorRow) => void }) {
-  const [competitorLocation, setCompetitorLocation] = useState('All locations')
+  const [competitorLocation, setCompetitorLocation] = useState('all locations')
 
   const competitorColumns: Column<SentimentCompetitorRow>[] = [
     {
@@ -469,22 +537,12 @@ function SentimentCompetitorsTab({ onOpenCompetitor }: { onOpenCompetitor: (row:
       </div>
 
       <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="Competitive strengths and weakness matrix" />
+        <CardHeader title="What are your competitive strengths and weaknesses by traits?" />
         <SentimentComparisonMatrix
           traits={SENTIMENT_MATRIX_TRAITS}
           competitors={SENTIMENT_MATRIX_COMPETITORS}
           values={SENTIMENT_COMPARISON_MATRIX}
         />
-      </div>
-
-      <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="Sentiment rank across themes and prompts" />
-        <CompetitorRankingCard rows={SENTIMENT_RANK_BY_THEME} rankCount={5} avatarOnly />
-      </div>
-
-      <div className="flex flex-col gap-lg rounded-md border border-border bg-surface p-2xl">
-        <CardHeader title="Sentiment rank across locations" />
-        <CompetitorRankingCard mode="locations" data={SENTIMENT_RANK_BY_LOCATION} />
       </div>
     </>
   )
@@ -497,6 +555,7 @@ const MONTH_OPTIONS = ['Jun 2026', 'May 2026', 'Apr 2026', 'Mar 2026', 'Feb 2026
 export function SentimentReportScreen() {
   const [activeTab, setActiveTab] = useState('overview')
   const [citationRow, setCitationRow] = useState<SentimentCitationRow | null>(null)
+  const [negativeDriverRow, setNegativeDriverRow] = useState<SentimentNegativeDriverRow | null>(null)
   const [competitorRow, setCompetitorRow] = useState<SentimentCompetitorRow | null>(null)
   const [month, setMonth] = useState(MONTH_OPTIONS[0])
   const [scopeView, setScopeView] = useState<'location' | 'brand'>('location')
@@ -544,9 +603,9 @@ export function SentimentReportScreen() {
       <div className="flex-1 min-h-0 overflow-y-auto bg-white">
         <div className="flex flex-col gap-xl px-2xl py-xl">
           {activeTab === 'overview' ? (
-            <SentimentOverviewTab onOpenCitation={setCitationRow} />
+            <SentimentOverviewTab />
           ) : activeTab === 'brand' ? (
-            <SentimentBrandTab />
+            <SentimentBrandTab onOpenCitation={setCitationRow} onOpenNegativeDriver={setNegativeDriverRow} />
           ) : activeTab === 'prompt' ? (
             <SentimentPromptTab />
           ) : (
@@ -556,6 +615,7 @@ export function SentimentReportScreen() {
       </div>
 
       <CitationSentimentDrawer open={!!citationRow} row={citationRow} onClose={() => setCitationRow(null)} />
+      <CitationSentimentDrawer open={!!negativeDriverRow} row={negativeDriverRow} onClose={() => setNegativeDriverRow(null)} />
       <CompetitorSentimentDrawer open={!!competitorRow} row={competitorRow} onClose={() => setCompetitorRow(null)} />
     </div>
   )

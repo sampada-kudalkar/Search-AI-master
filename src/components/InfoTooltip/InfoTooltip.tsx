@@ -31,7 +31,7 @@ export function InfoTooltip({ text }: InfoTooltipProps) {
       </button>
       {visible && pos && (
         <div
-          className="pointer-events-none fixed z-[120] max-w-[300px] whitespace-normal break-words rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white text-left"
+          className="pointer-events-none fixed z-[120] max-w-[300px] whitespace-pre-line break-words rounded-sm bg-[#1c1c1c] px-sm py-xs text-small text-white text-left"
           style={{ left: pos.x, top: pos.y, transform: 'translateX(-50%)' }}
         >
           {text}
