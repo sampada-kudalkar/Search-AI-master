@@ -18,6 +18,7 @@ import { SearchAiScoreSettingsScreen } from './SearchAiScoreSettingsScreen'
 import { SentimentReportScreen } from './SentimentReportScreen'
 import { SentimentV2ReportScreen } from './SentimentV2ReportScreen'
 import { RankingReportScreen } from './RankingReportScreen'
+import { RankingV2ReportScreen } from './RankingV2ReportScreen'
 import { PromptReportScreen } from './PromptReportScreen'
 import {
   BY_LOCATION_DATA,
@@ -42,6 +43,7 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
       { id: 'visibility',  label: 'Visibility'  },
       { id: 'citations',   label: 'Citations'   },
       { id: 'rankings',    label: 'Rankings'    },
+      { id: 'ranking-v2',  label: 'Ranking V2'  },
       { id: 'accuracy',    label: 'Accuracy'    },
       { id: 'sentiment',   label: 'Sentiment'   },
       { id: 'sentiment-v2', label: 'Sentiment V2' },
@@ -86,6 +88,7 @@ const LABEL_MAP: Record<string, string> = {
   visibility:           'Visibility',
   citations:            'Citations',
   rankings:             'Rankings',
+  'ranking-v2':         'Ranking V2',
   accuracy:             'Accuracy',
   sentiment:            'Sentiment',
   'sentiment-v2':       'Sentiment V2',
@@ -260,6 +263,8 @@ export function SearchAIScreen() {
             <CitationsReportScreen />
           ) : navActive === 'rankings' ? (
             <RankingReportScreen />
+          ) : navActive === 'ranking-v2' ? (
+            <RankingV2ReportScreen />
           ) : navActive === 'prompt' ? (
             <PromptReportScreen />
           ) : navActive === 'sentiment' ? (
