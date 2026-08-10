@@ -446,3 +446,33 @@ export const LOCATIONS_VISIBILITY: LocationVisibilityRow[] = [
   { location: 'Bowen QLD', avgVisibility: 43.4, chatgpt: 27.8, gemini: 45.8, perplexity: 56.7 },
   { location: 'Emerald QLD', avgVisibility: 43.0, chatgpt: 33.6, gemini: 45.7, perplexity: 49.7 },
 ]
+
+export interface BrandVisibilityTrendPoint extends Record<string, number | string | undefined> {
+  label: string
+  aspendentalShare: number; aspendentalCount: number
+  fleurChoiceShare: number; fleurChoiceCount: number
+  wellYesNowShare:  number; wellYesNowCount:  number
+}
+
+export const BRAND_VISIBILITY_TREND: Record<VisibilityPlatform, BrandVisibilityTrendPoint[]> = {
+  ChatGPT: [
+    { label: 'Apr', aspendentalShare: 11, aspendentalCount: 14, fleurChoiceShare: 7, fleurChoiceCount: 10, wellYesNowShare: 5, wellYesNowCount: 7  },
+    { label: 'May', aspendentalShare: 11, aspendentalCount: 11, fleurChoiceShare: 7, fleurChoiceCount: 7,  wellYesNowShare: 5, wellYesNowCount: 5  },
+    { label: 'Jun', aspendentalShare: 12, aspendentalCount: 11, fleurChoiceShare: 8, fleurChoiceCount: 7,  wellYesNowShare: 6, wellYesNowCount: 6  },
+  ],
+  Gemini: [
+    { label: 'Apr', aspendentalShare: 8,  aspendentalCount: 18, fleurChoiceShare: 4, fleurChoiceCount: 12, wellYesNowShare: 3, wellYesNowCount: 8  },
+    { label: 'May', aspendentalShare: 8,  aspendentalCount: 17, fleurChoiceShare: 4, fleurChoiceCount: 11, wellYesNowShare: 3, wellYesNowCount: 8  },
+    { label: 'Jun', aspendentalShare: 11, aspendentalCount: 21, fleurChoiceShare: 7, fleurChoiceCount: 15, wellYesNowShare: 5, wellYesNowCount: 11 },
+  ],
+  Perplexity: [
+    { label: 'Apr', aspendentalShare: 7,  aspendentalCount: 21, fleurChoiceShare: 5, fleurChoiceCount: 15, wellYesNowShare: 3, wellYesNowCount: 10 },
+    { label: 'May', aspendentalShare: 6,  aspendentalCount: 19, fleurChoiceShare: 4, fleurChoiceCount: 13, wellYesNowShare: 3, wellYesNowCount: 9  },
+    { label: 'Jun', aspendentalShare: 5,  aspendentalCount: 14, fleurChoiceShare: 3, fleurChoiceCount: 10, wellYesNowShare: 2, wellYesNowCount: 7  },
+  ],
+  All: [
+    { label: 'Apr', aspendentalShare: 9,  aspendentalCount: 18, fleurChoiceShare: 5, fleurChoiceCount: 12, wellYesNowShare: 4, wellYesNowCount: 8  },
+    { label: 'May', aspendentalShare: 8,  aspendentalCount: 16, fleurChoiceShare: 5, fleurChoiceCount: 10, wellYesNowShare: 4, wellYesNowCount: 7  },
+    { label: 'Jun', aspendentalShare: 9,  aspendentalCount: 15, fleurChoiceShare: 6, fleurChoiceCount: 11, wellYesNowShare: 4, wellYesNowCount: 8  },
+  ],
+}

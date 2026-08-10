@@ -6,6 +6,8 @@ import { CompetitorByLocationScreen } from './CompetitorByLocationScreen'
 import { CompetitorByLocationDetailScreen } from './CompetitorByLocationDetailScreen'
 import { ManageCompetitorsScreen } from './ManageCompetitorsScreen'
 import { CitationsReportScreen } from './CitationsReportScreen'
+import { VisibilityReportScreen } from './VisibilityReportScreen'
+import { OverviewScreen } from './OverviewScreen'
 import { DomainHealthReportScreen } from './DomainHealthReportScreen'
 import { DomainHealthReportScreenV2 } from './DomainHealthReportScreenV2'
 import { ThemesAndPromptsScreen } from './ThemesAndPromptsScreen'
@@ -15,6 +17,8 @@ import { BrandV1Screen } from './BrandV1Screen'
 import { SearchAiScoreSettingsScreen } from './SearchAiScoreSettingsScreen'
 import { SentimentReportScreen } from './SentimentReportScreen'
 import { SentimentV2ReportScreen } from './SentimentV2ReportScreen'
+import { RankingReportScreen } from './RankingReportScreen'
+import { PromptReportScreen } from './PromptReportScreen'
 import {
   BY_LOCATION_DATA,
   COMPETITOR_BRAND_DATA,
@@ -243,13 +247,21 @@ export function SearchAIScreen() {
       <main className="flex flex-1 flex-col overflow-hidden">
         <div className="flex h-full flex-col">
           <TopNav initials="S" />
-          {navActive === 'by-brand' ? (
+          {navActive === 'overview' ? (
+            <OverviewScreen />
+          ) : navActive === 'visibility' ? (
+            <VisibilityReportScreen />
+          ) : navActive === 'by-brand' ? (
             <CompetitorBenchmarkScreen
               onCompetitorClick={setCompetitorDetail}
               onManageCompetitors={() => setManageCompetitors(true)}
             />
           ) : navActive === 'citations' ? (
             <CitationsReportScreen />
+          ) : navActive === 'rankings' ? (
+            <RankingReportScreen />
+          ) : navActive === 'prompt' ? (
+            <PromptReportScreen />
           ) : navActive === 'sentiment' ? (
             <SentimentReportScreen />
           ) : navActive === 'sentiment-v2' ? (

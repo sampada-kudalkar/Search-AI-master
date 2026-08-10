@@ -552,3 +552,37 @@ export const SENTIMENT_RANK_BY_LOCATION: Record<RankingPlatform, ByLocationTable
     rank5: { name: 'Deeragun Dental' },
   })),
 }
+
+// ── Brand sentiment trend (By brand view) ────────────────────────────────────
+
+export type SentimentPlatform = 'ChatGPT' | 'Gemini' | 'Perplexity' | 'All'
+
+export interface BrandSentimentTrendPoint extends Record<string, number | string | undefined> {
+  label: string
+  aspendentalSentiment: number
+  fleurChoiceSentiment: number
+  wellYesNowSentiment:  number
+}
+
+export const BRAND_SENTIMENT_TREND: Record<SentimentPlatform, BrandSentimentTrendPoint[]> = {
+  ChatGPT: [
+    { label: 'Apr', aspendentalSentiment: 80, fleurChoiceSentiment: 62, wellYesNowSentiment: 51 },
+    { label: 'May', aspendentalSentiment: 81, fleurChoiceSentiment: 63, wellYesNowSentiment: 53 },
+    { label: 'Jun', aspendentalSentiment: 82, fleurChoiceSentiment: 65, wellYesNowSentiment: 55 },
+  ],
+  Gemini: [
+    { label: 'Apr', aspendentalSentiment: 78, fleurChoiceSentiment: 60, wellYesNowSentiment: 50 },
+    { label: 'May', aspendentalSentiment: 79, fleurChoiceSentiment: 62, wellYesNowSentiment: 51 },
+    { label: 'Jun', aspendentalSentiment: 80, fleurChoiceSentiment: 63, wellYesNowSentiment: 53 },
+  ],
+  Perplexity: [
+    { label: 'Apr', aspendentalSentiment: 77, fleurChoiceSentiment: 60, wellYesNowSentiment: 49 },
+    { label: 'May', aspendentalSentiment: 78, fleurChoiceSentiment: 61, wellYesNowSentiment: 51 },
+    { label: 'Jun', aspendentalSentiment: 79, fleurChoiceSentiment: 62, wellYesNowSentiment: 52 },
+  ],
+  All: [
+    { label: 'Apr', aspendentalSentiment: 78, fleurChoiceSentiment: 61, wellYesNowSentiment: 50 },
+    { label: 'May', aspendentalSentiment: 79, fleurChoiceSentiment: 62, wellYesNowSentiment: 52 },
+    { label: 'Jun', aspendentalSentiment: 80, fleurChoiceSentiment: 63, wellYesNowSentiment: 53 },
+  ],
+}
