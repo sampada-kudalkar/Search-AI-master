@@ -58,6 +58,35 @@ export const SENTIMENT_TREND_SERIES: SeriesConfig[] = [
   { key: 'prompt', label: 'Prompt sentiment', color: '#f5a623' },
 ]
 
+// ── Existing report tab — sentiment trend by location / by brand ────────────
+
+export const SENTIMENT_TREND_ALL_LOCATIONS: TrendPoint[] = [
+  { label: 'Feb', value: 76.2 },
+  { label: 'Mar', value: 77.8 },
+  { label: 'Apr', value: 78.4 },
+  { label: 'May', value: 79.6 },
+  { label: 'Jun', value: 80.1 },
+  { label: 'Jul', value: 81.3 },
+]
+
+export const SENTIMENT_BRANDS = ['Aspendental', 'Clear Choice', 'Wellness'] as const
+export type SentimentBrand = typeof SENTIMENT_BRANDS[number]
+
+export const SENTIMENT_TREND_BY_BRAND: TrendPoint[] = [
+  { label: 'Feb', aspendental: 74.8, clearChoice: 78.3, wellness: 72.1 },
+  { label: 'Mar', aspendental: 76.1, clearChoice: 79.0, wellness: 73.6 },
+  { label: 'Apr', aspendental: 77.0, clearChoice: 79.8, wellness: 75.2 },
+  { label: 'May', aspendental: 78.6, clearChoice: 80.5, wellness: 76.9 },
+  { label: 'Jun', aspendental: 79.4, clearChoice: 81.2, wellness: 78.0 },
+  { label: 'Jul', aspendental: 80.7, clearChoice: 82.1, wellness: 79.4 },
+]
+
+export const SENTIMENT_TREND_BY_BRAND_SERIES: SeriesConfig[] = [
+  { key: 'aspendental', label: 'Aspendental', color: '#4cae3d' },
+  { key: 'clearChoice', label: 'Clear Choice', color: '#f5a623' },
+  { key: 'wellness', label: 'Wellness', color: '#1976d2' },
+]
+
 // ── Sentiment breakdown by AI site (Overview + Brand tiles) ─────────────────
 
 export const SENTIMENT_BY_AI_SITE: Metric[] = [

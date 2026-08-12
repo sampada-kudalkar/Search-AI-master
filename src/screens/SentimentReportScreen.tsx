@@ -25,6 +25,9 @@ import {
   SENTIMENT_SUMMARY,
   SENTIMENT_TREND,
   SENTIMENT_TREND_SERIES,
+  SENTIMENT_TREND_ALL_LOCATIONS,
+  SENTIMENT_TREND_BY_BRAND,
+  SENTIMENT_TREND_BY_BRAND_SERIES,
   BRAND_SENTIMENT_BY_AI_SITE_TILES,
   PROMPT_SENTIMENT_BY_AI_SITE_TILES,
   SENTIMENT_SWOT_PLATFORMS,
@@ -52,6 +55,7 @@ import {
 } from '../data/sentimentReportData'
 
 const TABS: Tab[] = [
+  { id: 'existing-report', label: 'Existing report' },
   { id: 'overview', label: 'Overview' },
   { id: 'brand', label: 'Brand' },
   { id: 'prompt', label: 'Prompt' },
@@ -120,6 +124,60 @@ function LocationDropdown({
         </>
       )}
     </div>
+  )
+}
+
+// ── Existing report tab ─────────────────────────────────────────────────────
+
+function SentimentExistingReportTab({ scopeView }: { scopeView: 'location' | 'brand' }) {
+  const [trendRange, setTrendRange] = useState('Last 3 months')
+
+  const isBrand = scopeView === 'brand'
+
+  return (
+    <ChartCard
+      title={
+        isBrand
+          ? 'What is your sentiment score over time for all brands?'
+          : 'What is your sentiment score over time across all locations?'
+      }
+      subtitle={
+        isBrand
+          ? 'Track sentiment score across all your brands over time.'
+          : 'Track sentiment score across all your locations over time.'
+      }
+      toolbar={
+        <div className="flex items-center gap-sm">
+          <DateRangeSelector
+            value={trendRange}
+            options={['Last 3 months', 'Last 6 months', 'Last 12 months']}
+            onChange={setTrendRange}
+          />
+          <button
+            type="button"
+            className="flex h-[32px] w-[32px] items-center justify-center rounded-sm border border-border bg-surface hover:bg-surface-hover"
+          >
+            <SummarizeIcon size={16} />
+          </button>
+        </div>
+      }
+    >
+      {isBrand ? (
+        <>
+          <TrendLineChart data={SENTIMENT_TREND_BY_BRAND} series={SENTIMENT_TREND_BY_BRAND_SERIES} />
+          <div className="mt-sm flex flex-wrap items-center gap-xl px-xs">
+            {SENTIMENT_TREND_BY_BRAND_SERIES.map((s) => (
+              <div key={s.key} className="flex items-center gap-xs">
+                <span className="inline-block size-3 rounded-full" style={{ backgroundColor: s.color }} />
+                <span className="text-[12px] text-text-secondary">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <TrendLineChart data={SENTIMENT_TREND_ALL_LOCATIONS} />
+      )}
+    </ChartCard>
   )
 }
 
@@ -602,7 +660,9 @@ export function SentimentReportScreen() {
 
       <div className="flex-1 min-h-0 overflow-y-auto bg-white">
         <div className="flex flex-col gap-xl px-2xl py-xl">
-          {activeTab === 'overview' ? (
+          {activeTab === 'existing-report' ? (
+            <SentimentExistingReportTab scopeView={scopeView} />
+          ) : activeTab === 'overview' ? (
             <SentimentOverviewTab />
           ) : activeTab === 'brand' ? (
             <SentimentBrandTab onOpenCitation={setCitationRow} onOpenNegativeDriver={setNegativeDriverRow} />

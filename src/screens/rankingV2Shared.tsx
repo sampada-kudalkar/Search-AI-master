@@ -1,4 +1,4 @@
-import { Icon, type Column } from '../components'
+import { Icon, InfoTooltip, type Column } from '../components'
 import {
   RANKING_V2_PLATFORMS,
   RANKING_V2_SUMMARY,
@@ -114,6 +114,7 @@ export interface FlatThemeScoreRow extends Record<string, unknown> {
   _themeName: string
   name: string
   promptCount?: number
+  rank: number
   perception: number
   alignment: number
   confidence: number
@@ -122,15 +123,19 @@ export interface FlatThemeScoreRow extends Record<string, unknown> {
 export function flattenThemeScores(themes: RankingV2ThemeRow[], expanded: Set<string>): FlatThemeScoreRow[] {
   const rows: FlatThemeScoreRow[] = []
   for (const theme of themes) {
+    const perception = average(theme.prompts.map((p) => p.perception))
+    const alignment = average(theme.prompts.map((p) => p.alignment))
+    const confidence = average(theme.prompts.map((p) => p.confidence))
     rows.push({
       _id: theme.theme,
       _isHeader: true,
       _themeName: theme.theme,
       name: theme.theme,
       promptCount: theme.prompts.length,
-      perception: average(theme.prompts.map((p) => p.perception)),
-      alignment: average(theme.prompts.map((p) => p.alignment)),
-      confidence: average(theme.prompts.map((p) => p.confidence)),
+      rank: average([perception, alignment, confidence]),
+      perception,
+      alignment,
+      confidence,
     })
     if (expanded.has(theme.theme)) {
       theme.prompts.forEach((prompt, i) => {
@@ -139,6 +144,7 @@ export function flattenThemeScores(themes: RankingV2ThemeRow[], expanded: Set<st
           _isHeader: false,
           _themeName: theme.theme,
           name: prompt.text,
+          rank: average([prompt.perception, prompt.alignment, prompt.confidence]),
           perception: prompt.perception,
           alignment: prompt.alignment,
           confidence: prompt.confidence,
@@ -178,8 +184,45 @@ export function buildThemeScoreColumns(
         return <span className="block truncate pl-[24px] text-body text-text-primary">{row.name}</span>
       },
     },
-    { key: 'perception', label: 'Perception', width: 140 },
-    { key: 'alignment', label: 'Alignment', width: 140 },
-    { key: 'confidence', label: 'Confidence', width: 140 },
+    {
+      key: 'rank',
+      label: (
+        <span className="flex items-center gap-xs">
+          Rank
+          <InfoTooltip text="Calculated from perception, alignment, and confidence scores for this theme or prompt." />
+        </span>
+      ),
+      width: 120,
+    },
+    {
+      key: 'perception',
+      label: (
+        <span className="flex items-center gap-xs">
+          Perception
+          <InfoTooltip text="How favorably AI describes your business." />
+        </span>
+      ),
+      width: 140,
+    },
+    {
+      key: 'alignment',
+      label: (
+        <span className="flex items-center gap-xs">
+          Alignment
+          <InfoTooltip text="How closely your business matches what the query is asking for." />
+        </span>
+      ),
+      width: 140,
+    },
+    {
+      key: 'confidence',
+      label: (
+        <span className="flex items-center gap-xs">
+          Confidence
+          <InfoTooltip text="How much data AI had to base this analysis on." />
+        </span>
+      ),
+      width: 140,
+    },
   ]
 }
