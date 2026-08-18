@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { AiIcon, CardHeader, Icon, InfoTooltip, Toast } from '../components'
+import { AiIcon, CardHeader, Icon, Toast } from '../components'
 import { AI_SITE_COLORS } from '../components/ThemesPromptsTable/ThemesPromptsTable'
 import { DEFAULT_SITE_ORDER, type SiteOrderItem } from '../data/siteOrderData'
 
@@ -51,7 +51,6 @@ export function SiteOrderSettingsScreen() {
       <div className="flex shrink-0 items-center justify-between bg-surface px-2xl py-xl">
         <div className="flex min-w-0 items-center gap-sm">
           <h1 className="truncate text-h3 text-text-primary">Site order</h1>
-          <InfoTooltip text="Set the display order for AI sites across Search AI reports, tabs, and tables." />
         </div>
         <div className="flex items-center gap-sm">
           {dirty ? (
