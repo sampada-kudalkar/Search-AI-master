@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { AiIcon, CardHeader, Icon, SelectMenu, Toggle } from '../components'
+import { AiIcon, CardHeader, Chip, Icon, SelectMenu, Toggle } from '../components'
 import iconGoogle from '../assets/icon-google.svg'
 import iconGemini from '../assets/icon-gemini.svg'
 
@@ -9,6 +9,7 @@ interface ReportSettingsState {
   locationPrompts: { enabled: boolean; frequency: Frequency }
   brandPrompts: { enabled: boolean; frequency: Frequency }
   aiSites: Record<AiSiteId, boolean>
+  defaultSite: AiSiteId | null
 }
 
 type AiSiteId = 'chatgpt' | 'gemini' | 'perplexity' | 'google-ai-overviews' | 'google-ai-mode' | 'claude'
@@ -39,6 +40,7 @@ const DEFAULT_STATE: ReportSettingsState = {
     'google-ai-mode': false,
     claude: false,
   },
+  defaultSite: 'chatgpt',
 }
 
 function isEqual(a: ReportSettingsState, b: ReportSettingsState) {
@@ -140,6 +142,10 @@ export function ReportSettingsScreen() {
     setSavedState(state)
   }
 
+  function handleSetDefault(id: AiSiteId) {
+    setState((s) => ({ ...s, defaultSite: id }))
+  }
+
   return (
     <div className="flex h-full flex-col overflow-hidden" style={{ backgroundColor: '#F5F5F5' }}>
       <div className="flex shrink-0 items-center justify-between bg-surface px-2xl py-xl">
@@ -207,32 +213,57 @@ export function ReportSettingsScreen() {
           <div className="rounded-md border border-border bg-surface p-2xl">
             <CardHeader
               title="AI site tracking"
-              subtitle="Choose which AI sites to include in tracking reports"
+              subtitle="Choose which AI sites to include in tracking reports and mark one as default"
             />
             <div className="mt-lg flex flex-col gap-lg">
               {AI_SITES.map((site) => (
-                <label key={site.id} className="flex cursor-pointer items-start gap-md">
-                  <input
-                    type="checkbox"
-                    checked={state.aiSites[site.id]}
-                    onChange={(e) =>
-                      setState((s) => ({
-                        ...s,
-                        aiSites: { ...s.aiSites, [site.id]: e.target.checked },
-                      }))
-                    }
-                    className="mt-[2px] size-[16px] rounded border-border"
-                  />
-                  {site.iconSrc ? (
-                    <img src={site.iconSrc} alt="" className="mt-[1px] size-[18px] shrink-0" />
-                  ) : (
-                    <AiIcon size={18} className="mt-[1px] shrink-0" />
-                  )}
-                  <div className="flex flex-col">
-                    <span className="text-body text-text-primary">{site.label}</span>
-                    {site.caption && (
-                      <span className="text-small text-text-secondary">{site.caption}</span>
+                <label
+                  key={site.id}
+                  className="group flex cursor-pointer items-start justify-between gap-md"
+                >
+                  <div className="flex items-start gap-md">
+                    <input
+                      type="checkbox"
+                      checked={state.aiSites[site.id]}
+                      onChange={(e) => {
+                        const checked = e.target.checked
+                        setState((s) => ({
+                          ...s,
+                          aiSites: { ...s.aiSites, [site.id]: checked },
+                          defaultSite:
+                            !checked && s.defaultSite === site.id ? null : s.defaultSite,
+                        }))
+                      }}
+                      className="mt-[2px] size-[16px] rounded border-border"
+                    />
+                    {site.iconSrc ? (
+                      <img src={site.iconSrc} alt="" className="mt-[1px] size-[18px] shrink-0" />
+                    ) : (
+                      <AiIcon size={18} className="mt-[1px] shrink-0" />
                     )}
+                    <div className="flex flex-col">
+                      <span className="text-body text-text-primary">{site.label}</span>
+                      {site.caption && (
+                        <span className="text-small text-text-secondary">{site.caption}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex h-8 shrink-0 items-center">
+                    {state.defaultSite === site.id ? (
+                      <Chip label="Default" variant="info" />
+                    ) : state.aiSites[site.id] ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleSetDefault(site.id)
+                        }}
+                        className="rounded-sm px-md py-xs text-body text-text-action opacity-0 transition-opacity hover:bg-surface-hover group-hover:opacity-100"
+                      >
+                        Mark as default
+                      </button>
+                    ) : null}
                   </div>
                 </label>
               ))}

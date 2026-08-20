@@ -15,7 +15,6 @@ import { ReportSettingsScreen } from './ReportSettingsScreen'
 import { BrandsScreen } from './BrandsScreen'
 import { BrandV1Screen } from './BrandV1Screen'
 import { SearchAiScoreSettingsScreen } from './SearchAiScoreSettingsScreen'
-import { SiteOrderSettingsScreen } from './SiteOrderSettingsScreen'
 import { SentimentReportScreen } from './SentimentReportScreen'
 import { SentimentV2ReportScreen } from './SentimentV2ReportScreen'
 import { RankingReportScreen } from './RankingReportScreen'
@@ -79,7 +78,6 @@ const SEARCH_AI_NAV_SECTIONS: NavSection[] = [
       { id: 'search-report',  label: 'Report'   },
       { id: 'search-website', label: 'Website'  },
       { id: 'search-score',   label: 'Search AI score' },
-      { id: 'search-site-order', label: 'Site order' },
     ],
   },
 ]
@@ -107,7 +105,6 @@ const LABEL_MAP: Record<string, string> = {
   'search-report':      'Report',
   'search-website':     'Website',
   'search-score':       'Search AI score',
-  'search-site-order':  'Site order',
 }
 
 function findSectionForItem(sections: NavSection[], itemId: string): string | null {
@@ -290,8 +287,6 @@ export function SearchAIScreen() {
             <ReportSettingsScreen />
           ) : navActive === 'search-score' ? (
             <SearchAiScoreSettingsScreen />
-          ) : navActive === 'search-site-order' ? (
-            <SiteOrderSettingsScreen />
           ) : navActive === 'by-location' ? (
             <CompetitorByLocationScreen
               onLocationClick={setLocationDetail}
