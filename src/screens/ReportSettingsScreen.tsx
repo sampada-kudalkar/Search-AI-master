@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AiIcon, CardHeader, Chip, Icon, SelectMenu, Toggle } from '../components'
+import { AI_SITE_COLORS } from '../components/ThemesPromptsTable/ThemesPromptsTable'
 import iconGoogle from '../assets/icon-google.svg'
 import iconGemini from '../assets/icon-gemini.svg'
 
@@ -12,7 +13,7 @@ interface ReportSettingsState {
   defaultSite: AiSiteId | null
 }
 
-type AiSiteId = 'chatgpt' | 'gemini' | 'perplexity' | 'google-ai-overviews' | 'google-ai-mode' | 'claude'
+type AiSiteId = 'chatgpt' | 'gemini' | 'perplexity' | 'google-ai-overviews' | 'google-ai-mode' | 'claude' | 'all'
 
 const FREQUENCY_OPTIONS = [
   { value: 'weekly', label: 'Weekly' },
@@ -27,6 +28,7 @@ const AI_SITES: { id: AiSiteId; label: string; iconSrc?: string; caption?: strin
   { id: 'google-ai-overviews', label: 'Google AI Overviews', iconSrc: iconGoogle },
   { id: 'google-ai-mode', label: 'Google AI Mode', iconSrc: iconGoogle },
   { id: 'claude', label: 'Claude', caption: 'Uses 3x more prompts' },
+  { id: 'all', label: 'All', caption: 'Aggregates data across all AI sites' },
 ]
 
 const DEFAULT_STATE: ReportSettingsState = {
@@ -39,6 +41,7 @@ const DEFAULT_STATE: ReportSettingsState = {
     'google-ai-overviews': false,
     'google-ai-mode': false,
     claude: false,
+    all: false,
   },
   defaultSite: 'chatgpt',
 }
@@ -213,7 +216,7 @@ export function ReportSettingsScreen() {
           <div className="rounded-md border border-border bg-surface p-2xl">
             <CardHeader
               title="AI site tracking"
-              subtitle="Choose which AI sites to include in tracking reports and mark one as default"
+              subtitle="Choose which AI sites to include in tracking reports. Mark one as default to show it first across reports."
             />
             <div className="mt-lg flex flex-col gap-lg">
               {AI_SITES.map((site) => (
@@ -238,6 +241,13 @@ export function ReportSettingsScreen() {
                     />
                     {site.iconSrc ? (
                       <img src={site.iconSrc} alt="" className="mt-[1px] size-[18px] shrink-0" />
+                    ) : AI_SITE_COLORS[site.label] ? (
+                      <span
+                        className="mt-[1px] flex size-[18px] shrink-0 items-center justify-center rounded-full text-[10px] text-white"
+                        style={{ backgroundColor: AI_SITE_COLORS[site.label] }}
+                      >
+                        {site.label.charAt(0)}
+                      </span>
                     ) : (
                       <AiIcon size={18} className="mt-[1px] shrink-0" />
                     )}
