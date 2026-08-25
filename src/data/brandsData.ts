@@ -14,7 +14,7 @@ export interface BrandKitInstance {
 export type Brand = {
   id: string
   name: string
-  domainUrl: string
+  domainUrls: string[]
   status: BrandTrackingStatus
   brandKits: BrandKitInstance[]
   variations: string[]
@@ -29,7 +29,7 @@ export const BRANDS: Brand[] = [
   {
     id: 'brand-1',
     name: 'My Family Dental',
-    domainUrl: 'myfamilydental.com',
+    domainUrls: ['myfamilydental.com'],
     status: 'Tracking',
     variations: ['My Family Dentist', 'MFD', 'My Family Dental Care', 'Family Dental Care'],
     brandKits: [{ id: 'bk-1', name: 'My Family Dental', locationScope: 'All locations' }],
@@ -37,7 +37,7 @@ export const BRANDS: Brand[] = [
   {
     id: 'brand-2',
     name: 'Aspen Dental',
-    domainUrl: 'www.aspendental.com',
+    domainUrls: ['www.aspendental.com'],
     status: 'Tracking',
     variations: [],
     brandKits: [],

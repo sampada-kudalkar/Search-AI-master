@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BrandDrawer, CardTabs, Chip, DataTable, Icon, InfoTooltip, type Column, type RowMenuItem, type Tab } from '../components'
+import { BrandDrawer, CardTabs, Chip, DataTable, DomainListCell, Icon, InfoTooltip, type Column, type RowMenuItem, type Tab } from '../components'
 import { BRANDS, Brand, BrandKitInstance, OTHER_BRANDS, OtherBrand } from '../data/brandsData'
 
 type BrandVariationRow = OtherBrand & { isYourBrand?: boolean }
@@ -9,7 +9,32 @@ const TABS: Tab[] = [
   { id: 'brand-variations', label: 'Brand variations' },
 ]
 
-const INITIAL_BRANDS: Brand[] = [BRANDS[0]]
+const MULTI_DOMAIN_DEMO_BRAND: Brand = {
+  id: 'brand-multi-domain-demo',
+  name: 'Bright Smile Dental Group',
+  domainUrls: [
+    'brightsmiledental.com',
+    'brightsmile-austin.com',
+    'brightsmile-dallas.com',
+    'brightsmile-houston.com',
+    'brightsmile-sanantonio.com',
+    'brightsmile-elpaso.com',
+    'brightsmile-fortworth.com',
+    'brightsmile-plano.com',
+    'brightsmile-arlington.com',
+    'brightsmile-corpuschristi.com',
+    'brightsmile-laredo.com',
+    'brightsmile-lubbock.com',
+    'brightsmile-garland.com',
+    'brightsmile-irving.com',
+    'brightsmile-amarillo.com',
+  ],
+  status: 'Tracking',
+  variations: [],
+  brandKits: [],
+}
+
+const INITIAL_BRANDS: Brand[] = [BRANDS[0], MULTI_DOMAIN_DEMO_BRAND]
 
 export function BrandV1Screen() {
   const [activeTab, setActiveTab] = useState('your-brands')
@@ -37,7 +62,7 @@ export function BrandV1Screen() {
     setSavedOtherBrands(otherBrands)
   }
 
-  function handleSaveBrand(values: { name: string; domainUrl: string; variations: string[]; brandKits: BrandKitInstance[] }) {
+  function handleSaveBrand(values: { name: string; domainUrls: string[]; variations: string[]; brandKits: BrandKitInstance[] }) {
     if (drawer?.mode === 'edit' && drawer.brand) {
       const id = drawer.brand.id
       setBrands((prev) => prev.map((b) => (b.id === id ? { ...b, ...values } : b)))
@@ -47,12 +72,13 @@ export function BrandV1Screen() {
     setDrawer(null)
   }
 
-  function handleSaveOtherBrand(values: { name: string; domainUrl: string; variations: string[] }) {
+  function handleSaveOtherBrand(values: { name: string; domainUrls: string[]; variations: string[] }) {
+    const otherValues = { name: values.name, domainUrl: values.domainUrls[0] ?? '', variations: values.variations }
     if (otherDrawer?.mode === 'edit' && otherDrawer.brand) {
       const id = otherDrawer.brand.id
-      setOtherBrands((prev) => prev.map((b) => (b.id === id ? { ...b, ...values } : b)))
+      setOtherBrands((prev) => prev.map((b) => (b.id === id ? { ...b, ...otherValues } : b)))
     } else {
-      setOtherBrands((prev) => [...prev, { id: `other-${Date.now()}`, ...values }])
+      setOtherBrands((prev) => [...prev, { id: `other-${Date.now()}`, ...otherValues }])
     }
     setOtherDrawer(null)
   }
@@ -70,7 +96,11 @@ export function BrandV1Screen() {
       sortable: true,
       render: (_v, row) => <span className="text-body text-text-primary group-hover/row:text-text-action">{row.name}</span>,
     },
-    { key: 'domainUrl', label: 'Website', render: (_v, row) => row.domainUrl },
+    {
+      key: 'domainUrls',
+      label: 'Website',
+      render: (_v, row) => <DomainListCell domains={row.domainUrls} />,
+    },
   ]
 
   const brandRowMenuItems: RowMenuItem<Brand>[] = [
@@ -78,7 +108,7 @@ export function BrandV1Screen() {
   ]
 
   const variationRows: BrandVariationRow[] = [
-    ...brands.map((b) => ({ id: b.id, name: b.name, domainUrl: b.domainUrl, variations: b.variations, isYourBrand: true })),
+    ...brands.map((b) => ({ id: b.id, name: b.name, domainUrl: b.domainUrls[0] ?? '', variations: b.variations, isYourBrand: true })),
     ...otherBrands.map((b) => ({ ...b, isYourBrand: false })),
   ]
 
@@ -257,7 +287,7 @@ export function BrandV1Screen() {
           drawer?.brand
             ? {
                 name: drawer.brand.name,
-                domainUrl: drawer.brand.domainUrl,
+                domainUrls: drawer.brand.domainUrls,
                 variations: drawer.brand.variations,
                 brandKits: drawer.brand.brandKits,
               }
@@ -265,6 +295,7 @@ export function BrandV1Screen() {
         }
         hideBrandKit
         hideVariations
+        multiDomain
         onClose={() => setDrawer(null)}
         onSave={handleSaveBrand}
       />
@@ -279,7 +310,7 @@ export function BrandV1Screen() {
           otherDrawer?.brand
             ? {
                 name: otherDrawer.brand.name,
-                domainUrl: otherDrawer.brand.domainUrl,
+                domainUrls: [otherDrawer.brand.domainUrl],
                 variations: otherDrawer.brand.variations,
                 brandKits: [],
               }

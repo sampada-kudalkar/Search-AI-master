@@ -5,7 +5,7 @@ import { BRAND_KITS, BrandKitInstance } from '../../data/brandsData'
 import { SelectMenu } from '../SelectMenu/SelectMenu'
 import { BrandDrawerProps, BrandDrawerValues } from './BrandDrawer.types'
 
-const EMPTY_VALUES: BrandDrawerValues = { name: '', domainUrl: '', variations: [], brandKits: [] }
+const EMPTY_VALUES: BrandDrawerValues = { name: '', domainUrls: [''], variations: [], brandKits: [] }
 
 export function BrandDrawer({
   open,
@@ -15,6 +15,7 @@ export function BrandDrawer({
   hideBrandKit,
   hideVariations,
   hideDomainUrl,
+  multiDomain,
   onClose,
   onSave,
 }: BrandDrawerProps) {
@@ -37,13 +38,33 @@ export function BrandDrawer({
   const base = initialValues ?? EMPTY_VALUES
   const isDirty =
     values.name !== base.name ||
-    values.domainUrl !== base.domainUrl ||
+    values.domainUrls.join('|') !== base.domainUrls.join('|') ||
     values.variations.join('|') !== base.variations.join('|') ||
     JSON.stringify(values.brandKits) !== JSON.stringify(base.brandKits)
 
+  const hasValidDomain = hideDomainUrl || values.domainUrls.some((d) => d.trim().length > 0)
+  const canSave = isDirty && hasValidDomain
+
   function handleSave() {
-    if (!isDirty) return
-    onSave(values)
+    if (!canSave) return
+    if (multiDomain) {
+      const trimmedDomains = values.domainUrls.map((d) => d.trim()).filter(Boolean)
+      onSave({ ...values, domainUrls: trimmedDomains })
+    } else {
+      onSave(values)
+    }
+  }
+
+  function updateDomain(index: number, value: string) {
+    setValues((v) => ({ ...v, domainUrls: v.domainUrls.map((d, i) => (i === index ? value : d)) }))
+  }
+
+  function addDomain() {
+    setValues((v) => ({ ...v, domainUrls: [...v.domainUrls, ''] }))
+  }
+
+  function removeDomain(index: number) {
+    setValues((v) => ({ ...v, domainUrls: v.domainUrls.filter((_, i) => i !== index) }))
   }
 
   function addVariation() {
@@ -108,10 +129,10 @@ export function BrandDrawer({
             </button>
             <button
               type="button"
-              disabled={!isDirty}
+              disabled={!canSave}
               onClick={handleSave}
               className={`rounded-sm px-lg py-[7px] text-body transition-colors ${
-                isDirty
+                canSave
                   ? 'bg-primary text-white hover:bg-primary-hover'
                   : 'cursor-not-allowed bg-surface-selected text-text-tertiary'
               }`}
@@ -135,17 +156,57 @@ export function BrandDrawer({
             />
           </div>
 
-          {!hideDomainUrl && (
+          {!hideDomainUrl && !multiDomain && (
             <div className="flex flex-col gap-xs">
               <label className="text-small text-text-primary">
                 Domain URL <span className="text-danger">*</span>
               </label>
               <input
-                value={values.domainUrl}
-                onChange={(e) => setValues((v) => ({ ...v, domainUrl: e.target.value }))}
+                value={values.domainUrls[0] ?? ''}
+                onChange={(e) => updateDomain(0, e.target.value)}
                 placeholder="Enter URL"
                 className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
               />
+            </div>
+          )}
+
+          {!hideDomainUrl && multiDomain && (
+            <div className="flex flex-col gap-sm">
+              {values.domainUrls.map((domain, index) => (
+                <div key={index} className="flex flex-col gap-xs">
+                  {index === 0 && (
+                    <label className="text-small text-text-primary">
+                      Domain URL <span className="text-danger">*</span>
+                    </label>
+                  )}
+                  <div className="flex items-center gap-xs">
+                    <input
+                      value={domain}
+                      onChange={(e) => updateDomain(index, e.target.value)}
+                      placeholder="Enter URL"
+                      className="h-9 w-full rounded-sm border border-border-input bg-surface px-md text-body text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary"
+                    />
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        aria-label="Remove domain"
+                        onClick={() => removeDomain(index)}
+                        className="flex size-9 shrink-0 items-center justify-center rounded-sm text-text-icon hover:bg-surface-l2"
+                      >
+                        <Icon name="close" size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addDomain}
+                className="group flex w-fit items-center gap-xs text-body text-text-action"
+              >
+                <Icon name="add_circle" size={16} className="text-text-action" />
+                <span className="group-hover:underline">Add domain</span>
+              </button>
             </div>
           )}
 

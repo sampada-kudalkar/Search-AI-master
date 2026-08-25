@@ -12,7 +12,7 @@ export function BrandsScreen() {
   const [otherDrawer, setOtherDrawer] = useState<{ mode: 'add' | 'edit'; brand: OtherBrand | null } | null>(null)
   const [otherPendingDelete, setOtherPendingDelete] = useState<OtherBrand | null>(null)
 
-  function handleSave(values: { name: string; domainUrl: string; variations: string[]; brandKits: BrandKitInstance[] }) {
+  function handleSave(values: { name: string; domainUrls: string[]; variations: string[]; brandKits: BrandKitInstance[] }) {
     if (drawer?.mode === 'edit' && drawer.brand) {
       const id = drawer.brand.id
       setBrands((prev) => prev.map((b) => (b.id === id ? { ...b, ...values } : b)))
@@ -28,12 +28,13 @@ export function BrandsScreen() {
     setPendingDelete(null)
   }
 
-  function handleSaveOtherBrand(values: { name: string; domainUrl: string; variations: string[] }) {
+  function handleSaveOtherBrand(values: { name: string; domainUrls: string[]; variations: string[] }) {
+    const otherValues = { name: values.name, domainUrl: values.domainUrls[0] ?? '', variations: values.variations }
     if (otherDrawer?.mode === 'edit' && otherDrawer.brand) {
       const id = otherDrawer.brand.id
-      setOtherBrands((prev) => prev.map((b) => (b.id === id ? { ...b, ...values } : b)))
+      setOtherBrands((prev) => prev.map((b) => (b.id === id ? { ...b, ...otherValues } : b)))
     } else {
-      setOtherBrands((prev) => [...prev, { id: `other-${Date.now()}`, ...values }])
+      setOtherBrands((prev) => [...prev, { id: `other-${Date.now()}`, ...otherValues }])
     }
     setOtherDrawer(null)
   }
@@ -57,9 +58,9 @@ export function BrandsScreen() {
       ),
     },
     {
-      key: 'domainUrl',
+      key: 'domainUrls',
       label: 'Website',
-      render: (_v, row) => row.domainUrl,
+      render: (_v, row) => row.domainUrls[0],
     },
     {
       key: 'variations',
@@ -209,7 +210,7 @@ export function BrandsScreen() {
           drawer?.brand
             ? {
                 name: drawer.brand.name,
-                domainUrl: drawer.brand.domainUrl,
+                domainUrls: drawer.brand.domainUrls,
                 variations: drawer.brand.variations,
                 brandKits: drawer.brand.brandKits,
               }
@@ -230,7 +231,7 @@ export function BrandsScreen() {
           otherDrawer?.brand
             ? {
                 name: otherDrawer.brand.name,
-                domainUrl: otherDrawer.brand.domainUrl,
+                domainUrls: [otherDrawer.brand.domainUrl],
                 variations: otherDrawer.brand.variations,
                 brandKits: [],
               }

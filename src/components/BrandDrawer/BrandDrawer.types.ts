@@ -2,7 +2,7 @@ import { BrandKitInstance } from '../../data/brandsData'
 
 export interface BrandDrawerValues {
   name: string
-  domainUrl: string
+  domainUrls: string[]
   variations: string[]
   brandKits: BrandKitInstance[]
 }
@@ -15,6 +15,7 @@ export interface BrandDrawerProps {
   hideBrandKit?: boolean
   hideVariations?: boolean
   hideDomainUrl?: boolean
+  multiDomain?: boolean
   onClose: () => void
   onSave: (values: BrandDrawerValues) => void
 }
