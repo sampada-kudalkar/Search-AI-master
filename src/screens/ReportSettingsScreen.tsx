@@ -3,6 +3,9 @@ import { AiIcon, CardHeader, Chip, Icon, SelectMenu, Toggle } from '../component
 import { AI_SITE_COLORS } from '../components/ThemesPromptsTable/ThemesPromptsTable'
 import iconGoogle from '../assets/icon-google.svg'
 import iconGemini from '../assets/icon-gemini.svg'
+import iconChatgpt from '../assets/icon-chatgpt.png'
+import iconClaude from '../assets/icon-claude.webp'
+import iconPerplexity from '../assets/icon-perplexity.webp'
 
 type Frequency = 'weekly' | 'daily' | 'monthly'
 
@@ -22,12 +25,12 @@ const FREQUENCY_OPTIONS = [
 ]
 
 const AI_SITES: { id: AiSiteId; label: string; iconSrc?: string; caption?: string }[] = [
-  { id: 'chatgpt', label: 'ChatGPT' },
+  { id: 'chatgpt', label: 'ChatGPT', iconSrc: iconChatgpt },
   { id: 'gemini', label: 'Gemini', iconSrc: iconGemini },
-  { id: 'perplexity', label: 'Perplexity' },
+  { id: 'perplexity', label: 'Perplexity', iconSrc: iconPerplexity },
   { id: 'google-ai-overviews', label: 'Google AI Overviews', iconSrc: iconGoogle },
   { id: 'google-ai-mode', label: 'Google AI Mode', iconSrc: iconGoogle },
-  { id: 'claude', label: 'Claude', caption: 'Uses 3x more prompts' },
+  { id: 'claude', label: 'Claude', iconSrc: iconClaude, caption: 'Uses 3x more prompts' },
   { id: 'all', label: 'All sites' },
 ]
 
@@ -257,8 +260,10 @@ export function ReportSettingsScreen() {
                       }}
                       className="mt-[2px] size-[16px] rounded border-border disabled:cursor-not-allowed disabled:opacity-60"
                     />
-                    {site.iconSrc ? (
-                      <img src={site.iconSrc} alt="" className="mt-[1px] size-[18px] shrink-0" />
+                    {isAll ? null : site.iconSrc ? (
+                      <span className="mt-[1px] flex size-[18px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+                        <img src={site.iconSrc} alt="" className="size-full object-cover" />
+                      </span>
                     ) : AI_SITE_COLORS[site.label] ? (
                       <span
                         className="mt-[1px] flex size-[18px] shrink-0 items-center justify-center rounded-full text-[10px] text-white"
