@@ -28,7 +28,7 @@ const AI_SITES: { id: AiSiteId; label: string; iconSrc?: string; caption?: strin
   { id: 'google-ai-overviews', label: 'Google AI Overviews', iconSrc: iconGoogle },
   { id: 'google-ai-mode', label: 'Google AI Mode', iconSrc: iconGoogle },
   { id: 'claude', label: 'Claude', caption: 'Uses 3x more prompts' },
-  { id: 'all', label: 'All', caption: 'Aggregates data across all AI sites' },
+  { id: 'all', label: 'All sites' },
 ]
 
 const DEFAULT_STATE: ReportSettingsState = {
@@ -41,13 +41,19 @@ const DEFAULT_STATE: ReportSettingsState = {
     'google-ai-overviews': false,
     'google-ai-mode': false,
     claude: false,
-    all: false,
+    all: true,
   },
   defaultSite: 'chatgpt',
 }
 
 function isEqual(a: ReportSettingsState, b: ReportSettingsState) {
   return JSON.stringify(a) === JSON.stringify(b)
+}
+
+function formatSiteList(labels: string[]): string {
+  if (labels.length === 0) return ''
+  if (labels.length === 1) return labels[0]
+  return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`
 }
 
 function FrequencyDropdown({
@@ -219,7 +225,18 @@ export function ReportSettingsScreen() {
               subtitle="Choose which AI sites to include in tracking reports. Mark one as default to show it first across reports."
             />
             <div className="mt-lg flex flex-col gap-lg">
-              {AI_SITES.map((site) => (
+              {AI_SITES.map((site) => {
+                const isAll = site.id === 'all'
+                const selectedLabels = isAll
+                  ? AI_SITES.filter((s) => s.id !== 'all' && state.aiSites[s.id]).map((s) => s.label)
+                  : []
+                const caption = isAll
+                  ? selectedLabels.length > 0
+                    ? `Aggregates data across ${formatSiteList(selectedLabels)}`
+                    : 'Select at least one AI site to aggregate data'
+                  : site.caption
+
+                return (
                 <label
                   key={site.id}
                   className="group flex cursor-pointer items-start justify-between gap-md"
@@ -228,6 +245,7 @@ export function ReportSettingsScreen() {
                     <input
                       type="checkbox"
                       checked={state.aiSites[site.id]}
+                      disabled={isAll}
                       onChange={(e) => {
                         const checked = e.target.checked
                         setState((s) => ({
@@ -237,7 +255,7 @@ export function ReportSettingsScreen() {
                             !checked && s.defaultSite === site.id ? null : s.defaultSite,
                         }))
                       }}
-                      className="mt-[2px] size-[16px] rounded border-border"
+                      className="mt-[2px] size-[16px] rounded border-border disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     {site.iconSrc ? (
                       <img src={site.iconSrc} alt="" className="mt-[1px] size-[18px] shrink-0" />
@@ -253,8 +271,8 @@ export function ReportSettingsScreen() {
                     )}
                     <div className="flex flex-col">
                       <span className="text-body text-text-primary">{site.label}</span>
-                      {site.caption && (
-                        <span className="text-small text-text-secondary">{site.caption}</span>
+                      {caption && (
+                        <span className="text-small text-text-secondary">{caption}</span>
                       )}
                     </div>
                   </div>
@@ -276,7 +294,8 @@ export function ReportSettingsScreen() {
                     ) : null}
                   </div>
                 </label>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
